@@ -1,25 +1,34 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, Package, FileText, ShoppingBag, Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../store';
+import { logout } from '../store/slices/authSlice';
+import { Home, Users, FileText, Menu, X, LogOut, Book } from 'lucide-react';
 import { Button } from '@nextui-org/react';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const isActive = (path: string) => {
-    return location.pathname === path ? 'bg-teal-600' : '';
+    return location.pathname === path ? 'bg-gray-100' : '';
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
   };
 
   const navItems = [
     { path: '/clientes', icon: Users, label: 'Clientes' },
-    { path: '/materiales', icon: Package, label: 'Materiales' },
-    { path: '/productos', icon: ShoppingBag, label: 'Paquetes' },
+    { path: '/catalogo', icon: Book, label: 'Catálogo' },
     { path: '/cotizaciones', icon: FileText, label: 'Cotizaciones' },
   ];
 
   return (
-    <nav className="bg-teal-500 text-white">
+    <nav className="bg-white text-gray-700 shadow">
       <div className="container mx-auto px-4">
         <div className="relative flex items-center justify-between h-16">
           {/* Logo - always visible */}
@@ -34,7 +43,6 @@ const Navbar = () => {
               isIconOnly
               variant="light"
               onPress={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-white"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </Button>
@@ -46,7 +54,7 @@ const Navbar = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 hover:bg-teal-700 ${isActive(
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 hover:bg-gray-100 ${isActive(
                   item.path
                 )}`}
               >
@@ -54,6 +62,14 @@ const Navbar = () => {
                 <span>{item.label}</span>
               </Link>
             ))}
+            <Button
+              variant="light"
+              onPress={handleLogout}
+              className="text-gray-700"
+              startContent={<LogOut size={20} />}
+            >
+              Cerrar sesión
+            </Button>
           </div>
         </div>
 
@@ -61,14 +77,14 @@ const Navbar = () => {
         <div
           className={`${
             isMenuOpen ? 'block' : 'hidden'
-          } md:hidden absolute left-0 right-0 bg-teal-600 z-50 shadow-lg border-t border-teal-700`}
+          } md:hidden absolute left-0 right-0 bg-white z-50 shadow-lg border-t border-gray-200`}
         >
           <div className="px-2 pt-2 pb-3 space-y-1">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-colors duration-150 hover:bg-teal-600 ${isActive(
+                className={`flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-colors duration-150 hover:bg-gray-100 ${isActive(
                   item.path
                 )}`}
                 onClick={() => setIsMenuOpen(false)}
@@ -77,6 +93,14 @@ const Navbar = () => {
                 <span>{item.label}</span>
               </Link>
             ))}
+            <Button
+              variant="light"
+              onPress={handleLogout}
+              className="text-gray-700 w-full justify-start"
+              startContent={<LogOut size={20} />}
+            >
+              Cerrar sesión
+            </Button>
           </div>
         </div>
       </div>

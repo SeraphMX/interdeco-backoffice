@@ -6,6 +6,16 @@ export interface Cliente {
   notas?: string;
 }
 
+export type UserRole = 'admin' | 'staff';
+
+export interface User {
+  id: string;
+  email: string;
+  password: string;
+  name: string;
+  role: UserRole;
+}
+
 export type MaterialCategoria = 'Pisos' | 'Paredes' | 'Techos' | 'Cocina' | 'Baño' | 'Persianas';
 export type UnidadCompra = 'metro' | 'caja' | 'pieza' | 'rollo';
 export type UnidadVenta = 'metro cuadrado' | 'metro lineal';

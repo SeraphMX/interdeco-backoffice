@@ -12,6 +12,7 @@
   "dependencies": {
     "@nextui-org/react": "^2.2.10",
     "@reduxjs/toolkit": "^2.2.1",
+    "@supabase/supabase-js": "^2.39.8",
     "chart.js": "^4.4.2",
     "framer-motion": "^11.0.8",
     "lucide-react": "^0.344.0",
