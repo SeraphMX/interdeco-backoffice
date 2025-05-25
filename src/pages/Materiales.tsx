@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { addMaterial, deleteMaterial } from '../store/slices/materialesSlice';
 import { PlusCircle, Trash2, Edit, Search } from 'lucide-react';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Card, CardBody, CardHeader, Select, SelectItem, Chip } from "@nextui-org/react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Card, CardBody, CardHeader, Select, SelectItem, Chip } from "@heroui/react";
 import { MaterialCategoria, UnidadCompra, UnidadVenta } from '../types';
 
 const categorias: MaterialCategoria[] = ['Pisos', 'Paredes', 'Techos', 'Cocina', 'Baño', 'Persianas'];

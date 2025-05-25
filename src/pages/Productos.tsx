@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { addProducto, deleteProducto } from '../store/slices/productosSlice';
 import { PlusCircle, Trash2, Edit, Search, Plus, Minus } from 'lucide-react';
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Card, CardBody, CardHeader, Select, SelectItem, Textarea } from "@nextui-org/react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Card, CardBody, CardHeader, Select, SelectItem, Textarea } from "@heroui/react";
 
 const Productos = () => {
   const dispatch = useDispatch();

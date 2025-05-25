@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
 import { logout } from '../store/slices/authSlice';
 import { Home, Users, FileText, Menu, X, LogOut, Book } from 'lucide-react';
-import { Button } from '@nextui-org/react';
+import { Button } from "@heroui/react";
 
 const Navbar = () => {
   const location = useLocation();

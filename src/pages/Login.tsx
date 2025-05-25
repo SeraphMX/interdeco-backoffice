@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { RootState } from '../store';
 import { login, clearError } from '../store/slices/authSlice';
-import { Card, CardBody, Input, Button, Tabs, Tab } from "@nextui-org/react";
+import { Card, CardBody, Input, Button, Tabs, Tab } from "@heroui/react";
 
 const Login = () => {
   const dispatch = useDispatch();

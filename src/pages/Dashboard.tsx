@@ -2,7 +2,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { FileText, Users, Package, TrendingUp } from 'lucide-react';
-import { Card, CardBody, CardHeader, Chip } from "@nextui-org/react";
+import { Card, CardBody, CardHeader, Chip } from "@heroui/react";
 import {
   Chart as ChartJS,
   CategoryScale,

@@ -20,7 +20,7 @@ import {
   DropdownItem,
   Selection,
   SortDescriptor
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { CotizacionStatus } from '../types';
 
 const statusColorMap: Record<CotizacionStatus, "success" | "warning" | "danger" | "primary"> = {

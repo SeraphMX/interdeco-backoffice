@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { addCotizacion } from '../store/slices/cotizacionesSlice';
 import { Plus, Minus, ArrowLeft, Calculator } from 'lucide-react';
-import { Button, Input, Card, CardBody, Select, SelectItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@nextui-org/react";
+import { Button, Input, Card, CardBody, Select, SelectItem, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/react";
 
 const NuevaCotizacion = () => {
   const navigate = useNavigate();
