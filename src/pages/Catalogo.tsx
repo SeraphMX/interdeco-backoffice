@@ -56,7 +56,7 @@ const Catalogo = () => {
   const [selectedCategories, setSelectedCategories] = useState<Selection>(new Set([]))
   const [selectedProviders, setSelectedProviders] = useState<Selection>(new Set([]))
   const [priceRange, setPriceRange] = useState({ min: '', max: '' })
-  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({})
+  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'category_description', direction: 'ascending' })
   const [selectedProduct, setSelectedProduct] = useState<ProductDetails | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const prevProductRef = useRef<ProductDetails | null>(null)
@@ -66,19 +66,7 @@ const Catalogo = () => {
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
-    mode: 'onSubmit'
-    // defaultValues: {
-    //   id: selectedProduct?.id ? Number(selectedProduct.id) : undefined,
-    //   sku: selectedProduct?.sku || '',
-    //   description: selectedProduct?.description || '',
-    //   provider: selectedProduct?.provider,
-    //   category: selectedProduct?.category,
-    //   spec: selectedProduct?.spec || '',
-    //   package_unit: selectedProduct?.package_unit || undefined,
-    //   measurement_unit: selectedProduct?.measurement_unit || '',
-    //   wholesale_price: selectedProduct?.wholesale_price || undefined,
-    //   public_price: selectedProduct?.public_price || 0
-    // }
+    mode: 'all'
   })
 
   const {
@@ -183,12 +171,19 @@ const Catalogo = () => {
     try {
       console.log('Datos a guardar:', data)
 
-      // const { data: updated, error } = await supabase.from('products').update(data).eq('id', selectedProduct.id).select()
+      const { provider_name, category_description } = selectedProduct //Guarda los campos adicionales que no estan en la tabla
 
-      // if (error) throw error
+      const { data: updated, error } = await supabase.from('products').update(data).eq('id', selectedProduct.id).select()
+      if (error) throw error
 
-      // setProducts((prev) => prev.map((p) => (p.id === selectedProduct.id ? { ...p, ...updated[0] } : p)))
-      // setSelectedProduct(updated[0])
+      const updatedWithExtras = {
+        ...updated[0],
+        provider_name,
+        category_description
+      }
+
+      setProducts((prev) => prev.map((p) => (p.id === selectedProduct.id ? { ...p, ...updatedWithExtras } : p)))
+      setSelectedProduct(updatedWithExtras)
     } catch (err) {
       setError('Error al guardar los cambios')
       console.error('Error:', err)
@@ -447,7 +442,7 @@ const Catalogo = () => {
               )}
 
               {isEditing ? (
-                <Input size='sm' label='Especificaciones' {...register('spec')} isClearable />
+                <Input size='sm' label='Especificaciones' {...register('spec')} isClearable isInvalid={!!errors.spec} />
               ) : (
                 selectedProduct.spec && (
                   <div>
