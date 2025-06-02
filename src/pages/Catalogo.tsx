@@ -615,7 +615,7 @@ const Catalogo = () => {
                   <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>{item.provider_name}</TableCell>
                   <TableCell className='w-1/2 max-w-md whitespace-nowrap text-ellipsis overflow-hidden'>{item.description}</TableCell>
                   <TableCell>
-                    {item.public_price.toLocaleString('es-MX', {
+                    {(item.price * (1 + item.utility / 100)).toLocaleString('es-MX', {
                       style: 'currency',
                       currency: 'MXN'
                     })}
