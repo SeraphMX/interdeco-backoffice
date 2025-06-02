@@ -14,6 +14,8 @@ export const productSchema = z.object({
   measurement_unit: z.string().min(1, 'La unidad de medida es requerida'),
   wholesale_price: z.preprocess((val) => (val === '' ? undefined : val), z.coerce.number().nonnegative()).optional(),
   public_price: z.coerce.number().nonnegative().positive(),
+  price: z.coerce.number().nonnegative().positive(),
+  utility: z.coerce.number().nonnegative().positive(),
   category: z.coerce.number().nonnegative(),
   spec: z.preprocess((val) => {
     if (val === null || val === '') return undefined

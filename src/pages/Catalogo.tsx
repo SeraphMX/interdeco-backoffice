@@ -44,6 +44,7 @@ interface ProductDetails {
   category: number
   spec?: string
   price: number
+  utility: number
   provider_name: string
   category_description: string
 }
@@ -72,10 +73,20 @@ const Catalogo = () => {
   const {
     register,
     handleSubmit,
+    watch,
     control,
     getValues,
     formState: { isDirty, errors }
   } = form
+
+  const watchPrice = watch('price')
+  const watchUtility = watch('utility')
+
+  // Calcula precio público en vivo
+  const livePrice = parseFloat((watchPrice || 0).toString())
+  const liveUtility = parseFloat((watchUtility || 0).toString())
+  const publicPrice = livePrice * (1 + liveUtility / 100)
+  const pricePerPackage = publicPrice * (selectedProduct?.package_unit ?? 1)
 
   useEffect(() => {
     fetchProducts()
@@ -404,7 +415,7 @@ const Catalogo = () => {
                 </Button>
               </div>
             </CardHeader>
-            <CardBody className='grid grid-cols-4 gap-4'>
+            <CardBody className='grid grid-cols-5 gap-4'>
               {isEditing ? (
                 <Input size='sm' label='SKU' {...register('sku')} isInvalid={!!errors.sku} isClearable />
               ) : (
@@ -474,7 +485,7 @@ const Catalogo = () => {
                 </div>
               )}
 
-              {isEditing ? (
+              {/* {isEditing ? (
                 <Input size='sm' label='Precio mayoreo' type='number' {...register('wholesale_price')} isClearable />
               ) : (
                 <div>
@@ -486,22 +497,15 @@ const Catalogo = () => {
                     }) || 'N/A'}
                   </p>
                 </div>
-              )}
+              )} */}
 
               {isEditing ? (
-                <Input
-                  size='sm'
-                  label='Precio público'
-                  type='number'
-                  {...register('public_price')}
-                  isInvalid={!!errors.public_price}
-                  isClearable
-                />
+                <Input size='sm' label='Precio' type='number' {...register('price')} isInvalid={!!errors.public_price} isClearable />
               ) : (
                 <div>
-                  <p className='text-sm text-gray-500'>Precio público</p>
+                  <p className='text-sm text-gray-500'>Precio</p>
                   <p className='font-medium'>
-                    {selectedProduct.public_price.toLocaleString('es-MX', {
+                    {selectedProduct.price.toLocaleString('es-MX', {
                       style: 'currency',
                       currency: 'MXN'
                     })}
@@ -509,7 +513,42 @@ const Catalogo = () => {
                 </div>
               )}
 
-              <div className='col-span-4'>
+              {isEditing ? (
+                <Input size='sm' label='Utilidad' type='number' {...register('utility')} isInvalid={!!errors.public_price} isClearable />
+              ) : (
+                <div>
+                  <p className='text-sm text-gray-500'>Utilidad</p>
+                  <p className='font-medium'>{selectedProduct.utility}%</p>
+                </div>
+              )}
+
+              <div className='colspan-2'>
+                <p className='text-sm text-gray-500'>Precio público</p>
+                <p className='font-medium'>
+                  {(isEditing ? publicPrice : selectedProduct.price * (1 + selectedProduct.utility / 100)).toLocaleString('es-MX', {
+                    style: 'currency',
+                    currency: 'MXN'
+                  })}
+                  {selectedProduct.measurement_unit === 'M2' && '/m²'} |{' '}
+                  {(isEditing
+                    ? pricePerPackage
+                    : selectedProduct.price * (1 + selectedProduct.utility / 100) * (selectedProduct.package_unit ?? 1)
+                  ).toLocaleString('es-MX', {
+                    style: 'currency',
+                    currency: 'MXN'
+                  })}{' '}
+                  {selectedProduct.measurement_unit === 'M2' && '/caja'} <br />
+                  <span className='text-xs text-green-700'>
+                    Anterior:{' '}
+                    {selectedProduct.public_price.toLocaleString('es-MX', {
+                      style: 'currency',
+                      currency: 'MXN'
+                    })}
+                  </span>
+                </p>
+              </div>
+
+              <div className='col-span-5'>
                 {isEditing ? (
                   <Textarea
                     className='w-full'
