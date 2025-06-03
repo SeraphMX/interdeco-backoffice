@@ -1,4 +1,6 @@
 import {
+  addToast,
+  Alert,
   Button,
   Card,
   CardBody,
@@ -29,7 +31,7 @@ import {
   useDisclosure
 } from '@heroui/react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Edit, ImportIcon, Plus, Save, Search, Trash2, X } from 'lucide-react'
+import { Edit, ImportIcon, Plus, Save, Search, Trash2, TriangleAlert, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSelector } from 'react-redux'
@@ -54,6 +56,7 @@ const Catalogo = () => {
   const [wrapperHeight, setwrapperHeight] = useState(0)
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure()
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onOpenChange: onDeleteOpenChange } = useDisclosure()
 
   const [isEditing, setIsEditing] = useState(false)
 
@@ -196,15 +199,28 @@ const Catalogo = () => {
   const handleDelete = async () => {
     if (!selectedProduct) return
     try {
-      const { error } = await supabase.from('product_details_view').delete().eq('id', selectedProduct.id)
+      const { error } = await supabase.from('products').delete().eq('id', selectedProduct.id)
 
       if (error) throw error
+
+      console.log('Producto eliminado:', selectedProduct)
 
       // Remove the deleted product from the local state
       setProducts((prev) => prev.filter((p) => p.id !== selectedProduct.id))
       setSelectedProduct(null)
+
+      setIsEditing(false)
+      onDeleteOpenChange()
+
+      setTimeout(() => {
+        addToast({
+          title: 'Producto eliminado',
+          description: `El producto se borrado correctamente.`,
+          color: 'danger'
+        })
+      }, 1000)
     } catch (err) {
-      setError('Error al eliminar el producto')
+      //setError('Error al eliminar el producto')
       console.error('Error:', err)
     }
   }
@@ -389,9 +405,10 @@ const Catalogo = () => {
               <div>
                 {isEditing ? (
                   <>
-                    <Button isIconOnly color='danger' variant='light'>
+                    <Button isIconOnly color='danger' variant='light' onPress={onDeleteOpen}>
                       <Trash2 size={20} />
                     </Button>
+
                     <Button isIconOnly color='primary' variant='light' type='submit'>
                       <Save size={20} />
                     </Button>
@@ -650,6 +667,36 @@ const Catalogo = () => {
                 </Button>
                 <Button type='submit' form='add-product-form' color='primary'>
                   Guardar
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      <Modal isOpen={isDeleteOpen} onOpenChange={onDeleteOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className='flex flex-col gap-1'>Eliminar producto</ModalHeader>
+              <ModalBody>
+                <div>
+                  Estas seguro que deseas eliminar el producto <strong>{selectedProduct?.spec}</strong> del catálogo?
+                </div>
+                <Alert
+                  classNames={{ alertIcon: 'fill-none', base: 'p-1' }}
+                  hideIconWrapper
+                  color='danger'
+                  icon={<TriangleAlert />}
+                  title='Esto no se puede deshacer'
+                />
+              </ModalBody>
+              <ModalFooter>
+                <Button color='danger' variant='light' onPress={onClose}>
+                  Cancelar
+                </Button>
+                <Button type='submit' form='add-product-form' color='primary' onPress={handleDelete}>
+                  Eliminar
                 </Button>
               </ModalFooter>
             </>
