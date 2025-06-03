@@ -37,27 +37,10 @@ import AddProduct from '../components/forms/AddProduct'
 import { supabase } from '../lib/supabase'
 import { ProductFormData, productSchema } from '../schemas/product.schema'
 import { RootState } from '../store'
-
-interface ProductDetails {
-  id: number
-  created_at: string
-  sku?: string
-  description: string
-  provider: number
-  package_unit?: number
-  measurement_unit: string
-  wholesale_price?: number
-  public_price?: number
-  category: number
-  spec?: string
-  price?: number
-  utility?: number
-  provider_name: string
-  category_description: string
-}
+import { Product } from '../types'
 
 const Catalogo = () => {
-  const [products, setProducts] = useState<ProductDetails[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filterValue, setFilterValue] = useState('')
@@ -65,9 +48,9 @@ const Catalogo = () => {
   const [selectedProviders, setSelectedProviders] = useState<Selection>(new Set([]))
   const [priceRange, setPriceRange] = useState({ min: '', max: '' })
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'category_description', direction: 'ascending' })
-  const [selectedProduct, setSelectedProduct] = useState<ProductDetails | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
-  const prevProductRef = useRef<ProductDetails | null>(null)
+  const prevProductRef = useRef<Product | null>(null)
   const [wrapperHeight, setwrapperHeight] = useState(0)
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure()
@@ -594,6 +577,7 @@ const Catalogo = () => {
           onSortChange={setSortDescriptor}
           selectionMode='single'
           selectionBehavior='toggle'
+          //selectedKeys={selectedKeys}
           className='overflow-auto'
           classNames={{
             th: 'bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600'
@@ -601,6 +585,7 @@ const Catalogo = () => {
           onSelectionChange={(key) => {
             const selectedId = Array.from(key)[0]
             const product = products.find((p) => p.id == selectedId)
+            //setSelectedKeys(key)
             setSelectedProduct(product || null)
           }}
           shadow='none'
@@ -640,20 +625,31 @@ const Catalogo = () => {
       </div>
       <div className='text-sm bg-white text-gray-500 '>{filteredItems.length} resultados encontrados</div>
 
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Modal size='xl' isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className='flex flex-col gap-1'>Modal Title</ModalHeader>
+              <ModalHeader className='flex flex-col gap-1'>Agregar producto</ModalHeader>
               <ModalBody>
-                <AddProduct />
+                <AddProduct
+                  onSuccess={(product) => {
+                    console.log('Producto agregado:', product)
+
+                    console.log(products)
+
+                    setProducts((prev) => [...prev, product])
+                    setSelectedProduct(product)
+
+                    onClose()
+                  }}
+                />
               </ModalBody>
               <ModalFooter>
                 <Button color='danger' variant='light' onPress={onClose}>
                   Close
                 </Button>
-                <Button color='primary' onPress={onClose}>
-                  Action
+                <Button type='submit' form='add-product-form' color='primary'>
+                  Guardar
                 </Button>
               </ModalFooter>
             </>
