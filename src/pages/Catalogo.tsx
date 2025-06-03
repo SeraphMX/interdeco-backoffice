@@ -9,6 +9,11 @@ import {
   DropdownMenu,
   DropdownTrigger,
   Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
   Select,
   Selection,
   SelectItem,
@@ -20,13 +25,15 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-  Textarea
+  Textarea,
+  useDisclosure
 } from '@heroui/react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Edit, ImportIcon, Plus, Save, Search, Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSelector } from 'react-redux'
+import AddProduct from '../components/forms/AddProduct'
 import { supabase } from '../lib/supabase'
 import { ProductFormData, productSchema } from '../schemas/product.schema'
 import { RootState } from '../store'
@@ -62,6 +69,8 @@ const Catalogo = () => {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const prevProductRef = useRef<ProductDetails | null>(null)
   const [wrapperHeight, setwrapperHeight] = useState(0)
+
+  const { isOpen, onOpen, onOpenChange } = useDisclosure()
 
   const [isEditing, setIsEditing] = useState(false)
 
@@ -378,7 +387,7 @@ const Catalogo = () => {
           ) : null}
         </div>
         <div className='flex gap-2'>
-          <Button color='primary' variant='ghost'>
+          <Button color='primary' variant='ghost' onPress={onOpen}>
             <Plus size={20} />
             Nuevo
           </Button>
@@ -630,6 +639,27 @@ const Catalogo = () => {
         </Table>
       </div>
       <div className='text-sm bg-white text-gray-500 '>{filteredItems.length} resultados encontrados</div>
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className='flex flex-col gap-1'>Modal Title</ModalHeader>
+              <ModalBody>
+                <AddProduct />
+              </ModalBody>
+              <ModalFooter>
+                <Button color='danger' variant='light' onPress={onClose}>
+                  Close
+                </Button>
+                <Button color='primary' onPress={onClose}>
+                  Action
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   )
 }
