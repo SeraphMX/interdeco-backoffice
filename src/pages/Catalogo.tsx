@@ -37,6 +37,7 @@ import { Edit, EllipsisVertical, ImportIcon, Plus, Save, Search, Settings, Trash
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSelector } from 'react-redux'
+import AddCategory from '../components/forms/AddCategory'
 import AddProduct from '../components/forms/AddProduct'
 import { supabase } from '../lib/supabase'
 import { ProductFormData, productSchema } from '../schemas/product.schema'
@@ -63,6 +64,8 @@ const Catalogo = () => {
   const { isOpen: isConfigOpen, onOpen: onConfigOpen, onOpenChange: onConfigOpenChange } = useDisclosure()
 
   const [isEditing, setIsEditing] = useState(false)
+
+  const [addCategory, setAddCategory] = useState(false)
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -704,21 +707,39 @@ const Catalogo = () => {
           <ModalBody>
             <Tabs aria-label='Configuración' disableAnimation color='primary'>
               <Tab key='categories' title='Categorías'>
-                <div className='flex justify-between items-center mx-4 mb-2'>
-                  <span className=''>{rxCategories.length} categorías registradas</span>
-                  <Button
-                    variant='flat'
-                    color='primary'
-                    className='mb-2'
-                    onPress={() => {
-                      console.log('Agregar nueva categoría')
-                      // Aquí puedes abrir un modal o formulario para agregar una nueva categoría
+                {!addCategory && (
+                  <div className='flex justify-between items-center mx-4 mb-2'>
+                    <span>{rxCategories.length} categorías registradas</span>
+
+                    <Button
+                      variant='flat'
+                      color='primary'
+                      className='mb-2'
+                      onPress={() => {
+                        console.log('Agregar nueva categoría')
+                        setAddCategory(true)
+                        // Aquí puedes abrir un modal o formulario para agregar una nueva categoría
+                      }}
+                    >
+                      <Plus size={20} />
+                      Agregar categoría
+                    </Button>
+                  </div>
+                )}
+                {addCategory && (
+                  <AddCategory
+                    onSuccess={(category) => {
+                      console.log('Categoría agregada:', category)
+                      //setSelectedCategories((prev) => new Set([...prev, category.description]))
+                      addToast({
+                        title: 'Categoría agregada',
+                        description: `La categoría ${category.name} se ha guardado correctamente.`,
+                        color: 'success'
+                      })
                     }}
-                  >
-                    <Plus size={20} />
-                    Agregar categoría
-                  </Button>
-                </div>
+                    onCancel={() => setAddCategory(false)}
+                  />
+                )}
 
                 <Table
                   aria-label='Categorias de productos'
