@@ -9,6 +9,11 @@ import {
   DropdownMenu,
   DropdownTrigger,
   Input,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
   Select,
   Selection,
   SelectItem,
@@ -20,7 +25,8 @@ import {
   TableColumn,
   TableHeader,
   TableRow,
-  Textarea
+  Textarea,
+  useDisclosure
 } from '@heroui/react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Edit, ImportIcon, Plus, Save, Search, Trash2, X } from 'lucide-react'
@@ -62,6 +68,8 @@ const Catalogo = () => {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const prevProductRef = useRef<ProductDetails | null>(null)
   const [wrapperHeight, setwrapperHeight] = useState(0)
+
+  const { isOpen, onOpen, onOpenChange } = useDisclosure()
 
   const [isEditing, setIsEditing] = useState(false)
 
@@ -378,7 +386,7 @@ const Catalogo = () => {
           ) : null}
         </div>
         <div className='flex gap-2'>
-          <Button color='primary' variant='ghost'>
+          <Button color='primary' variant='ghost' onPress={onOpen}>
             <Plus size={20} />
             Nuevo
           </Button>
@@ -630,6 +638,39 @@ const Catalogo = () => {
         </Table>
       </div>
       <div className='text-sm bg-white text-gray-500 '>{filteredItems.length} resultados encontrados</div>
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className='flex flex-col gap-1'>Modal Title</ModalHeader>
+              <ModalBody>
+                <p>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam pulvinar risus non risus hendrerit venenatis. Pellentesque
+                  sit amet hendrerit risus, sed porttitor quam.
+                </p>
+                <p>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam pulvinar risus non risus hendrerit venenatis. Pellentesque
+                  sit amet hendrerit risus, sed porttitor quam.
+                </p>
+                <p>
+                  Magna exercitation reprehenderit magna aute tempor cupidatat consequat elit dolor adipisicing. Mollit dolor eiusmod sunt
+                  ex incididunt cillum quis. Velit duis sit officia eiusmod Lorem aliqua enim laboris do dolor eiusmod. Et mollit incididunt
+                  nisi consectetur esse laborum eiusmod pariatur proident Lorem eiusmod et. Culpa deserunt nostrud ad veniam.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color='danger' variant='light' onPress={onClose}>
+                  Close
+                </Button>
+                <Button color='primary' onPress={onClose}>
+                  Action
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   )
 }
