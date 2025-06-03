@@ -1,10 +1,12 @@
+import { Input } from '@heroui/react'
+
 const AddProduct = () => {
   return (
     <form>
       AddProduct
       <div>
         <label htmlFor='productName'>Product Name:</label>
-        <input type='text' id='productName' name='productName' required />
+        <Input size='sm' label='SKU' isClearable />
       </div>
       <div>
         <label htmlFor='productPrice'>Product Price:</label>
