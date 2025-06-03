@@ -7,19 +7,12 @@ export interface Category {
   color: string
 }
 
-export interface Provider {
-  id: number
-  name: string
-}
-
 interface CatalogState {
   categorias: Category[]
-  proveedores: Provider[]
 }
 
 const initialState: CatalogState = {
-  categorias: [],
-  proveedores: []
+  categorias: []
 }
 
 const catalogSlice = createSlice({
@@ -38,19 +31,6 @@ const catalogSlice = createSlice({
     },
     removeCategory(state, action: PayloadAction<number>) {
       state.categorias = state.categorias.filter((cat) => cat.id !== action.payload)
-    },
-    setProviders(state, action: PayloadAction<Provider[]>) {
-      state.proveedores = action.payload
-    },
-    addProvider(state, action: PayloadAction<Provider>) {
-      state.proveedores.push(action.payload)
-    },
-    updateProvider(state, action: PayloadAction<Provider>) {
-      const index = state.proveedores.findIndex((prov) => prov.id === action.payload.id)
-      if (index !== -1) state.proveedores[index] = action.payload
-    },
-    removeProvider(state, action: PayloadAction<number>) {
-      state.proveedores = state.proveedores.filter((prov) => prov.id !== action.payload)
     }
   }
 })
