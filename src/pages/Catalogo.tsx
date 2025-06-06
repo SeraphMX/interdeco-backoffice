@@ -243,7 +243,8 @@ const Catalogo = () => {
     { name: 'SKU', uid: 'sku', sortable: true },
     { name: 'CATEGORÍA', uid: 'category_description', sortable: true },
     { name: 'PROVEEDOR', uid: 'provider_name', sortable: true },
-    { name: 'DESCRIPCIÓN', uid: 'description', sortable: true },
+    { name: 'ESPECIFICACIÓN', uid: 'spec', sortable: true },
+    { name: 'DESCRIPCIÓN', uid: 'description', sortable: false },
     { name: 'PRECIO PÚBLICO', uid: 'public_price', sortable: true }
   ]
 
@@ -252,18 +253,15 @@ const Catalogo = () => {
       const matchesSearch =
         item.description.toLowerCase().includes(filterValue.toLowerCase()) ||
         (item.sku ?? '').toLowerCase().includes(filterValue.toLowerCase()) ||
-        item.category_description.toLowerCase().includes(filterValue.toLowerCase()) ||
-        item.provider_name.toLowerCase().includes(filterValue.toLowerCase())
+        //item.category_description.toLowerCase().includes(filterValue.toLowerCase()) ||
+        item.provider_name.toLowerCase().includes(filterValue.toLowerCase()) ||
+        item.spec?.toLowerCase().includes(filterValue.toLowerCase())
 
       const matchesCategories = (selectedCategories as Set<string>).size === 0 || selectedCategories.has(item.category_description)
 
       const matchesProviders = selectedProviders.size === 0 || selectedProviders.has(item.provider_name)
 
-      const matchesPriceRange =
-        (!priceRange.min || (item.public_price ?? 0) >= parseFloat(priceRange.min)) &&
-        (!priceRange.max || (item.public_price ?? 0) <= parseFloat(priceRange.max))
-
-      return matchesSearch && matchesCategories && matchesProviders && matchesPriceRange
+      return matchesSearch && matchesProviders && matchesCategories
     })
   }, [products, filterValue, selectedCategories, selectedProviders, priceRange])
 
@@ -623,6 +621,7 @@ const Catalogo = () => {
                     </Chip>
                   </TableCell>
                   <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>{item.provider_name}</TableCell>
+                  <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>{item.spec}</TableCell>
                   <TableCell className='w-1/2 max-w-md whitespace-nowrap text-ellipsis overflow-hidden'>{item.description}</TableCell>
                   <TableCell>
                     {((item.price ?? 0) * (1 + (item.utility ?? 0) / 100)).toLocaleString('es-MX', {
