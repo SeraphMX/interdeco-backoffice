@@ -21,20 +21,23 @@ import {
   SelectItem,
   SortDescriptor,
   Spinner,
+  Tab,
   Table,
   TableBody,
   TableCell,
   TableColumn,
   TableHeader,
   TableRow,
+  Tabs,
   Textarea,
   useDisclosure
 } from '@heroui/react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Edit, ImportIcon, Plus, Save, Search, Trash2, TriangleAlert, X } from 'lucide-react'
+import { Edit, EllipsisVertical, ImportIcon, Plus, Save, Search, Settings, Trash2, TriangleAlert, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSelector } from 'react-redux'
+import AddCategory from '../components/forms/AddCategory'
 import AddProduct from '../components/forms/AddProduct'
 import { supabase } from '../lib/supabase'
 import { ProductFormData, productSchema } from '../schemas/product.schema'
@@ -42,6 +45,7 @@ import { RootState } from '../store'
 import { Product } from '../types'
 
 const Catalogo = () => {
+  //TODO:Refactorizar el componente y dividirlo en componentes más pequeños
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -57,8 +61,11 @@ const Catalogo = () => {
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure()
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onOpenChange: onDeleteOpenChange } = useDisclosure()
+  const { isOpen: isConfigOpen, onOpen: onConfigOpen, onOpenChange: onConfigOpenChange } = useDisclosure()
 
   const [isEditing, setIsEditing] = useState(false)
+
+  const [addCategory, setAddCategory] = useState(false)
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -236,7 +243,8 @@ const Catalogo = () => {
     { name: 'SKU', uid: 'sku', sortable: true },
     { name: 'CATEGORÍA', uid: 'category_description', sortable: true },
     { name: 'PROVEEDOR', uid: 'provider_name', sortable: true },
-    { name: 'DESCRIPCIÓN', uid: 'description', sortable: true },
+    { name: 'ESPECIFICACIÓN', uid: 'spec', sortable: true },
+    { name: 'DESCRIPCIÓN', uid: 'description', sortable: false },
     { name: 'PRECIO PÚBLICO', uid: 'public_price', sortable: true }
   ]
 
@@ -245,18 +253,15 @@ const Catalogo = () => {
       const matchesSearch =
         item.description.toLowerCase().includes(filterValue.toLowerCase()) ||
         (item.sku ?? '').toLowerCase().includes(filterValue.toLowerCase()) ||
-        item.category_description.toLowerCase().includes(filterValue.toLowerCase()) ||
-        item.provider_name.toLowerCase().includes(filterValue.toLowerCase())
+        //item.category_description.toLowerCase().includes(filterValue.toLowerCase()) ||
+        item.provider_name.toLowerCase().includes(filterValue.toLowerCase()) ||
+        item.spec?.toLowerCase().includes(filterValue.toLowerCase())
 
       const matchesCategories = (selectedCategories as Set<string>).size === 0 || selectedCategories.has(item.category_description)
 
       const matchesProviders = selectedProviders.size === 0 || selectedProviders.has(item.provider_name)
 
-      const matchesPriceRange =
-        (!priceRange.min || (item.public_price ?? 0) >= parseFloat(priceRange.min)) &&
-        (!priceRange.max || (item.public_price ?? 0) <= parseFloat(priceRange.max))
-
-      return matchesSearch && matchesCategories && matchesProviders && matchesPriceRange
+      return matchesSearch && matchesProviders && matchesCategories
     })
   }, [products, filterValue, selectedCategories, selectedProviders, priceRange])
 
@@ -394,6 +399,9 @@ const Catalogo = () => {
             <ImportIcon size={20} />
             Importar
           </Button>
+          <Button isIconOnly variant='ghost' onPress={onConfigOpenChange}>
+            <Settings size={20} />
+          </Button>
         </div>
       </div>
 
@@ -493,20 +501,6 @@ const Catalogo = () => {
                   <p className='font-medium capitalize'>{selectedProduct.measurement_unit}</p>
                 </div>
               )}
-
-              {/* {isEditing ? (
-                <Input size='sm' label='Precio mayoreo' type='number' {...register('wholesale_price')} isClearable />
-              ) : (
-                <div>
-                  <p className='text-sm text-gray-500'>Precio mayoreo</p>
-                  <p className='font-medium'>
-                    {selectedProduct.wholesale_price?.toLocaleString('es-MX', {
-                      style: 'currency',
-                      currency: 'MXN'
-                    }) || 'N/A'}
-                  </p>
-                </div>
-              )} */}
 
               {isEditing ? (
                 <Input size='sm' label='Precio' type='number' {...register('price')} isInvalid={!!errors.public_price} isClearable />
@@ -627,6 +621,7 @@ const Catalogo = () => {
                     </Chip>
                   </TableCell>
                   <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>{item.provider_name}</TableCell>
+                  <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>{item.spec}</TableCell>
                   <TableCell className='w-1/2 max-w-md whitespace-nowrap text-ellipsis overflow-hidden'>{item.description}</TableCell>
                   <TableCell>
                     {((item.price ?? 0) * (1 + (item.utility ?? 0) / 100)).toLocaleString('es-MX', {
@@ -701,6 +696,223 @@ const Catalogo = () => {
               </ModalFooter>
             </>
           )}
+        </ModalContent>
+      </Modal>
+
+      <Modal size='xl' isOpen={isConfigOpen} onOpenChange={onConfigOpenChange}>
+        //TODO: Refactorizar este modal en un componente separado, con las tablas en un componente separado que se comparta por los tres
+        <ModalContent>
+          <ModalHeader className='flex flex-col gap-1'>Configuración de opciones</ModalHeader>
+          <ModalBody>
+            <Tabs aria-label='Configuración' disableAnimation color='primary'>
+              <Tab key='categories' title='Categorías'>
+                {!addCategory && (
+                  <div className='flex justify-between items-center mx-4 mb-2'>
+                    <span>{rxCategories.length} categorías registradas</span>
+
+                    <Button
+                      variant='flat'
+                      color='primary'
+                      className='mb-2'
+                      onPress={() => {
+                        console.log('Agregar nueva categoría')
+                        setAddCategory(true)
+                        // Aquí puedes abrir un modal o formulario para agregar una nueva categoría
+                      }}
+                    >
+                      <Plus size={20} />
+                      Agregar categoría
+                    </Button>
+                  </div>
+                )}
+                {addCategory && (
+                  <AddCategory
+                    onSuccess={(category) => {
+                      console.log('Categoría agregada:', category)
+                      //setSelectedCategories((prev) => new Set([...prev, category.description]))
+                      addToast({
+                        title: 'Categoría agregada',
+                        description: `La categoría ${category.name} se ha guardado correctamente.`,
+                        color: 'success'
+                      })
+                    }}
+                    onCancel={() => setAddCategory(false)}
+                  />
+                )}
+
+                <Table
+                  aria-label='Categorias de productos'
+                  selectionMode='single'
+                  isHeaderSticky
+                  classNames={{
+                    th: 'bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600',
+                    base: 'max-h-[400px] overflow-auto shadow-small rounded-xl'
+                  }}
+                >
+                  <TableHeader
+                    columns={[
+                      { key: 'description', label: 'Nombre', sortable: true },
+                      { key: 'products', label: 'Productos', align: 'center', sortable: true },
+                      { key: 'actions', label: 'Acciones', align: 'center' }
+                    ]}
+                  >
+                    {(column) => (
+                      <TableColumn key={column.key} align={(column.align as 'center' | 'start' | 'end' | undefined) || 'start'}>
+                        {column.label}
+                      </TableColumn>
+                    )}
+                  </TableHeader>
+                  <TableBody items={rxCategories}>
+                    {(item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>
+                          <Chip className={item.color} size='sm' variant='flat'>
+                            {item.description}
+                          </Chip>
+                        </TableCell>
+                        <TableCell align='center'>{products.filter((p) => p.category_description === item.description).length}</TableCell>
+                        <TableCell>
+                          <Button
+                            isIconOnly
+                            variant='light'
+                            color='secondary'
+                            onPress={() => {
+                              console.log('Editar categoría:', item)
+                              // Aquí puedes abrir un modal o formulario para editar la categoría
+                            }}
+                          >
+                            <EllipsisVertical size={20} />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </Tab>
+              <Tab key='providers' title='Proveedores'>
+                <div className='flex justify-between items-center mx-4 mb-2'>
+                  <span className=''>{rxProviders.length} proveedores registrados</span>
+                  <Button
+                    variant='flat'
+                    color='primary'
+                    className='mb-2'
+                    onPress={() => {
+                      console.log('Agregar nuevo proveedor')
+                      // Aquí puedes abrir un modal o formulario para agregar una nueva categoría
+                    }}
+                  >
+                    <Plus size={20} />
+                    Agregar proveedor
+                  </Button>
+                </div>
+                <Table
+                  aria-label='Lista de proveedores'
+                  selectionMode='single'
+                  isHeaderSticky
+                  classNames={{
+                    th: 'bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600',
+                    base: 'max-h-[400px] overflow-auto shadow-small rounded-xl'
+                  }}
+                >
+                  <TableHeader
+                    columns={[
+                      { key: 'description', label: 'Nombre' },
+                      { key: 'products', label: 'Productos', align: 'center', sortable: true },
+                      { key: 'actions', label: 'Acciones', align: 'center' }
+                    ]}
+                  >
+                    {(column) => (
+                      <TableColumn key={column.key} align={(column.align as 'center' | 'start' | 'end' | undefined) || 'start'}>
+                        {column.label}
+                      </TableColumn>
+                    )}
+                  </TableHeader>
+                  <TableBody items={rxProviders}>
+                    {(item) => (
+                      <TableRow key={item.key}>
+                        <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>{item.name}</TableCell>
+                        <TableCell>{products.filter((p) => p.provider_name === item.name).length}</TableCell>
+                        <TableCell>
+                          <Button
+                            isIconOnly
+                            variant='light'
+                            color='secondary'
+                            onPress={() => {
+                              console.log('Editar categoría:', item)
+                              // Aquí puedes abrir un modal o formulario para editar la categoría
+                            }}
+                          >
+                            <EllipsisVertical size={20} />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </Tab>
+              <Tab key='measure-units' title='Unidades de medida'>
+                <div className='flex justify-between items-center mx-4 mb-2'>
+                  <span className=''>{measureUnits.length} Unidades registradas</span>
+                  <Button
+                    variant='flat'
+                    color='primary'
+                    className='mb-2'
+                    onPress={() => {
+                      console.log('Agregar nueva unidad')
+                      // Aquí puedes abrir un modal o formulario para agregar una nueva categoría
+                    }}
+                  >
+                    <Plus size={20} />
+                    Agregar unidad
+                  </Button>
+                </div>
+                <Table
+                  aria-label='Unidades de medida'
+                  selectionMode='single'
+                  isHeaderSticky
+                  classNames={{
+                    th: 'bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600',
+                    base: 'max-h-[400px] overflow-auto shadow-small rounded-xl'
+                  }}
+                >
+                  <TableHeader
+                    columns={[
+                      { key: 'description', label: 'Nombre' },
+                      { key: 'products', label: 'Productos', align: 'center', sortable: true },
+                      { key: 'actions', label: 'Acciones', align: 'center' }
+                    ]}
+                  >
+                    {(column) => (
+                      <TableColumn key={column.key} align={(column.align as 'center' | 'start' | 'end' | undefined) || 'start'}>
+                        {column.label}
+                      </TableColumn>
+                    )}
+                  </TableHeader>
+                  <TableBody items={measureUnits}>
+                    {(item) => (
+                      <TableRow key={item.key}>
+                        <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>{item.label}</TableCell>
+                        <TableCell>{products.filter((p) => p.measurement_unit === item.key).length}</TableCell>
+                        <TableCell>
+                          <Button
+                            isIconOnly
+                            variant='light'
+                            color='secondary'
+                            onPress={() => {
+                              console.log('Editar categoría:', item)
+                              // Aquí puedes abrir un modal o formulario para editar la categoría
+                            }}
+                          >
+                            <EllipsisVertical size={20} />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </Tab>
+            </Tabs>
+          </ModalBody>
         </ModalContent>
       </Modal>
     </div>
