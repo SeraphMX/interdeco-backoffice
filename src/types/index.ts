@@ -82,9 +82,11 @@ export interface Customer {
   phone?: string
   email?: string
   address?: string
+  state?: string
   city?: string
   postalcode?: string
   notes?: string
+  status: string
 }
 
 export const estadosMexico = [
@@ -120,4 +122,13 @@ export const estadosMexico = [
   { key: '30', label: 'Veracruz' },
   { key: '31', label: 'Yucatán' },
   { key: '32', label: 'Zacatecas' }
+]
+
+export const customerStatus = [
+  { key: 'inactive', label: 'Inactivo', color: 'bg-gray-300' },
+  { key: 'new', label: 'Nuevo', color: 'bg-green-300' },
+  { key: 'firsttime', label: 'Primera compra', color: 'bg-blue-300' },
+  { key: 'returning', label: 'Ocasional', color: 'bg-yellow-300' },
+  { key: 'recent', label: 'Reciente', color: 'bg-purple-300' },
+  { key: 'frequent', label: 'Frecuente', color: 'bg-orange-300' }
 ]

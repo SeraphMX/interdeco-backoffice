@@ -1,8 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit'
 import authReducer from './slices/authSlice'
 import catalogReducer from './slices/catalogSlice'
-import clientesReducer from './slices/clientesSlice'
 import cotizacionesReducer from './slices/cotizacionesSlice'
+import clientesReducer from './slices/customersSlice'
 import materialesReducer from './slices/materialesSlice'
 import productosReducer from './slices/productosSlice'
 
