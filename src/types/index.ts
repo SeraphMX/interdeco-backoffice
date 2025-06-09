@@ -72,3 +72,52 @@ export interface Product {
   provider_name: string
   category_description: string
 }
+
+export interface Customer {
+  id: number
+  created_at: string
+  customer_type: 'individual' | 'business'
+  name: string
+  rfc?: string
+  phone?: string
+  email?: string
+  address?: string
+  city?: string
+  postalcode?: string
+  notes?: string
+}
+
+export const estadosMexico = [
+  { key: '01', label: 'Aguascalientes' },
+  { key: '02', label: 'Baja California' },
+  { key: '03', label: 'Baja California Sur' },
+  { key: '04', label: 'Campeche' },
+  { key: '05', label: 'Chiapas' },
+  { key: '06', label: 'Chihuahua' },
+  { key: '07', label: 'Coahuila' },
+  { key: '08', label: 'Colima' },
+  { key: '09', label: 'Ciudad de México' },
+  { key: '10', label: 'Durango' },
+  { key: '11', label: 'Estado de México' },
+  { key: '12', label: 'Guanajuato' },
+  { key: '13', label: 'Guerrero' },
+  { key: '14', label: 'Hidalgo' },
+  { key: '15', label: 'Jalisco' },
+  { key: '16', label: 'Michoacán' },
+  { key: '17', label: 'Morelos' },
+  { key: '18', label: 'Nayarit' },
+  { key: '19', label: 'Nuevo León' },
+  { key: '20', label: 'Oaxaca' },
+  { key: '21', label: 'Puebla' },
+  { key: '22', label: 'Querétaro' },
+  { key: '23', label: 'Quintana Roo' },
+  { key: '24', label: 'San Luis Potosí' },
+  { key: '25', label: 'Sinaloa' },
+  { key: '26', label: 'Sonora' },
+  { key: '27', label: 'Tabasco' },
+  { key: '28', label: 'Tamaulipas' },
+  { key: '29', label: 'Tlaxcala' },
+  { key: '30', label: 'Veracruz' },
+  { key: '31', label: 'Yucatán' },
+  { key: '32', label: 'Zacatecas' }
+]
