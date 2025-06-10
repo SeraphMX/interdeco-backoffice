@@ -1,5 +1,6 @@
 import {
   Avatar,
+  Badge,
   Button,
   Card,
   CardBody,
@@ -14,7 +15,7 @@ import {
   Tooltip,
   useDisclosure
 } from '@heroui/react'
-import { ArrowLeft, ArrowRightLeft, Calculator, Minus, Plus } from 'lucide-react'
+import { ArrowLeft, ArrowRightLeft, Calculator, Minus, Plus, X } from 'lucide-react'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
@@ -22,6 +23,7 @@ import ModalSelectCustomer from '../components/quotes/modals/ModalSelectCustomer
 import CustomerIcon from '../components/shared/customerIcon'
 import { RootState } from '../store'
 import { addCotizacion } from '../store/slices/cotizacionesSlice'
+import { clearSelectedCustomer } from '../store/slices/quoteSlice'
 
 const NuevaCotizacion = () => {
   const navigate = useNavigate()
@@ -193,16 +195,27 @@ const NuevaCotizacion = () => {
         </div>
         <div className='flex items-center gap-4'>
           {quote.selectedCustomer && (
-            <Tooltip placement='left' content={quote.selectedCustomer.name}>
-              <Avatar
-                isBordered
-                color='primary'
-                showFallback
-                radius='sm'
-                size='sm'
-                fallback={<CustomerIcon customerType={quote.selectedCustomer.customer_type} />}
-              />
-            </Tooltip>
+            <Badge
+              color='danger'
+              content={<X size={12} />}
+              placement='bottom-right'
+              onClick={() => {
+                dispatch(clearSelectedCustomer())
+              }}
+              className='w-5 h-5 p-0 cursor-pointer'
+            >
+              <Tooltip placement='left' content={quote.selectedCustomer.name}>
+                <Avatar
+                  isBordered
+                  color='primary'
+                  showFallback
+                  radius='sm'
+                  size='sm'
+                  classNames={{ base: 'bg-primary-100', fallback: 'text-primary' }}
+                  fallback={<CustomerIcon customerType={quote.selectedCustomer.customer_type} />}
+                />
+              </Tooltip>
+            </Badge>
           )}
 
           <Button
