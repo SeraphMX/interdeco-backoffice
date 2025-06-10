@@ -5,6 +5,7 @@ import cotizacionesReducer from './slices/cotizacionesSlice'
 import clientesReducer from './slices/customersSlice'
 import materialesReducer from './slices/materialesSlice'
 import productosReducer from './slices/productosSlice'
+import quoteReducer from './slices/quoteSlice'
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     clientes: clientesReducer,
     materiales: materialesReducer,
     cotizaciones: cotizacionesReducer,
+    quote: quoteReducer,
     productos: productosReducer,
     auth: authReducer
   }
