@@ -111,14 +111,14 @@ const AddCustomer = ({ onSuccess }: AddCustomerProps) => {
 
       <div className='col-span-2 flex items-center gap-2'>
         <Switch isSelected={invoiceData} onValueChange={setInvoiceData}>
-          Datos de facturación
+          Datos adicionales
         </Switch>
       </div>
 
       {invoiceData && (
         <>
-          <Input size='sm' label='RFC' {...register('rfc')} isInvalid={!!errors.rfc} isClearable />
-          <Input size='sm' label='Código postal' {...register('postalcode')} isInvalid={!!errors.postalcode} isClearable />
+          <Input size='sm' label='RFC' maxLength={13} {...register('rfc')} isInvalid={!!errors.rfc} isClearable />
+          <Input size='sm' label='Código postal' maxLength={5} {...register('postalcode')} isInvalid={!!errors.postalcode} isClearable />
 
           <Input size='sm' className='col-span-2' label='Dirección' {...register('address')} isInvalid={!!errors.address} isClearable />
 

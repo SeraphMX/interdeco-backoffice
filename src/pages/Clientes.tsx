@@ -19,9 +19,10 @@ import {
   useDisclosure
 } from '@heroui/react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Building2, Plus, Search, SquareUserRound, X } from 'lucide-react'
+import { Building2, Edit, Plus, Search, SquareUserRound, Trash2, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
+import CustomerDetails from '../components/customers/CustomerDetails'
 import AddCustomer from '../components/forms/AddCustomer'
 import { RootState } from '../store'
 import { customerStatus } from '../types'
@@ -30,8 +31,11 @@ const Clientes = () => {
   //const dispatch = useDispatch()
   const clientes = useSelector((state: RootState) => state.clientes.items)
   const { isOpen, onOpen, onOpenChange } = useDisclosure()
+  const { isOpen: isOpenDetails, onOpen: onOpenDetails, onOpenChange: onOpenChangeDetails } = useDisclosure()
+  const { isOpen: isOpenDelete, onOpen: onOpenDelete, onOpenChange: onOpenChangeDelete } = useDisclosure()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState<Selection>(new Set([]))
+  const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null)
 
   const filteredClientes = useMemo(() => {
     return clientes.filter((cliente) => {
@@ -50,6 +54,12 @@ const Clientes = () => {
   const clearFilters = () => {
     setSearchTerm('')
     setSelectedStatus(new Set([]))
+  }
+
+  const handleViewCustomer = (id: number) => {
+    setSelectedCustomer(id)
+    onOpenDetails()
+    console.log(`Cliente seleccionado: ${id}`)
   }
 
   return (
@@ -124,8 +134,8 @@ const Clientes = () => {
       </div>
 
       <motion.section className='overflow-y-auto h-full p-4 sm:p-0'>
-        <div className='grid gap-6 md:grid-cols-2 lg:grid-cols-3'>
-          <AnimatePresence mode='wait'>
+        <AnimatePresence>
+          <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
             {filteredClientes.map((cliente) => (
               <motion.section
                 key={cliente.id}
@@ -134,9 +144,15 @@ const Clientes = () => {
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ duration: 0.2 }}
                 layout
-                className='h-full shadow-md rounded-sm'
+                className=' shadow-md rounded-md'
               >
-                <Card className='bg-white h-full' shadow='none' radius='sm'>
+                <Card
+                  className='bg-white h-full w-full cursor-pointer'
+                  shadow='none'
+                  radius='sm'
+                  isPressable
+                  onPress={() => handleViewCustomer(cliente.id)}
+                >
                   <CardHeader className='flex justify-between items-start pb-0'>
                     <section className='flex items-center gap-2 flex-grow min-w-0'>
                       {cliente.customer_type === 'individual' ? (
@@ -144,7 +160,9 @@ const Clientes = () => {
                       ) : (
                         <Building2 className='text-gray-500' size={24} />
                       )}
-                      <h3 className='text-lg font-semibold truncate whitespace-nowrap overflow-hidden'>{cliente.name}</h3>
+                      <h3 className='text-lg font-semibold truncate whitespace-nowrap overflow-hidden max-w-[100px] sm:max-w-max'>
+                        {cliente.name}
+                      </h3>
                     </section>
                     <Chip className={`${customerStatus.find((status) => status.key === cliente.status)?.color}`}>
                       {customerStatus.find((status) => status.key === cliente.status)?.label || 'Desconocido'}
@@ -171,8 +189,8 @@ const Clientes = () => {
                 </Card>
               </motion.section>
             ))}
-          </AnimatePresence>
-        </div>
+          </div>
+        </AnimatePresence>
       </motion.section>
 
       <Modal size='xl' isOpen={isOpen} onOpenChange={onOpenChange} backdrop='blur'>
@@ -194,6 +212,53 @@ const Clientes = () => {
                 <Button color='primary' type='submit' form='add-customer-form'>
                   Guardar
                 </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      <Modal size='xl' isOpen={isOpenDetails} onOpenChange={onOpenChangeDetails} backdrop='blur'>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              {selectedCustomer !== null && <CustomerDetails idCustomer={selectedCustomer} />}
+              <ModalFooter className='flex items-center justify-between'>
+                <section className='flex items-center gap-2'>
+                  <Button color='primary' isIconOnly variant='ghost' onPress={onOpen}>
+                    <Edit size={20} />
+                  </Button>
+                  <Button color='danger' isIconOnly variant='ghost' onPress={onOpenDelete}>
+                    <Trash2 size={20} />
+                  </Button>
+                </section>
+                <section>
+                  <Button color='danger' variant='light' onPress={onClose}>
+                    Cerrar
+                  </Button>
+                  <Button color='primary'>Nueva cotización</Button>
+                </section>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+      <Modal size='sm' isOpen={isOpenDelete} onOpenChange={onOpenChangeDelete}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className='flex flex-col gap-1'>Eliminar cliente</ModalHeader>
+              <ModalBody>
+                <p>¿Estás seguro de que deseas eliminar este cliente? </p>
+                <p className='text-red-500 font-semibold mt-2 text-sm'>
+                  ¡Atención! Esta acción eliminará los datos del cliente, pero conservara el historial de cotizaciones.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button color='default' variant='light' onPress={onClose}>
+                  Cancelar
+                </Button>
+                <Button color='danger'>Eliminar</Button>
               </ModalFooter>
             </>
           )}
