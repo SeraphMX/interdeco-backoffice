@@ -20,6 +20,7 @@ import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import ModalSelectCustomer from '../components/quotes/modals/ModalSelectCustomer'
+
 import CustomerIcon from '../components/shared/customerIcon'
 import { RootState } from '../store'
 import { addCotizacion } from '../store/slices/cotizacionesSlice'
