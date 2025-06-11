@@ -1,10 +1,10 @@
-import { User } from '../types';
+import { User } from '../types'
 
 export const initialUsers: User[] = [
   {
     id: '1',
-    email: 'admin@example.com',
-    password: 'admin123',
+    email: 'admin@interdeco.mx',
+    password: 'iDeco#13122@',
     name: 'Administrador',
     role: 'admin'
   },
@@ -15,4 +15,4 @@ export const initialUsers: User[] = [
     name: 'Staff',
     role: 'staff'
   }
-];
+]
