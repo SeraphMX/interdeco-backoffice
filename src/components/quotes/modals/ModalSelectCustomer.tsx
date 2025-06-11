@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../../store'
 import { clearSelectedCustomer, setSelectedCustomer } from '../../../store/slices/quoteSlice'
-import CustomerIcon from '../../shared/CustomerIconB'
+import CustomerIcon from '../../shared/CustomerIcon'
 
 interface ModalSelectCustomerProps {
   isOpen: boolean
