@@ -132,3 +132,13 @@ export const customerStatus = [
   { key: 'recent', label: 'Reciente', color: 'bg-purple-300' },
   { key: 'frequent', label: 'Frecuente', color: 'bg-orange-300' }
 ]
+
+export const measureUnits = [
+  { key: 'M2', label: 'Metro cuadrado', plural: 'Metros cuadrados' },
+  { key: 'ML', label: 'Metro lineal', plural: 'Metros lineales' },
+  { key: 'KG', label: 'Kilogramo', plural: 'Kilogramos' },
+  { key: 'L', label: 'Litro', plural: 'Litros' },
+  { key: 'PZ', label: 'Pieza', plural: 'Piezas' },
+  { key: 'CJ', label: 'Caja', plural: 'Cajas' },
+  { key: 'BG', label: 'Bolsa', plural: 'Bolsas' }
+]

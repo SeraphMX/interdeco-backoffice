@@ -19,6 +19,7 @@ import { ArrowLeft, ArrowRightLeft, Calculator, Minus, Plus, X } from 'lucide-re
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import ModalAddProduct from '../components/quotes/modals/ModalAddProduct'
 import ModalSelectCustomer from '../components/quotes/modals/ModalSelectCustomer'
 import CustomerIcon from '../components/shared/customerIcon'
 import { RootState } from '../store'
@@ -33,6 +34,7 @@ const NuevaCotizacion = () => {
   const quote = useSelector((state: RootState) => state.quote)
 
   const { isOpen: isOpenSelectCustomer, onOpen: onOpenSelectCustomer, onOpenChange: onOpenChangeSelectCustomer } = useDisclosure()
+  const { isOpen: isOpenAddProduct, onOpen: onOpenAddProduct, onOpenChange: onOpenChangeAddProduct } = useDisclosure()
 
   const [showCalculator, setShowCalculator] = useState(false)
   const [showClientModal, setShowClientModal] = useState(false)
@@ -233,11 +235,11 @@ const NuevaCotizacion = () => {
       <div className='space-y-6'>
         <Card className='p-6'>
           <CardBody className='space-y-4'>
-            <div className='flex justify-between items-center'>
-              <h3 className='text-lg font-medium'>Materiales</h3>
-              <Button size='sm' color='primary' variant='light' onPress={addItem} startContent={<Plus size={18} />}>
-                Agregar Material
+            <div className='flex justify-center items-center'>
+              <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={onOpenAddProduct}>
+                Agregar producto
               </Button>
+              <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
             </div>
 
             <div className='space-y-4'>
