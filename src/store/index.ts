@@ -3,7 +3,6 @@ import authReducer from './slices/authSlice'
 import catalogReducer from './slices/catalogSlice'
 import cotizacionesReducer from './slices/cotizacionesSlice'
 import clientesReducer from './slices/customersSlice'
-import materialesReducer from './slices/materialesSlice'
 import productsReducer from './slices/productsSlice'
 import quoteReducer from './slices/quoteSlice'
 
@@ -11,7 +10,6 @@ export const store = configureStore({
   reducer: {
     catalog: catalogReducer,
     clientes: clientesReducer,
-    materiales: materialesReducer,
     cotizaciones: cotizacionesReducer,
     quote: quoteReducer,
     productos: productsReducer,

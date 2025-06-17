@@ -1,72 +1,56 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store';
-import { FileText, Users, Package, TrendingUp } from 'lucide-react';
-import { Card, CardBody, CardHeader, Chip } from "@heroui/react";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import { Card, CardBody, CardHeader } from '@heroui/react'
+import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js'
+import { FileText, Package, TrendingUp, Users } from 'lucide-react'
+import { useSelector } from 'react-redux'
+import { RootState } from '../store'
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 const statusColorMap = {
-  finalizada: "success",
-  pendiente: "warning",
-  rechazada: "danger",
-  aprobada: "primary",
-} as const;
+  finalizada: 'success',
+  pendiente: 'warning',
+  rechazada: 'danger',
+  aprobada: 'primary'
+} as const
 
 const Dashboard = () => {
-  const clientes = useSelector((state: RootState) => state.clientes.items);
-  const materiales = useSelector((state: RootState) => state.materiales.items);
-  const cotizaciones = useSelector((state: RootState) => state.cotizaciones.items);
+  const clientes = useSelector((state: RootState) => state.clientes.items)
+
+  const cotizaciones = useSelector((state: RootState) => state.cotizaciones.items)
+  const productos = useSelector((state: RootState) => state.productos.items)
 
   // Calcular materiales más usados
   const materialesUsados = cotizaciones.reduce((acc, cotizacion) => {
-    cotizacion.items.forEach(item => {
+    cotizacion.items.forEach((item) => {
       if (!acc[item.materialId]) {
-        acc[item.materialId] = 0;
+        acc[item.materialId] = 0
       }
-      acc[item.materialId] += item.metrosCuadrados;
-    });
-    return acc;
-  }, {} as Record<string, number>);
+      acc[item.materialId] += item.metrosCuadrados
+    })
+    return acc
+  }, {} as Record<string, number>)
 
-  // Ordenar materiales por uso y tomar los top 5
-  const topMateriales = Object.entries(materialesUsados)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 5)
-    .map(([materialId, metros]) => ({
-      material: materiales.find(m => m.id === materialId)?.nombre || 'Desconocido',
-      metros
-    }));
+  // // Ordenar materiales por uso y tomar los top 5
+  // const topMateriales = Object.entries(materialesUsados)
+  //   .sort(([, a], [, b]) => b - a)
+  //   .slice(0, 5)
+  //   .map(([materialId, metros]) => ({
+  //     material: productos.find((p) => p.id === materialId)?.nombre || 'Desconocido',
+  //     metros
+  //   }))
 
-  const chartData = {
-    labels: topMateriales.map(m => m.material),
-    datasets: [
-      {
-        label: 'Metros cuadrados utilizados',
-        data: topMateriales.map(m => m.metros),
-        backgroundColor: 'rgba(99, 102, 241, 0.5)',
-        borderColor: 'rgb(99, 102, 241)',
-        borderWidth: 1,
-      },
-    ],
-  };
+  // const chartData = {
+  //   labels: topMateriales.map((m) => m.material),
+  //   datasets: [
+  //     {
+  //       label: 'Metros cuadrados utilizados',
+  //       data: topMateriales.map((m) => m.metros),
+  //       backgroundColor: 'rgba(99, 102, 241, 0.5)',
+  //       borderColor: 'rgb(99, 102, 241)',
+  //       borderWidth: 1
+  //     }
+  //   ]
+  // }
 
   const chartOptions = {
     indexAxis: 'y' as const,
@@ -74,68 +58,68 @@ const Dashboard = () => {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: false,
+        display: false
       },
       title: {
         display: true,
-        text: 'Materiales Más Utilizados (m²)',
-      },
+        text: 'Materiales Más Utilizados (m²)'
+      }
     },
     scales: {
       x: {
-        beginAtZero: true,
-      },
-    },
-  };
+        beginAtZero: true
+      }
+    }
+  }
 
   const stats = [
     { title: 'Clientes', value: clientes.length, icon: Users, color: 'bg-blue-500' },
-    { title: 'Materiales', value: materiales.length, icon: Package, color: 'bg-green-500' },
+    { title: 'Productos', value: productos.length, icon: Package, color: 'bg-green-500' },
     { title: 'Cotizaciones', value: cotizaciones.length, icon: FileText, color: 'bg-purple-500' },
-    { 
-      title: 'Total Ventas', 
-      value: cotizaciones.reduce((acc, curr) => acc + curr.total, 0).toLocaleString('es-MX', {
-        style: 'currency',
-        currency: 'MXN'
-      }), 
-      icon: TrendingUp, 
-      color: 'bg-orange-500' 
-    },
-  ];
+    {
+      title: 'Total Ventas',
+      value: cotizaciones
+        .reduce((acc, curr) => acc + curr.total, 0)
+        .toLocaleString('es-MX', {
+          style: 'currency',
+          currency: 'MXN'
+        }),
+      icon: TrendingUp,
+      color: 'bg-orange-500'
+    }
+  ]
 
   // Obtener las últimas 3 cotizaciones ordenadas por fecha
-  const ultimasCotizaciones = [...cotizaciones]
-    .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
-    .slice(0, 3);
+  //const ultimasCotizaciones = [...cotizaciones].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()).slice(0, 3)
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className='space-y-6'>
+      <h1 className='text-3xl font-bold text-gray-900'>Dashboard</h1>
+
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
         {stats.map((stat) => (
-          <div key={stat.title} className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
+          <div key={stat.title} className='bg-white rounded-lg shadow p-6'>
+            <div className='flex items-center'>
               <div className={`${stat.color} p-3 rounded-lg`}>
-                <stat.icon className="h-6 w-6 text-white" />
+                <stat.icon className='h-6 w-6 text-white' />
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-500">{stat.title}</p>
-                <p className="text-lg font-semibold text-gray-900">{stat.value}</p>
+              <div className='ml-4'>
+                <p className='text-sm font-medium text-gray-500'>{stat.title}</p>
+                <p className='text-lg font-semibold text-gray-900'>{stat.value}</p>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-6">
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
+        <Card className='p-6'>
           <CardHeader>
-            <h2 className="text-lg font-semibold text-gray-900">Últimas Cotizaciones</h2>
+            <h2 className='text-lg font-semibold text-gray-900'>Últimas Cotizaciones</h2>
           </CardHeader>
           <CardBody>
-            <div className="space-y-4">
-              {ultimasCotizaciones.map(cotizacion => {
+            <div className='space-y-4'>
+              {/* {ultimasCotizaciones.map(cotizacion => {
                 const cliente = clientes.find(c => c.id === cotizacion.clienteId);
                 return (
                   <div key={cotizacion.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -163,24 +147,22 @@ const Dashboard = () => {
                     </div>
                   </div>
                 );
-              })}
+              })} */}
             </div>
           </CardBody>
         </Card>
 
-        <Card className="p-6">
+        <Card className='p-6'>
           <CardHeader>
-            <h2 className="text-lg font-semibold text-gray-900">Materiales Más Usados</h2>
+            <h2 className='text-lg font-semibold text-gray-900'>Materiales Más Usados</h2>
           </CardHeader>
           <CardBody>
-            <div className="h-[300px]">
-              <Bar data={chartData} options={chartOptions} />
-            </div>
+            <div className='h-[300px]'>{/* <Bar data={chartData} options={chartOptions} /> */}</div>
           </CardBody>
         </Card>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Dashboard;
+export default Dashboard

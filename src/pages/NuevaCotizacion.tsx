@@ -23,14 +23,12 @@ import ModalAddProduct from '../components/quotes/modals/ModalAddProduct'
 import ModalSelectCustomer from '../components/quotes/modals/ModalSelectCustomer'
 import CustomerIcon from '../components/shared/customerIcon'
 import { RootState } from '../store'
-import { addCotizacion } from '../store/slices/cotizacionesSlice'
 import { clearSelectedCustomer } from '../store/slices/quoteSlice'
 
 const NuevaCotizacion = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const clientes = useSelector((state: RootState) => state.clientes.items)
-  const materiales = useSelector((state: RootState) => state.materiales.items)
   const quote = useSelector((state: RootState) => state.quote)
 
   const { isOpen: isOpenSelectCustomer, onOpen: onOpenSelectCustomer, onOpenChange: onOpenChangeSelectCustomer } = useDisclosure()
@@ -64,15 +62,6 @@ const NuevaCotizacion = () => {
   const handleSubmit = () => {
     if (!selectedClientId) return
 
-    dispatch(
-      addCotizacion({
-        id: crypto.randomUUID(),
-        fecha: new Date().toISOString(),
-        clienteId: selectedClientId,
-        ...formData,
-        descuento: 0
-      })
-    )
     navigate('/cotizaciones')
   }
 
@@ -92,44 +81,9 @@ const NuevaCotizacion = () => {
     })
   }
 
-  const calculateUnitsNeeded = (metrosCuadrados: number, material: (typeof materiales)[0]) => {
-    if (material.unidadCompra === 'metro') {
-      return {
-        unidades: metrosCuadrados,
-        metrosTotales: metrosCuadrados
-      }
-    }
-
-    if (!material.metrosPorUnidad) return { unidades: 0, metrosTotales: 0 }
-
-    // Calcular cuántas unidades (cajas o rollos) se necesitan
-    const unidadesNecesarias = Math.ceil(metrosCuadrados / material.metrosPorUnidad)
-    // Calcular los metros totales que se entregarán (basado en unidades completas)
-    const metrosTotales = unidadesNecesarias * material.metrosPorUnidad
-
-    return {
-      unidades: unidadesNecesarias,
-      metrosTotales
-    }
-  }
-
   const updateItem = (index: number, updates: Partial<(typeof formData.items)[0]>) => {
     const newItems = [...formData.items]
     const currentItem = { ...newItems[index], ...updates }
-
-    const material = materiales.find((m) => m.id === currentItem.materialId)
-    if (material) {
-      // Si estamos actualizando los metros cuadrados o el material
-      if ('metrosCuadrados' in updates || 'materialId' in updates) {
-        const metrosCuadrados = Math.floor(currentItem.metrosCuadrados) // Asegurar que sea un número entero
-        const { unidades, metrosTotales } = calculateUnitsNeeded(metrosCuadrados, material)
-
-        currentItem.unidadesNecesarias = unidades
-        currentItem.metrosTotales = metrosTotales
-        currentItem.precioUnitario = material.precio
-        currentItem.subtotal = unidades * material.precio
-      }
-    }
 
     newItems[index] = currentItem
 
@@ -244,7 +198,6 @@ const NuevaCotizacion = () => {
 
             <div className='space-y-4'>
               {formData.items.map((item, index) => {
-                const material = materiales.find((m) => m.id === item.materialId)
                 return (
                   <div key={item.id}>
                     <div className='space-y-4 border-1 border-gray-100 p-2'>
@@ -256,22 +209,6 @@ const NuevaCotizacion = () => {
                       </div>
 
                       <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                        <Select
-                          label='Material'
-                          required
-                          value={item.materialId}
-                          onChange={(e) => updateItem(index, { materialId: e.target.value })}
-                        >
-                          <SelectItem key='empty' value=''>
-                            Seleccionar material
-                          </SelectItem>
-                          {materiales.map((material) => (
-                            <SelectItem key={material.id} value={material.id}>
-                              {material.nombre}
-                            </SelectItem>
-                          ))}
-                        </Select>
-
                         <div className='flex gap-2 '>
                           <Input
                             type='number'
@@ -294,47 +231,6 @@ const NuevaCotizacion = () => {
                           </Button>
                         </div>
                       </div>
-
-                      {item.materialId && material && (
-                        <div className='space-y-2 text-sm text-gray-600 '>
-                          <div className='grid grid-cols-2 gap-4'>
-                            <div>
-                              <span className='font-medium'>Unidad de compra:</span>
-                              <span className='ml-2 capitalize'>{material.unidadCompra}</span>
-                            </div>
-                            {material.metrosPorUnidad && (
-                              <div>
-                                <span className='font-medium'>Metros por {material.unidadCompra}:</span>
-                                <span className='ml-2'>{material.metrosPorUnidad}</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className='grid grid-cols-2 gap-4'>
-                            {material.unidadCompra !== 'metro' && (
-                              <div>
-                                <span className='font-medium'>{material.unidadCompra === 'caja' ? 'Cajas' : 'Rollos'} necesarios:</span>
-                                <span className='ml-2'>{item.unidadesNecesarias}</span>
-                              </div>
-                            )}
-                            <div>
-                              <span className='font-medium'>Metros totales:</span>
-                              <span className='ml-2'>{item.metrosTotales}</span>
-                            </div>
-                          </div>
-                          <div className='grid grid-cols-2 gap-4'>
-                            <div>
-                              <span className='font-medium'>Precio por {material.unidadCompra}:</span>
-                              <span className='ml-2'>
-                                {material.precio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
-                              </span>
-                            </div>
-                            <div>
-                              <span className='font-medium'>Subtotal:</span>
-                              <span className='ml-2'>{item.subtotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                 )
