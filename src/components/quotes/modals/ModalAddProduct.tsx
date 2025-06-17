@@ -1,4 +1,4 @@
-import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react'
+import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/react'
 import { Calculator } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
@@ -6,6 +6,7 @@ import { RootState } from '../../../store'
 import { measureUnits } from '../../../types'
 import ProductsFilters from '../../products/ProductsFilters'
 import ProductsTable from '../../products/ProductsTable'
+import ModalAreaCalculator from './ModalAreaCalculator'
 
 interface ModalAddProductProps {
   isOpen: boolean
@@ -16,6 +17,7 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
   const selectedProduct = useSelector((state: RootState) => state.productos.selectedProduct)
   const [selectedQuantity, setSelectedQuantity] = useState('')
   const [filterValue, setFilterValue] = useState('')
+  const { isOpen: isOpenAreaCalculator, onOpen: onOpenAreaCalculator, onOpenChange: onOpenChangeAreaCalculator } = useDisclosure()
 
   useEffect(() => {
     setSelectedQuantity('')
@@ -56,12 +58,15 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
                     value={selectedQuantity}
                   ></Input>
                   {selectedProduct.measurement_unit === 'M2' && (
-                    <Button color='primary' variant='ghost' onPress={onClose} isIconOnly>
-                      <Calculator size={20} />
-                    </Button>
+                    <>
+                      <Button color='primary' variant='ghost' onPress={onOpenAreaCalculator} isIconOnly>
+                        <Calculator size={20} />
+                      </Button>
+                      <ModalAreaCalculator isOpen={isOpenAreaCalculator} onOpenChange={onOpenChangeAreaCalculator} />
+                    </>
                   )}
                   <Button color='primary' onPress={onClose}>
-                    Agregar
+                    Aceptar
                   </Button>
                 </section>
               )}
