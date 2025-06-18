@@ -2,9 +2,10 @@ import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { z } from 'zod'
 import { RootState } from '../../../store'
+import { setCalculatedArea } from '../../../store/slices/quoteSlice'
 
 interface ModalAddProductProps {
   isOpen: boolean
@@ -32,8 +33,8 @@ type FormData = z.infer<typeof schema>
 
 const ModalAreaCalculator = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
   const selectedProduct = useSelector((state: RootState) => state.productos.selectedProduct)
-
   const [totalCalculated, setTotalCalculated] = useState<number>(0)
+  const dispatch = useDispatch()
 
   const {
     register,
@@ -57,18 +58,21 @@ const ModalAreaCalculator = ({ isOpen, onOpenChange }: ModalAddProductProps) => 
     const isValid = (n: unknown): n is number => typeof n === 'number' && !isNaN(n) && n > 0
 
     if (isValid(length) && isValid(width)) {
-      setTotalCalculated(length * width)
+      setTotalCalculated(Math.ceil(length * width))
     } else {
       setTotalCalculated(0)
     }
   }, [length, width])
 
   useEffect(() => {
-    if (isOpen) {
-      reset({ length: undefined, width: undefined })
-      setTotalCalculated(0)
-    }
-  }, [isOpen, reset])
+    reset({ length: undefined, width: undefined })
+    setTotalCalculated(0)
+  }, [onOpenChange, reset])
+
+  const handleSetCalculatedArea = () => {
+    dispatch(setCalculatedArea(totalCalculated))
+    onOpenChange(false)
+  }
 
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='sm'>
@@ -83,24 +87,14 @@ const ModalAreaCalculator = ({ isOpen, onOpenChange }: ModalAddProductProps) => 
                 isInvalid={!!errors.length}
                 errorMessage={errors.length?.message}
                 autoFocus
-                value={length !== undefined ? String(length) : ''}
                 onFocus={(e) => e.target.select()}
-                onChange={(e) => {
-                  const val = e.target.value
-                  setValue('length', val === '' ? undefined : Number(val), { shouldValidate: true })
-                }}
               />
               <Input
                 {...register('width', { valueAsNumber: true })}
                 label='Ancho'
                 isInvalid={!!errors.width}
                 errorMessage={errors.width?.message}
-                value={width !== undefined ? String(width) : ''}
                 onFocus={(e) => e.target.select()}
-                onChange={(e) => {
-                  const val = e.target.value
-                  setValue('width', val === '' ? undefined : Number(val), { shouldValidate: true })
-                }}
               />
             </ModalBody>
             <ModalFooter className='flex justify-between items-center'>
@@ -115,8 +109,8 @@ const ModalAreaCalculator = ({ isOpen, onOpenChange }: ModalAddProductProps) => 
                     {totalCalculated} m<sup>2</sup>
                   </span>
                 )}
-                <Button color='primary' onPress={onClose} isDisabled={!selectedProduct || totalCalculated === 0}>
-                  Agregar
+                <Button color='primary' onPress={handleSetCalculatedArea} isDisabled={!selectedProduct || totalCalculated === 0}>
+                  Aceptar
                 </Button>
               </section>
             </ModalFooter>

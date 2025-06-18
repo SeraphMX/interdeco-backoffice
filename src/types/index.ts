@@ -32,12 +32,12 @@ export interface Material {
   proveedor: string
 }
 
-export interface ItemCotizacion {
-  id: string
-  materialId: string
-  metrosCuadrados: number
-  cantidad: number
-  precioUnitario: number
+export interface QuoteItem {
+  id?: string
+  product: Product
+  requiredQuantity: number
+  totalQuantity: number
+  packagesRequired?: number
   subtotal: number
 }
 
@@ -47,7 +47,7 @@ export interface Cotizacion {
   id: string
   clienteId: string
   fecha: string
-  items: ItemCotizacion[]
+  items: QuoteItem[]
   subtotal: number
   iva: number
   descuento: number

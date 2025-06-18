@@ -1,8 +1,13 @@
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, useDisclosure } from '@heroui/react'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Calculator } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useEffect, useRef, useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { useDispatch, useSelector } from 'react-redux'
+import { z } from 'zod'
 import { RootState } from '../../../store'
+import { clearSelectedProduct } from '../../../store/slices/productsSlice'
+import { addItem, clearCalculatedArea } from '../../../store/slices/quoteSlice'
 import { measureUnits } from '../../../types'
 import ProductsFilters from '../../products/ProductsFilters'
 import ProductsTable from '../../products/ProductsTable'
@@ -15,13 +20,107 @@ interface ModalAddProductProps {
 
 const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
   const selectedProduct = useSelector((state: RootState) => state.productos.selectedProduct)
-  const [selectedQuantity, setSelectedQuantity] = useState('')
+  const calculatedArea = useSelector((state: RootState) => state.quote.calculatedArea)
+
   const [filterValue, setFilterValue] = useState('')
   const { isOpen: isOpenAreaCalculator, onOpen: onOpenAreaCalculator, onOpenChange: onOpenChangeAreaCalculator } = useDisclosure()
 
+  const dispatch = useDispatch()
+  const quantityInputRef = useRef<HTMLInputElement | null>(null)
+
+  const schema = z.object({
+    quantity: z
+      .number({ invalid_type_error: 'Debe ser un número' })
+      .transform((val) => (isNaN(val) ? undefined : val))
+      .optional()
+      .refine((val) => typeof val === 'number' && val > 0, {
+        message: 'Debe ser mayor a 0'
+      })
+  })
+
+  type FormData = z.infer<typeof schema>
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    watch,
+    setValue,
+    control
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    mode: 'onSubmit',
+    defaultValues: {
+      quantity: undefined
+    }
+  })
+
+  const quantity = watch('quantity')
+
+  const handleAddProduct = handleSubmit(
+    (data) => {
+      console.log('Producto agregado:', data)
+      // Aquí puedes manejar la lógica para agregar el producto seleccionado
+      if (selectedProduct) {
+        const requestedQuantity = data.quantity ?? 0
+        const packageSize = selectedProduct.package_unit ?? 0
+        const packagesRequired = packageSize > 1 ? Math.ceil(requestedQuantity / packageSize) : requestedQuantity
+        const roundToTwo = (num: number) => Math.round(num * 100) / 100
+        const totalQuantity = roundToTwo(packageSize > 1 ? packagesRequired * packageSize : requestedQuantity)
+
+        dispatch(
+          addItem({
+            product: selectedProduct,
+            requiredQuantity: requestedQuantity, // Lo que pidió el usuario (en m²)
+            totalQuantity, // Lo que realmente se va a entregar
+            packagesRequired, // (opcional) para mostrar cuántos paquetes se requieren
+            subtotal: (selectedProduct.price ?? 0) * packagesRequired
+          })
+        )
+
+        dispatch(clearSelectedProduct())
+        dispatch(clearCalculatedArea())
+      } else {
+        console.error('No product selected')
+      }
+
+      onOpenChange(false) // Cierra el modal después de agregar el producto
+    },
+    (errors) => {
+      console.error('Errores al agregar producto:', errors)
+      // Aquí puedes manejar los errores de validación
+    }
+  )
+
   useEffect(() => {
-    setSelectedQuantity('')
+    if (isOpen) {
+      dispatch(clearSelectedProduct())
+      reset() // Resetea el formulario al abrir el modal
+    }
+  }, [dispatch, isOpen, reset])
+
+  useEffect(() => {
+    if (selectedProduct && quantityInputRef.current) {
+      // Espera un pequeño tiempo para asegurar que el input ya esté en el DOM
+      setTimeout(() => {
+        quantityInputRef.current?.focus()
+      }, 100)
+    }
+  }, [selectedProduct, quantity, reset])
+  useEffect(() => {
+    setTimeout(() => {
+      quantityInputRef.current?.select()
+    }, 150)
   }, [selectedProduct])
+
+  useEffect(() => {
+    if (calculatedArea !== undefined && calculatedArea > 0) {
+      setValue('quantity', calculatedArea, { shouldValidate: true })
+    } else {
+      setValue('quantity', undefined, { shouldValidate: true })
+    }
+  }, [calculatedArea, setValue])
 
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='2xl' backdrop='blur'>
@@ -45,30 +144,48 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
                 </Button>
               </section>
               {selectedProduct && (
-                <section className='flex gap-2 items-center '>
+                <form className='flex gap-2 items-center' onSubmit={handleAddProduct}>
                   <span className='whitespace-nowrap flex flex-col text-right'>
                     {selectedProduct?.provider_name}
                     <small className='max-w-[100px] overflow-hidden truncate'>{selectedProduct?.sku}</small>
                   </span>
-                  <Input
-                    className='w-36'
-                    size='sm'
-                    label={measureUnits.find((i) => i.key === selectedProduct?.measurement_unit)?.plural}
-                    onChange={(e) => setSelectedQuantity(e.target.value)}
-                    value={selectedQuantity}
-                  ></Input>
+                  <Controller
+                    control={control}
+                    name='quantity'
+                    render={({ field }) => (
+                      <Input
+                        className='w-36'
+                        size='sm'
+                        label={measureUnits.find((i) => i.key === selectedProduct?.measurement_unit)?.plural}
+                        isInvalid={!!errors.quantity}
+                        value={field.value !== undefined ? String(field.value) : ''}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          const parsed = parseFloat(value)
+                          field.onChange(isNaN(parsed) ? undefined : parsed)
+                        }}
+                        onBlur={field.onBlur}
+                        ref={(el) => {
+                          quantityInputRef.current = el
+                        }}
+                        // onFocus={(e) => {
+                        //   setTimeout(() => e.target.select(), 100)
+                        // }}
+                      />
+                    )}
+                  />
                   {selectedProduct.measurement_unit === 'M2' && (
                     <>
-                      <Button color='primary' variant='ghost' onPress={onOpenAreaCalculator} isIconOnly>
+                      <Button color='primary' variant='ghost' onPress={onOpenAreaCalculator} isIconOnly tabIndex={-1}>
                         <Calculator size={20} />
                       </Button>
                       <ModalAreaCalculator isOpen={isOpenAreaCalculator} onOpenChange={onOpenChangeAreaCalculator} />
                     </>
                   )}
-                  <Button color='primary' onPress={onClose}>
+                  <Button color='primary' type='submit'>
                     Aceptar
                   </Button>
-                </section>
+                </form>
               )}
             </ModalFooter>
           </>

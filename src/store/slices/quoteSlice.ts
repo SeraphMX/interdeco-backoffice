@@ -1,13 +1,15 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { Customer } from '../../types'
+import { Customer, Product, QuoteItem } from '../../types'
 
 interface QuoteState {
   selectedCustomer: Customer | null
-  items: string[]
+  calculatedArea?: number
+  items: QuoteItem[]
 }
 
 const initialState: QuoteState = {
   selectedCustomer: null,
+  calculatedArea: 0,
   items: []
 }
 
@@ -23,11 +25,30 @@ const quoteSlice = createSlice({
     clearSelectedCustomer: (state) => {
       state.selectedCustomer = null
     },
-    addItem: (state, action: PayloadAction<string>) => {
-      state.items.push(action.payload)
+    setCalculatedArea: (state, action: PayloadAction<number>) => {
+      state.calculatedArea = action.payload
     },
-    removeItem: (state, action: PayloadAction<string>) => {
-      state.items = state.items.filter((item) => item !== action.payload)
+    clearCalculatedArea: (state) => {
+      state.calculatedArea = 0
+    },
+    addItem: (state, action: PayloadAction<QuoteItem>) => {
+      const existingItemIndex = state.items.findIndex((item) => item.product === action.payload.product)
+      if (existingItemIndex !== -1) {
+        // If item already exists, update the quantity
+        state.items[existingItemIndex].requiredQuantity += action.payload.requiredQuantity
+        state.items[existingItemIndex].totalQuantity += action.payload.totalQuantity
+        state.items[existingItemIndex].subtotal += action.payload.subtotal
+      } else {
+        // Otherwise, add the new item
+        state.items.push(action.payload)
+      }
+    },
+
+    removeItem: (state, action: PayloadAction<Product>) => {
+      const itemIndex = state.items.findIndex((item) => item.product === action.payload)
+      if (itemIndex !== -1) {
+        state.items.splice(itemIndex, 1)
+      }
     },
     clearItems: (state) => {
       state.items = []
@@ -35,6 +56,7 @@ const quoteSlice = createSlice({
   }
 })
 
-export const { setSelectedCustomer, clearSelectedCustomer, addItem, removeItem, clearItems } = quoteSlice.actions
+export const { setSelectedCustomer, clearSelectedCustomer, addItem, removeItem, clearItems, setCalculatedArea, clearCalculatedArea } =
+  quoteSlice.actions
 
 export default quoteSlice.reducer
