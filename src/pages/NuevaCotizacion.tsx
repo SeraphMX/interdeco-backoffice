@@ -1,6 +1,6 @@
 import { Avatar, Badge, Button, Card, CardBody, Chip, Input, Tooltip, useDisclosure } from '@heroui/react'
-import { ArrowLeft, ArrowRightLeft, Minus, Plus, X } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowLeft, ArrowRightLeft, File, MailPlus, Minus, Plus, Save, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import ModalAddProduct from '../components/quotes/modals/ModalAddProduct'
@@ -13,90 +13,33 @@ import { clearItems, clearSelectedCustomer } from '../store/slices/quoteSlice'
 const NuevaCotizacion = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const clientes = useSelector((state: RootState) => state.clientes.items)
   const quote = useSelector((state: RootState) => state.quote)
+  const [taxes, setTaxes] = useState(0)
+  const [subtotal, setSubtotal] = useState(0)
+  const [total, setTotal] = useState(0)
   const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
 
   const { isOpen: isOpenSelectCustomer, onOpen: onOpenSelectCustomer, onOpenChange: onOpenChangeSelectCustomer } = useDisclosure()
   const { isOpen: isOpenAddProduct, onOpen: onOpenAddProduct, onOpenChange: onOpenChangeAddProduct } = useDisclosure()
 
-  const [showCalculator, setShowCalculator] = useState(false)
-  const [showClientModal, setShowClientModal] = useState(false)
-  const [currentItemIndex, setCurrentItemIndex] = useState<number | null>(null)
-  const [selectedClientId, setSelectedClientId] = useState('')
-  const [measurements, setMeasurements] = useState({
-    largo: '',
-    ancho: ''
-  })
-
-  const [formData, setFormData] = useState({
-    items: [] as {
-      id: string
-      materialId: string
-      metrosCuadrados: number
-      unidadesNecesarias: number
-      metrosTotales: number
-      precioUnitario: number
-      subtotal: number
-    }[],
-    subtotal: 0,
-    iva: 0,
-    total: 0,
-    status: 'pendiente' as const
-  })
-
-  const handleSubmit = () => {
-    if (!selectedClientId) return
-
+  const handleSave = () => {
     navigate('/cotizaciones')
   }
 
-  const updateItem = (index: number, updates: Partial<(typeof formData.items)[0]>) => {
-    const newItems = [...formData.items]
-    const currentItem = { ...newItems[index], ...updates }
-
-    newItems[index] = currentItem
-
-    // Recalcular totales
-    const subtotal = newItems.reduce((acc, item) => acc + item.subtotal, 0)
-    const iva = subtotal * 0.16
-    const total = subtotal + iva
-
-    setFormData({
-      ...formData,
-      items: newItems,
-      subtotal,
-      iva,
-      total
-    })
-  }
-
-  const removeItem = (index: number) => {
-    const newItems = formData.items.filter((_, i) => i !== index)
-
-    // Recalcular totales
-    const subtotal = newItems.reduce((acc, item) => acc + item.subtotal, 0)
-    const iva = subtotal * 0.16
-    const total = subtotal + iva
-
-    setFormData({
-      ...formData,
-      items: newItems,
-      subtotal,
-      iva,
-      total
-    })
-  }
+  const updateItem = () => {}
+  const removeItem = () => {}
 
   const handleClearItems = () => {
     dispatch(clearItems())
   }
 
-  // const handleItemChange = (index: number, field: string, value: number) => {
-  //   const updatedItems = [...quote.items]
-  //   updatedItems[index][field] = value
-  //   setQuote({ ...quote, items: updatedItems })
-  // }
+  useMemo(() => {
+    if (quote.items.length > 0) {
+      setSubtotal(quote.items.reduce((acc, item) => acc + item.subtotal, 0))
+      setTaxes(quote.items.reduce((acc, item) => acc + item.subtotal * 0.16, 0))
+      setTotal(subtotal + taxes)
+    }
+  }, [quote.items, subtotal, taxes])
 
   return (
     <div className='container  space-y-4  h-full flex flex-col'>
@@ -145,15 +88,18 @@ const NuevaCotizacion = () => {
         <ModalSelectCustomer isOpen={isOpenSelectCustomer} onOpenChange={onOpenChangeSelectCustomer} />
       </section>
 
-      <div className='flex-grow overflow-y-auto relative rounded-xl  shadow-medium'>
+      <div className='flex-grow overflow-y-auto relative rounded-xl  shadow-medium bg-white'>
         <Card className='rounded-none'>
           <CardBody>
             <div className='space-y-5 p-2'>
-              {quote.items.map((item, index) => {
+              {quote.items.map((item) => {
                 const surplus = item.totalQuantity - item.requiredQuantity
                 const isExceeding = surplus > 0
                 const category = rxCategories.find((cat: Category) => cat.description === item.product.category_description)
                 const categoryColor = category?.color || 'bg-gray-300'
+                const pricePerPackage = Number(
+                  ((item.product?.price ?? 0) * (1 + (item.product.utility ?? 0) / 100) * (item.product.package_unit ?? 1)).toFixed(2)
+                )
                 return (
                   <article key={item.id} className='border rounded-lg overflow-hidden'>
                     <header className='flex items-center gap-4 p-4 bg-gray-50'>
@@ -174,7 +120,7 @@ const NuevaCotizacion = () => {
                         size='sm'
                         aria-label='Cantidad requerida'
                       />
-                      <Button isIconOnly color='danger' variant='light' onPress={() => removeItem(index)} aria-label='Eliminar artículo'>
+                      <Button isIconOnly color='danger' variant='light' aria-label='Eliminar artículo'>
                         <Minus size={18} />
                       </Button>
                     </header>
@@ -226,12 +172,12 @@ const NuevaCotizacion = () => {
                                   currency: 'MXN',
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2
-                                }).format(item.product?.price || 0)}
+                                }).format(pricePerPackage)}
                               </dd>
                             </div>
                             <div className='flex justify-between'>
                               <dt className='font-medium'>Subtotal</dt>
-                              <dd className='text-gray-600 font-medium'>
+                              <dd className='text-gray-600 font-medium text-lg'>
                                 {new Intl.NumberFormat('es-MX', {
                                   style: 'currency',
                                   currency: 'MXN',
@@ -255,42 +201,61 @@ const NuevaCotizacion = () => {
             <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={onOpenAddProduct}>
               Agregar producto
             </Button>
-            <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={handleClearItems}>
-              Limpiar productos
-            </Button>
+            {quote.items.length > 0 && (
+              <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={handleClearItems}>
+                Limpiar productos
+              </Button>
+            )}
             <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
           </div>
         </section>
       </div>
 
-      <section>
-        <Card>
-          <CardBody className='flex '>
-            <div className='flex justify-end gap-3'>
-              <Button color='danger' variant='light' onPress={() => navigate('/cotizaciones')}>
-                Cancelar
-              </Button>
-              <Button color='primary' onPress={() => setShowClientModal(true)} isDisabled={formData.items.length === 0}>
-                Continuar
-              </Button>
-            </div>
-            <div className='flex flex-col gap-2 text-right'>
-              <div className='text-sm'>
-                <span className='font-medium'>Subtotal:</span>
-                <span className='ml-2'>{formData.subtotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
+      {quote.items.length > 0 && (
+        <section>
+          <Card className='p-4 px-8'>
+            <CardBody className='flex flex-row justify-between items-center gap-4'>
+              <section className='flex justify-end gap-3'>
+                <Button
+                  className='flex flex-col h-16 w-16 p-2 gap-0'
+                  color='danger'
+                  variant='ghost'
+                  onPress={() => navigate('/cotizaciones')}
+                >
+                  <X />
+                  Cancelar
+                </Button>
+                <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost' onPress={handleSave}>
+                  <Save />
+                  Guardar
+                </Button>
+                <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='secondary' variant='ghost'>
+                  <File />
+                  Ver PDF
+                </Button>
+                <Button className='flex flex-col h-16 w-16 p-2 gap-0 ' color='secondary' variant='ghost'>
+                  <MailPlus />
+                  Enviar
+                </Button>
+              </section>
+              <div className='flex flex-col gap-2 text-right'>
+                <div className='text-lg'>
+                  <span className='font-medium'>Subtotal:</span>
+                  <span className='ml-2'>{subtotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
+                </div>
+                <div className='text-lg'>
+                  <span className='font-medium'>IVA:</span>
+                  <span className='ml-2'>{taxes.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
+                </div>
+                <div className='text-xl font-semibold'>
+                  <span>Total:</span>
+                  <span className='ml-2'>{total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
+                </div>
               </div>
-              <div className='text-sm'>
-                <span className='font-medium'>IVA:</span>
-                <span className='ml-2'>{formData.iva.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
-              </div>
-              <div className='text-lg font-semibold'>
-                <span>Total:</span>
-                <span className='ml-2'>{formData.total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-      </section>
+            </CardBody>
+          </Card>
+        </section>
+      )}
     </div>
   )
 }
