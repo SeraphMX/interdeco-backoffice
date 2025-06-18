@@ -32,13 +32,15 @@ export interface Material {
   proveedor: string
 }
 
-export interface ItemCotizacion {
-  id: string
-  materialId: string
-  metrosCuadrados: number
-  cantidad: number
-  precioUnitario: number
+export interface QuoteItem {
+  id?: string
+  product: Product
+  requiredQuantity: number
+  totalQuantity: number
+  packagesRequired?: number
   subtotal: number
+  discount?: number
+  discountType?: 'percentage' | 'fixed'
 }
 
 export type CotizacionStatus = 'pendiente' | 'aprobada' | 'rechazada' | 'finalizada'
@@ -47,7 +49,7 @@ export interface Cotizacion {
   id: string
   clienteId: string
   fecha: string
-  items: ItemCotizacion[]
+  items: QuoteItem[]
   subtotal: number
   iva: number
   descuento: number
@@ -131,4 +133,14 @@ export const customerStatus = [
   { key: 'returning', label: 'Ocasional', color: 'bg-yellow-300' },
   { key: 'recent', label: 'Reciente', color: 'bg-purple-300' },
   { key: 'frequent', label: 'Frecuente', color: 'bg-orange-300' }
+]
+
+export const measureUnits = [
+  { key: 'M2', label: 'Metro cuadrado', plural: 'Metros cuadrados' },
+  { key: 'ML', label: 'Metro lineal', plural: 'Metros lineales' },
+  { key: 'KG', label: 'Kilogramo', plural: 'Kilogramos' },
+  { key: 'L', label: 'Litro', plural: 'Litros' },
+  { key: 'PZ', label: 'Pieza', plural: 'Piezas' },
+  { key: 'CJ', label: 'Caja', plural: 'Cajas' },
+  { key: 'BG', label: 'Bolsa', plural: 'Bolsas' }
 ]

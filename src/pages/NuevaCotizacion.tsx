@@ -1,192 +1,49 @@
-import {
-  Avatar,
-  Badge,
-  Button,
-  Card,
-  CardBody,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  Select,
-  SelectItem,
-  Tooltip,
-  useDisclosure
-} from '@heroui/react'
-import { ArrowLeft, ArrowRightLeft, Calculator, Minus, Plus, X } from 'lucide-react'
-import { useState } from 'react'
+import { Avatar, Badge, Button, Card, CardBody, Chip, Input, Tooltip, useDisclosure } from '@heroui/react'
+import { ArrowLeft, ArrowRightLeft, File, MailPlus, Minus, Plus, Save, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import ModalAddProduct from '../components/quotes/modals/ModalAddProduct'
 import ModalSelectCustomer from '../components/quotes/modals/ModalSelectCustomer'
 
 import CustomerIcon from '../components/shared/CustomerIcon'
 import { RootState } from '../store'
-import { addCotizacion } from '../store/slices/cotizacionesSlice'
-import { clearSelectedCustomer } from '../store/slices/quoteSlice'
+import { Category } from '../store/slices/catalogSlice'
+import { clearItems, clearSelectedCustomer } from '../store/slices/quoteSlice'
 
 const NuevaCotizacion = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const clientes = useSelector((state: RootState) => state.clientes.items)
-  const materiales = useSelector((state: RootState) => state.materiales.items)
   const quote = useSelector((state: RootState) => state.quote)
+  const [taxes, setTaxes] = useState(0)
+  const [subtotal, setSubtotal] = useState(0)
+  const [total, setTotal] = useState(0)
+  const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
 
   const { isOpen: isOpenSelectCustomer, onOpen: onOpenSelectCustomer, onOpenChange: onOpenChangeSelectCustomer } = useDisclosure()
+  const { isOpen: isOpenAddProduct, onOpen: onOpenAddProduct, onOpenChange: onOpenChangeAddProduct } = useDisclosure()
 
-  const [showCalculator, setShowCalculator] = useState(false)
-  const [showClientModal, setShowClientModal] = useState(false)
-  const [currentItemIndex, setCurrentItemIndex] = useState<number | null>(null)
-  const [selectedClientId, setSelectedClientId] = useState('')
-  const [measurements, setMeasurements] = useState({
-    largo: '',
-    ancho: ''
-  })
-
-  const [formData, setFormData] = useState({
-    items: [] as {
-      id: string
-      materialId: string
-      metrosCuadrados: number
-      unidadesNecesarias: number
-      metrosTotales: number
-      precioUnitario: number
-      subtotal: number
-    }[],
-    subtotal: 0,
-    iva: 0,
-    total: 0,
-    status: 'pendiente' as const
-  })
-
-  const handleSubmit = () => {
-    if (!selectedClientId) return
-
-    dispatch(
-      addCotizacion({
-        id: crypto.randomUUID(),
-        fecha: new Date().toISOString(),
-        clienteId: selectedClientId,
-        ...formData,
-        descuento: 0
-      })
-    )
+  const handleSave = () => {
     navigate('/cotizaciones')
   }
 
-  const addItem = () => {
-    const newItem = {
-      id: crypto.randomUUID(),
-      materialId: '',
-      metrosCuadrados: 0,
-      unidadesNecesarias: 0,
-      metrosTotales: 0,
-      precioUnitario: 0,
-      subtotal: 0
+  const updateItem = () => {}
+  const removeItem = () => {}
+
+  const handleClearItems = () => {
+    dispatch(clearItems())
+  }
+
+  useMemo(() => {
+    if (quote.items.length > 0) {
+      setSubtotal(quote.items.reduce((acc, item) => acc + item.subtotal, 0))
+      setTaxes(quote.items.reduce((acc, item) => acc + item.subtotal * 0.16, 0))
+      setTotal(subtotal + taxes)
     }
-    setFormData({
-      ...formData,
-      items: [...formData.items, newItem]
-    })
-  }
-
-  const calculateUnitsNeeded = (metrosCuadrados: number, material: (typeof materiales)[0]) => {
-    if (material.unidadCompra === 'metro') {
-      return {
-        unidades: metrosCuadrados,
-        metrosTotales: metrosCuadrados
-      }
-    }
-
-    if (!material.metrosPorUnidad) return { unidades: 0, metrosTotales: 0 }
-
-    // Calcular cuántas unidades (cajas o rollos) se necesitan
-    const unidadesNecesarias = Math.ceil(metrosCuadrados / material.metrosPorUnidad)
-    // Calcular los metros totales que se entregarán (basado en unidades completas)
-    const metrosTotales = unidadesNecesarias * material.metrosPorUnidad
-
-    return {
-      unidades: unidadesNecesarias,
-      metrosTotales
-    }
-  }
-
-  const updateItem = (index: number, updates: Partial<(typeof formData.items)[0]>) => {
-    const newItems = [...formData.items]
-    const currentItem = { ...newItems[index], ...updates }
-
-    const material = materiales.find((m) => m.id === currentItem.materialId)
-    if (material) {
-      // Si estamos actualizando los metros cuadrados o el material
-      if ('metrosCuadrados' in updates || 'materialId' in updates) {
-        const metrosCuadrados = Math.floor(currentItem.metrosCuadrados) // Asegurar que sea un número entero
-        const { unidades, metrosTotales } = calculateUnitsNeeded(metrosCuadrados, material)
-
-        currentItem.unidadesNecesarias = unidades
-        currentItem.metrosTotales = metrosTotales
-        currentItem.precioUnitario = material.precio
-        currentItem.subtotal = unidades * material.precio
-      }
-    }
-
-    newItems[index] = currentItem
-
-    // Recalcular totales
-    const subtotal = newItems.reduce((acc, item) => acc + item.subtotal, 0)
-    const iva = subtotal * 0.16
-    const total = subtotal + iva
-
-    setFormData({
-      ...formData,
-      items: newItems,
-      subtotal,
-      iva,
-      total
-    })
-  }
-
-  const removeItem = (index: number) => {
-    const newItems = formData.items.filter((_, i) => i !== index)
-
-    // Recalcular totales
-    const subtotal = newItems.reduce((acc, item) => acc + item.subtotal, 0)
-    const iva = subtotal * 0.16
-    const total = subtotal + iva
-
-    setFormData({
-      ...formData,
-      items: newItems,
-      subtotal,
-      iva,
-      total
-    })
-  }
-
-  const openCalculator = (index: number) => {
-    setCurrentItemIndex(index)
-    setMeasurements({ largo: '', ancho: '' })
-    setShowCalculator(true)
-  }
-
-  const calculateSquareMeters = () => {
-    if (currentItemIndex === null) return
-
-    const largo = parseFloat(measurements.largo)
-    const ancho = parseFloat(measurements.ancho)
-
-    if (!isNaN(largo) && !isNaN(ancho)) {
-      const metrosCuadrados = Math.floor(largo * ancho) // Asegurar que sea un número entero
-      updateItem(currentItemIndex, { metrosCuadrados })
-    }
-
-    setShowCalculator(false)
-    setCurrentItemIndex(null)
-    setMeasurements({ largo: '', ancho: '' })
-  }
+  }, [quote.items, subtotal, taxes])
 
   return (
-    <div className='max-w-4xl mx-auto space-y-6'>
+    <div className='container  space-y-4  h-full flex flex-col'>
       <section className='flex justify-between items-center gap-4'>
         <div className='flex items-center gap-4'>
           <Button isIconOnly variant='light' onPress={() => navigate('/cotizaciones')}>
@@ -228,218 +85,178 @@ const NuevaCotizacion = () => {
             {!quote.selectedCustomer ? 'Seleccionar cliente' : 'Cambiar cliente'}
           </Button>
         </div>
+
         <ModalSelectCustomer isOpen={isOpenSelectCustomer} onOpenChange={onOpenChangeSelectCustomer} />
       </section>
 
-      <div className='space-y-6'>
-        <Card className='p-6'>
-          <CardBody className='space-y-4'>
-            <div className='flex justify-between items-center'>
-              <h3 className='text-lg font-medium'>Materiales</h3>
-              <Button size='sm' color='primary' variant='light' onPress={addItem} startContent={<Plus size={18} />}>
-                Agregar Material
-              </Button>
-            </div>
-
-            <div className='space-y-4'>
-              {formData.items.map((item, index) => {
-                const material = materiales.find((m) => m.id === item.materialId)
+      <div className='flex-grow overflow-y-auto relative rounded-xl  shadow-medium bg-white'>
+        <Card className='rounded-none'>
+          <CardBody>
+            <div className='space-y-5 p-2'>
+              {quote.items.map((item) => {
+                const surplus = item.totalQuantity - item.requiredQuantity
+                const isExceeding = surplus > 0
+                const category = rxCategories.find((cat: Category) => cat.description === item.product.category_description)
+                const categoryColor = category?.color || 'bg-gray-300'
+                const pricePerPackage = Number(
+                  ((item.product?.price ?? 0) * (1 + (item.product.utility ?? 0) / 100) * (item.product.package_unit ?? 1)).toFixed(2)
+                )
                 return (
-                  <div key={item.id}>
-                    <div className='space-y-4 border-1 border-gray-100 p-2'>
-                      <div className='flex justify-between items-start'>
-                        <h4 className='font-medium'>Material {index + 1}</h4>
-                        <Button isIconOnly color='danger' variant='light' onPress={() => removeItem(index)}>
-                          <Minus size={18} />
-                        </Button>
+                  <article key={item.id} className='border rounded-lg overflow-hidden'>
+                    <header className='flex items-center gap-4 p-4 bg-gray-50'>
+                      <div className='flex-grow min-w-0'>
+                        <h3 className='font-medium text-lg flex gap-4 items-center'>
+                          {item.product.sku}
+                          <Chip className={categoryColor} size='sm' variant='flat'>
+                            {item.product.category_description}
+                          </Chip>
+                        </h3>
+                        <p className='text-gray-600'>{item.product.description}</p>
                       </div>
 
-                      <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                        <Select
-                          label='Material'
-                          required
-                          value={item.materialId}
-                          onChange={(e) => updateItem(index, { materialId: e.target.value })}
-                        >
-                          <SelectItem key='empty' value=''>
-                            Seleccionar material
-                          </SelectItem>
-                          {materiales.map((material) => (
-                            <SelectItem key={material.id} value={material.id}>
-                              {material.nombre}
-                            </SelectItem>
-                          ))}
-                        </Select>
+                      <Input
+                        type='number'
+                        className='w-20'
+                        value={item.requiredQuantity.toString()}
+                        size='sm'
+                        aria-label='Cantidad requerida'
+                      />
+                      <Button isIconOnly color='danger' variant='light' aria-label='Eliminar artículo'>
+                        <Minus size={18} />
+                      </Button>
+                    </header>
 
-                        <div className='flex gap-2 '>
-                          <Input
-                            type='number'
-                            label='Metros Cuadrados'
-                            required
-                            min='0'
-                            step='1'
-                            value={item.metrosCuadrados.toString()}
-                            onChange={(e) => updateItem(index, { metrosCuadrados: parseInt(e.target.value) || 0 })}
-                          />
-                          <Button
-                            size='lg'
-                            isIconOnly
-                            color='primary'
-                            variant='flat'
-                            className='self-end'
-                            onPress={() => openCalculator(index)}
-                          >
-                            <Calculator />
-                          </Button>
-                        </div>
+                    <section className='border-t border-gray-200 p-4'>
+                      {/* Sección de detalles */}
+                      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                        <section>
+                          {/* Bloque de cantidades */}
+                          <h4 className='sr-only'>Detalles de cantidades</h4> {/* Título oculto solo para accesibilidad */}
+                          <dl className='space-y-3'>
+                            {/* Lista de definiciones */}
+                            <div className='flex justify-between'>
+                              <dt>{item.product.measurement_unit} Requeridos</dt>
+                              <dd className='text-gray-600'>{item.requiredQuantity} </dd>
+                            </div>
+                            {isExceeding && (
+                              <div className='flex justify-between'>
+                                <dt>{item.product.measurement_unit} Cotizados</dt>
+                                <dd className='text-gray-600'>{item.totalQuantity}</dd>
+                              </div>
+                            )}
+                            {surplus > 0 && (
+                              <div className='flex justify-between'>
+                                <dt>Excedente</dt>
+                                <dd className='text-gray-600'>
+                                  {surplus.toFixed(2)} {item.product.measurement_unit}
+                                </dd>
+                              </div>
+                            )}
+                          </dl>
+                        </section>
+
+                        <section>
+                          <h4 className='sr-only'>Detalles de precios</h4>
+                          <dl className='space-y-3'>
+                            {isExceeding && (
+                              <div className='flex justify-between'>
+                                <dt className='font-medium'>Paquetes necesarios</dt>
+                                <dd className='text-gray-600'>{item.packagesRequired}</dd>
+                              </div>
+                            )}
+
+                            <div className='flex justify-between'>
+                              <dt>Precio por paquete</dt>
+                              <dd className='text-gray-600'>
+                                {new Intl.NumberFormat('es-MX', {
+                                  style: 'currency',
+                                  currency: 'MXN',
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                }).format(pricePerPackage)}
+                              </dd>
+                            </div>
+                            <div className='flex justify-between'>
+                              <dt className='font-medium'>Subtotal</dt>
+                              <dd className='text-gray-600 font-medium text-lg'>
+                                {new Intl.NumberFormat('es-MX', {
+                                  style: 'currency',
+                                  currency: 'MXN',
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                }).format(item.subtotal || 0)}
+                              </dd>
+                            </div>
+                          </dl>
+                        </section>
                       </div>
-
-                      {item.materialId && material && (
-                        <div className='space-y-2 text-sm text-gray-600 '>
-                          <div className='grid grid-cols-2 gap-4'>
-                            <div>
-                              <span className='font-medium'>Unidad de compra:</span>
-                              <span className='ml-2 capitalize'>{material.unidadCompra}</span>
-                            </div>
-                            {material.metrosPorUnidad && (
-                              <div>
-                                <span className='font-medium'>Metros por {material.unidadCompra}:</span>
-                                <span className='ml-2'>{material.metrosPorUnidad}</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className='grid grid-cols-2 gap-4'>
-                            {material.unidadCompra !== 'metro' && (
-                              <div>
-                                <span className='font-medium'>{material.unidadCompra === 'caja' ? 'Cajas' : 'Rollos'} necesarios:</span>
-                                <span className='ml-2'>{item.unidadesNecesarias}</span>
-                              </div>
-                            )}
-                            <div>
-                              <span className='font-medium'>Metros totales:</span>
-                              <span className='ml-2'>{item.metrosTotales}</span>
-                            </div>
-                          </div>
-                          <div className='grid grid-cols-2 gap-4'>
-                            <div>
-                              <span className='font-medium'>Precio por {material.unidadCompra}:</span>
-                              <span className='ml-2'>
-                                {material.precio.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}
-                              </span>
-                            </div>
-                            <div>
-                              <span className='font-medium'>Subtotal:</span>
-                              <span className='ml-2'>{item.subtotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                    </section>
+                  </article>
                 )
               })}
             </div>
           </CardBody>
         </Card>
-
-        <Card className='p-6'>
-          <CardBody>
-            <div className='flex flex-col gap-2 text-right'>
-              <div className='text-sm'>
-                <span className='font-medium'>Subtotal:</span>
-                <span className='ml-2'>{formData.subtotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
-              </div>
-              <div className='text-sm'>
-                <span className='font-medium'>IVA:</span>
-                <span className='ml-2'>{formData.iva.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
-              </div>
-              <div className='text-lg font-semibold'>
-                <span>Total:</span>
-                <span className='ml-2'>{formData.total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        <div className='flex justify-end gap-3'>
-          <Button color='danger' variant='light' onPress={() => navigate('/cotizaciones')}>
-            Cancelar
-          </Button>
-          <Button color='primary' onPress={() => setShowClientModal(true)} isDisabled={formData.items.length === 0}>
-            Continuar
-          </Button>
-        </div>
+        <section className='sticky bottom-0 left-0 right-0  p-2   bg-white z-10 '>
+          <div className='flex justify-center items-center'>
+            <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={onOpenAddProduct}>
+              Agregar producto
+            </Button>
+            {quote.items.length > 0 && (
+              <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={handleClearItems}>
+                Limpiar productos
+              </Button>
+            )}
+            <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
+          </div>
+        </section>
       </div>
 
-      {/* Modal Calculadora */}
-      <Modal isOpen={showCalculator} onOpenChange={setShowCalculator} size='sm'>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className='flex flex-col gap-1'>Calcular Metros Cuadrados</ModalHeader>
-              <ModalBody>
-                <div className='space-y-4'>
-                  <Input
-                    type='number'
-                    label='Largo (metros)'
-                    min='0'
-                    step='0.01'
-                    value={measurements.largo}
-                    onChange={(e) => setMeasurements({ ...measurements, largo: e.target.value })}
-                  />
-                  <Input
-                    type='number'
-                    label='Ancho (metros)'
-                    min='0'
-                    step='0.01'
-                    value={measurements.ancho}
-                    onChange={(e) => setMeasurements({ ...measurements, ancho: e.target.value })}
-                  />
+      {quote.items.length > 0 && (
+        <section>
+          <Card className='p-4 px-8'>
+            <CardBody className='flex flex-row justify-between items-center gap-4'>
+              <section className='flex justify-end gap-3'>
+                <Button
+                  className='flex flex-col h-16 w-16 p-2 gap-0'
+                  color='danger'
+                  variant='ghost'
+                  onPress={() => navigate('/cotizaciones')}
+                >
+                  <X />
+                  Cancelar
+                </Button>
+                <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost' onPress={handleSave}>
+                  <Save />
+                  Guardar
+                </Button>
+                <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='secondary' variant='ghost'>
+                  <File />
+                  Ver PDF
+                </Button>
+                <Button className='flex flex-col h-16 w-16 p-2 gap-0 ' color='secondary' variant='ghost'>
+                  <MailPlus />
+                  Enviar
+                </Button>
+              </section>
+              <div className='flex flex-col gap-2 text-right'>
+                <div className='text-lg'>
+                  <span className='font-medium'>Subtotal:</span>
+                  <span className='ml-2'>{subtotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
                 </div>
-              </ModalBody>
-              <ModalFooter>
-                <Button color='danger' variant='light' onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button color='primary' onPress={calculateSquareMeters}>
-                  Calcular
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-
-      {/* Modal Selección de Cliente */}
-      <Modal isOpen={showClientModal} onOpenChange={setShowClientModal} size='lg'>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader className='flex flex-col gap-1'>Seleccionar Cliente</ModalHeader>
-              <ModalBody>
-                <Select label='Cliente' required value={selectedClientId} onChange={(e) => setSelectedClientId(e.target.value)}>
-                  <SelectItem key='empty' value=''>
-                    Seleccionar cliente
-                  </SelectItem>
-                  {clientes.map((cliente) => (
-                    <SelectItem key={cliente.id} value={cliente.id}>
-                      {cliente.nombre}
-                    </SelectItem>
-                  ))}
-                </Select>
-              </ModalBody>
-              <ModalFooter>
-                <Button color='danger' variant='light' onPress={onClose}>
-                  Cancelar
-                </Button>
-                <Button color='primary' onPress={handleSubmit} isDisabled={!selectedClientId}>
-                  Guardar Cotización
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
+                <div className='text-lg'>
+                  <span className='font-medium'>IVA:</span>
+                  <span className='ml-2'>{taxes.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
+                </div>
+                <div className='text-xl font-semibold'>
+                  <span>Total:</span>
+                  <span className='ml-2'>{total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+        </section>
+      )}
     </div>
   )
 }

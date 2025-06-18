@@ -263,7 +263,7 @@ const Catalogo = () => {
 
       return matchesSearch && matchesProviders && matchesCategories
     })
-  }, [products, filterValue, selectedCategories, selectedProviders, priceRange])
+  }, [products, filterValue, selectedCategories, selectedProviders])
 
   const sortedItems = [...filteredItems].sort((a, b) => {
     const first = a[sortDescriptor.column as keyof typeof a]
