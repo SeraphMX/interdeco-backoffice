@@ -39,6 +39,8 @@ export interface QuoteItem {
   totalQuantity: number
   packagesRequired?: number
   subtotal: number
+  discount?: number
+  discountType?: 'percentage' | 'fixed'
 }
 
 export type CotizacionStatus = 'pendiente' | 'aprobada' | 'rechazada' | 'finalizada'
