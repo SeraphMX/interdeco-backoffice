@@ -40,6 +40,8 @@ const ProductsFilters = ({ filterValue, setFilterValue }: ProductsFiltersProps) 
         value={filterValue}
         onClear={() => setFilterValue && setFilterValue('')}
         onValueChange={setFilterValue}
+        autoFocus
+        onFocus={(e) => e.target.select()}
       />
 
       <Dropdown>
