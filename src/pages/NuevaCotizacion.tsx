@@ -199,16 +199,55 @@ const NuevaCotizacion = () => {
                               </dd>
                             </div>
                             <div className='flex justify-between'>
-                              <dt className='font-medium'>Subtotal</dt>
-                              <dd className='text-gray-600 font-medium text-lg'>
+                              <dt className={`${!item.discount && 'font-medium'}`}>Subtotal</dt>
+                              <dd className={`${!item.discount && 'font-medium text-lg'} text-gray-600 `}>
                                 {new Intl.NumberFormat('es-MX', {
                                   style: 'currency',
                                   currency: 'MXN',
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2
-                                }).format(item.subtotal || 0)}
+                                }).format(item.discount ? item.originalSubtotal ?? 0 : item.subtotal ?? 0)}
                               </dd>
                             </div>
+
+                            {(item.discount ?? 0) > 0 && (
+                              <>
+                                <div className='flex justify-between'>
+                                  <dt className='flex items-center gap-2'>
+                                    Descuento
+                                    <Chip color='success' classNames={{ base: 'text-xs' }} size='sm' variant='flat'>
+                                      {item.discountType === 'fixed' && '$'}
+                                      {item.discount}
+                                      {item.discountType === 'percentage' && '%'}
+                                    </Chip>
+                                  </dt>
+                                  <dd className='text-gray-600'>
+                                    {new Intl.NumberFormat('es-MX', {
+                                      style: 'currency',
+                                      currency: 'MXN',
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2
+                                    }).format(
+                                      item.discountType === 'percentage'
+                                        ? (item.originalSubtotal ?? 0) * ((item.discount ?? 0) / 100)
+                                        : item.discount ?? 0
+                                    )}
+                                  </dd>
+                                </div>
+
+                                <div className='flex justify-between'>
+                                  <dt className='font-medium'>Subtotal</dt>
+                                  <dd className='text-gray-600 font-medium text-lg'>
+                                    {new Intl.NumberFormat('es-MX', {
+                                      style: 'currency',
+                                      currency: 'MXN',
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2
+                                    }).format(item.subtotal || 0)}
+                                  </dd>
+                                </div>
+                              </>
+                            )}
                           </dl>
                         </section>
                       </div>

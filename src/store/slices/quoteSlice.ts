@@ -51,6 +51,13 @@ const quoteSlice = createSlice({
         state.items.push(action.payload)
       }
     },
+    updateItem: (state, action: PayloadAction<QuoteItem>) => {
+      const itemIndex = state.items.findIndex((item) => item.product.id === action.payload.product.id)
+
+      if (itemIndex !== -1) {
+        state.items[itemIndex] = action.payload
+      }
+    },
 
     removeItem: (state, action: PayloadAction<Product>) => {
       const itemIndex = state.items.findIndex((item) => item.product === action.payload)
@@ -68,6 +75,7 @@ export const {
   setSelectedCustomer,
   clearSelectedCustomer,
   addItem,
+  updateItem,
   removeItem,
   clearItems,
   setCalculatedArea,
