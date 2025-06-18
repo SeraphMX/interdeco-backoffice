@@ -71,13 +71,18 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
         const roundToTwo = (num: number) => Math.round(num * 100) / 100
         const totalQuantity = roundToTwo(packageSize > 1 ? packagesRequired * packageSize : requestedQuantity)
 
+        const pricePerPackage = Number(
+          ((selectedProduct?.price ?? 0) * (1 + (selectedProduct.utility ?? 0) / 100) * (selectedProduct.package_unit ?? 1)).toFixed(2)
+        )
+        const subtotal = pricePerPackage * packagesRequired
         dispatch(
           addItem({
             product: selectedProduct,
             requiredQuantity: requestedQuantity, // Lo que pidió el usuario (en m²)
             totalQuantity, // Lo que realmente se va a entregar
             packagesRequired, // (opcional) para mostrar cuántos paquetes se requieren
-            subtotal: (selectedProduct.price ?? 0) * packagesRequired
+            subtotal // Calcula el subtotal basado en el precio por paquete
+            //(item.product?.price * (1 + item.product.utility / 100) * item.product.package_unit)
           })
         )
 
