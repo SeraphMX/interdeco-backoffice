@@ -20,10 +20,6 @@ const ProductsTable = ({ wrapperHeight, filterValue = '', selectedCategories = [
   const dispatch = useDispatch()
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'category_description', direction: 'ascending' })
 
-  // useEffect(() => {
-  //   console.log('✅ Tabla recibió filtros actualizados:', { selectedCategories, selectedProviders, filterValue })
-  // }, [selectedCategories, selectedProviders, filterValue])
-
   const filteredItems = useMemo(() => {
     console.log('Filtros activos:', { selectedCategories, selectedProviders, filterValue })
 
@@ -47,16 +43,16 @@ const ProductsTable = ({ wrapperHeight, filterValue = '', selectedCategories = [
   const sortedItems = [...filteredItems].sort((a, b) => {
     const first = a[sortDescriptor.column as keyof typeof a]
     const second = b[sortDescriptor.column as keyof typeof b]
-    const cmp = first < second ? -1 : first > second ? 1 : 0
+    const cmp = (first ?? '').toString() < (second ?? '').toString() ? -1 : (first ?? '').toString() > (second ?? '').toString() ? 1 : 0
 
     return sortDescriptor.direction === 'descending' ? -cmp : cmp
   })
 
   const headerColumns = [
+    { name: 'ESPECIFICACIÓN', uid: 'spec', sortable: true },
     { name: 'SKU', uid: 'sku', sortable: true, hidden: true },
     { name: 'CATEGORÍA', uid: 'category_description', hidden: true },
     { name: 'PROVEEDOR', uid: 'provider_name', hidden: true },
-    { name: 'ESPECIFICACIÓN', uid: 'spec', sortable: true },
     { name: 'DESCRIPCIÓN', uid: 'description', hidden: true },
     { name: 'PRECIO PÚBLICO', uid: 'public_price', sortable: true, align: 'end' },
     { name: 'INFO', uid: 'info' }
