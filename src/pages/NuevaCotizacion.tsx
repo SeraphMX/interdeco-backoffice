@@ -1,11 +1,12 @@
 import { Avatar, Badge, Button, Card, CardBody, Chip, Input, Tooltip, useDisclosure } from '@heroui/react'
-import { ArrowLeft, ArrowRightLeft, File, MailPlus, Minus, Plus, Save, X } from 'lucide-react'
+import { ArrowLeft, ArrowRightLeft, File, MailPlus, Minus, Plus, Save, Tag, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import ModalAddProduct from '../components/quotes/modals/ModalAddProduct'
 import ModalSelectCustomer from '../components/quotes/modals/ModalSelectCustomer'
 
+import ModalAddDiscount from '../components/quotes/modals/ModalAddDiscount'
 import CustomerIcon from '../components/shared/CustomerIcon'
 import { RootState } from '../store'
 import { Category } from '../store/slices/catalogSlice'
@@ -22,6 +23,7 @@ const NuevaCotizacion = () => {
 
   const { isOpen: isOpenSelectCustomer, onOpen: onOpenSelectCustomer, onOpenChange: onOpenChangeSelectCustomer } = useDisclosure()
   const { isOpen: isOpenAddProduct, onOpen: onOpenAddProduct, onOpenChange: onOpenChangeAddProduct } = useDisclosure()
+  const { isOpen: isOpenAddDiscount, onOpen: onOpenAddDiscount, onOpenChange: onOpenChangeAddDiscount } = useDisclosure()
 
   const handleSave = () => {
     navigate('/cotizaciones')
@@ -114,6 +116,12 @@ const NuevaCotizacion = () => {
                         <p className='text-gray-600'>{item.product.description}</p>
                       </div>
 
+                      <Button isIconOnly color='success' variant='light' aria-label='Agregar descuento' onPress={onOpenAddDiscount}>
+                        <Tag size={18} />
+                      </Button>
+
+                      <ModalAddDiscount isOpen={isOpenAddDiscount} onOpenChange={onOpenChangeAddDiscount} />
+
                       <Input
                         type='number'
                         className='w-20'
@@ -121,6 +129,7 @@ const NuevaCotizacion = () => {
                         size='sm'
                         aria-label='Cantidad requerida'
                       />
+
                       <Button isIconOnly color='danger' variant='light' aria-label='Eliminar artículo'>
                         <Minus size={18} />
                       </Button>
