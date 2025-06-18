@@ -23,6 +23,9 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
   const calculatedArea = useSelector((state: RootState) => state.quote.calculatedArea)
 
   const [filterValue, setFilterValue] = useState('')
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [selectedProviders, setSelectedProviders] = useState<string[]>([])
+
   const { isOpen: isOpenAreaCalculator, onOpen: onOpenAreaCalculator, onOpenChange: onOpenChangeAreaCalculator } = useDisclosure()
 
   const dispatch = useDispatch()
@@ -41,7 +44,6 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
   type FormData = z.infer<typeof schema>
 
   const {
-    register,
     handleSubmit,
     formState: { errors },
     reset,
@@ -122,6 +124,10 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
     }
   }, [calculatedArea, setValue])
 
+  useEffect(() => {
+    console.log('Selected categories changed:', selectedCategories)
+  }, [selectedCategories])
+
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='2xl' backdrop='blur'>
       <ModalContent>
@@ -129,12 +135,27 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
           <>
             <ModalHeader className='flex flex-col gap-1'>Agregar producto</ModalHeader>
             <ModalBody>
-              <ProductsFilters filterValue={filterValue} setFilterValue={setFilterValue} />
+              <ProductsFilters
+                filters={{
+                  search: {
+                    value: filterValue,
+                    setValue: setFilterValue
+                  },
+                  categories: {
+                    value: selectedCategories,
+                    setValue: setSelectedCategories
+                  },
+                  providers: {
+                    value: selectedProviders,
+                    setValue: setSelectedProviders
+                  }
+                }}
+              />
               <ProductsTable
                 wrapperHeight={400}
                 filterValue={filterValue}
-                selectedCategories={new Set([])}
-                selectedProviders={new Set([])}
+                selectedCategories={selectedCategories}
+                selectedProviders={selectedProviders}
               />
             </ModalBody>
             <ModalFooter className='flex justify-between items-center'>

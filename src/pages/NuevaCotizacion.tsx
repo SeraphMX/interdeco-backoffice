@@ -1,4 +1,4 @@
-import { Avatar, Badge, Button, Card, CardBody, Input, Tooltip, useDisclosure } from '@heroui/react'
+import { Avatar, Badge, Button, Card, CardBody, Chip, Input, Tooltip, useDisclosure } from '@heroui/react'
 import { ArrowLeft, ArrowRightLeft, Minus, Plus, X } from 'lucide-react'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -7,6 +7,7 @@ import ModalAddProduct from '../components/quotes/modals/ModalAddProduct'
 import ModalSelectCustomer from '../components/quotes/modals/ModalSelectCustomer'
 import CustomerIcon from '../components/shared/customerIcon'
 import { RootState } from '../store'
+import { Category } from '../store/slices/catalogSlice'
 import { clearItems, clearSelectedCustomer } from '../store/slices/quoteSlice'
 
 const NuevaCotizacion = () => {
@@ -14,6 +15,7 @@ const NuevaCotizacion = () => {
   const dispatch = useDispatch()
   const clientes = useSelector((state: RootState) => state.clientes.items)
   const quote = useSelector((state: RootState) => state.quote)
+  const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
 
   const { isOpen: isOpenSelectCustomer, onOpen: onOpenSelectCustomer, onOpenChange: onOpenChangeSelectCustomer } = useDisclosure()
   const { isOpen: isOpenAddProduct, onOpen: onOpenAddProduct, onOpenChange: onOpenChangeAddProduct } = useDisclosure()
@@ -139,14 +141,7 @@ const NuevaCotizacion = () => {
             {!quote.selectedCustomer ? 'Seleccionar cliente' : 'Cambiar cliente'}
           </Button>
         </div>
-        <div className='flex justify-end gap-3'>
-          <Button color='danger' variant='light' onPress={() => navigate('/cotizaciones')}>
-            Cancelar
-          </Button>
-          <Button color='primary' onPress={() => setShowClientModal(true)} isDisabled={formData.items.length === 0}>
-            Continuar
-          </Button>
-        </div>
+
         <ModalSelectCustomer isOpen={isOpenSelectCustomer} onOpenChange={onOpenChangeSelectCustomer} />
       </section>
 
@@ -157,13 +152,17 @@ const NuevaCotizacion = () => {
               {quote.items.map((item, index) => {
                 const surplus = item.totalQuantity - item.requiredQuantity
                 const isExceeding = surplus > 0
+                const category = rxCategories.find((cat: Category) => cat.description === item.product.category_description)
+                const categoryColor = category?.color || 'bg-gray-300'
                 return (
                   <article key={item.id} className='border rounded-lg overflow-hidden'>
                     <header className='flex items-center gap-4 p-4 bg-gray-50'>
                       <div className='flex-grow min-w-0'>
-                        <h3 className='font-medium text-lg'>
-                          {/* Cambiado a h3 para jerarquía */}
-                          {item.product.sku} {item.product.category_description}
+                        <h3 className='font-medium text-lg flex gap-4 items-center'>
+                          {item.product.sku}
+                          <Chip className={categoryColor} size='sm' variant='flat'>
+                            {item.product.category_description}
+                          </Chip>
                         </h3>
                         <p className='text-gray-600'>{item.product.description}</p>
                       </div>
@@ -266,7 +265,15 @@ const NuevaCotizacion = () => {
 
       <section>
         <Card>
-          <CardBody>
+          <CardBody className='flex '>
+            <div className='flex justify-end gap-3'>
+              <Button color='danger' variant='light' onPress={() => navigate('/cotizaciones')}>
+                Cancelar
+              </Button>
+              <Button color='primary' onPress={() => setShowClientModal(true)} isDisabled={formData.items.length === 0}>
+                Continuar
+              </Button>
+            </div>
             <div className='flex flex-col gap-2 text-right'>
               <div className='text-sm'>
                 <span className='font-medium'>Subtotal:</span>

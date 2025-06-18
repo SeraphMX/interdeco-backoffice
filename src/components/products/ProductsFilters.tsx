@@ -1,18 +1,23 @@
-import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input } from '@heroui/react'
+import { Button, Chip, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input, Tooltip } from '@heroui/react'
 import { Search, X } from 'lucide-react'
-import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../store'
 
-interface ProductsFiltersProps {
-  filterValue?: string
-  setFilterValue?: (value: string) => void
+type FilterState<T> = {
+  value: T
+  setValue: (value: T) => void
 }
 
-const ProductsFilters = ({ filterValue, setFilterValue }: ProductsFiltersProps) => {
-  //const [filterValue, setFilterValue] = useState('')
-  const [selectedCategories, setSelectedCategories] = useState<Selection>(new Set([]))
-  const [selectedProviders, setSelectedProviders] = useState<Selection>(new Set([]))
+interface ProductsFiltersProps {
+  filters?: {
+    search?: FilterState<string>
+    categories?: FilterState<string[]>
+    providers?: FilterState<string[]>
+    priceRange?: FilterState<{ min: string; max: string }>
+  }
+}
+
+const ProductsFilters = ({ filters }: ProductsFiltersProps) => {
   const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
 
   const rxProviders = [
@@ -21,42 +26,57 @@ const ProductsFilters = ({ filterValue, setFilterValue }: ProductsFiltersProps) 
     { key: 3, name: 'Vertilux' }
   ]
 
+  const search = filters?.search
+  const categories = filters?.categories
+  const providers = filters?.providers
+
   const clearFilters = () => {
-    if (setFilterValue) {
-      setFilterValue('')
+    if (search?.setValue) {
+      search.setValue('')
     }
-    setSelectedCategories(new Set([]))
-    setSelectedProviders(new Set([]))
-    //setPriceRange({ min: '', max: '' })
+
+    if (categories?.setValue) {
+      categories.setValue([])
+    }
+
+    if (providers?.setValue) {
+      providers.setValue([])
+    }
   }
 
   return (
     <section className='flex flex-wrap flex-grow gap-4 '>
-      <Input
-        isClearable
-        className='w-full sm:max-w-[300px]'
-        placeholder='Buscar en catálogo...'
-        startContent={<Search className='text-gray-400' size={20} />}
-        value={filterValue}
-        onClear={() => setFilterValue && setFilterValue('')}
-        onValueChange={setFilterValue}
-        autoFocus
-        onFocus={(e) => e.target.select()}
-      />
-
+      <div className='flex-grow min-w-0'>
+        <Input
+          isClearable
+          className='w-full'
+          placeholder='Buscar en catálogo...'
+          startContent={<Search className='text-gray-400' size={20} />}
+          value={search?.value || ''}
+          onClear={() => search?.setValue && search.setValue('')}
+          onValueChange={search?.setValue}
+          autoFocus
+          onFocus={(e) => e.target.select()}
+        />
+      </div>
       <Dropdown>
         <DropdownTrigger>
-          <Button variant='flat' className='capitalize'>
-            Categorías ({selectedCategories.size})
+          <Button variant='flat'>
+            Categorías{' '}
+            {categories?.value?.length ? (
+              <Chip size='sm' color='secondary' radius='full' className=' w-5 h-5'>
+                {categories.value.length}
+              </Chip>
+            ) : null}
           </Button>
         </DropdownTrigger>
         <DropdownMenu
           disallowEmptySelection
           aria-label='Filtrar por categorías'
           closeOnSelect={false}
-          //   selectedKeys={selectedCategories}
-          //   selectionMode='multiple'
-          //   onSelectionChange={setSelectedCategories}
+          selectionMode='multiple'
+          selectedKeys={new Set(categories?.value)}
+          onSelectionChange={(keys) => categories?.setValue(Array.from(keys).map((key) => key.toString()))}
         >
           {rxCategories.map((category) => (
             <DropdownItem key={category.id}>{category.description}</DropdownItem>
@@ -66,17 +86,22 @@ const ProductsFilters = ({ filterValue, setFilterValue }: ProductsFiltersProps) 
 
       <Dropdown>
         <DropdownTrigger>
-          <Button variant='flat' className='capitalize'>
-            Proveedores ({selectedProviders.size})
+          <Button variant='flat'>
+            Proveedores{' '}
+            {providers?.value?.length ? (
+              <Chip size='sm' color='primary' radius='full' className=' w-5 h-5'>
+                {providers.value.length}
+              </Chip>
+            ) : null}
           </Button>
         </DropdownTrigger>
         <DropdownMenu
           disallowEmptySelection
           aria-label='Filtrar por proveedores'
           closeOnSelect={false}
-          //   selectedKeys={selectedProviders}
-          //   selectionMode='multiple'
-          //   onSelectionChange={setSelectedProviders}
+          selectionMode='multiple'
+          selectedKeys={new Set(providers?.value)}
+          onSelectionChange={(keys) => providers?.setValue(Array.from(keys).map((key) => key.toString()))}
         >
           {rxProviders.map((provider) => (
             <DropdownItem key={provider.key}>{provider.name}</DropdownItem>
@@ -84,41 +109,12 @@ const ProductsFilters = ({ filterValue, setFilterValue }: ProductsFiltersProps) 
         </DropdownMenu>
       </Dropdown>
 
-      {/* <div className='flex gap-2 items-center'>
-              <Input
-                type='number'
-                placeholder='Precio min'
-                className='w-28'
-                value={priceRange.min}
-                onChange={(e) => setPriceRange({ ...priceRange, min: e.target.value })}
-              />
-              <span>-</span>
-              <Input
-                type='number'
-                placeholder='Precio max'
-                className='w-28'
-                value={priceRange.max}
-                onChange={(e) => setPriceRange({ ...priceRange, max: e.target.value })}
-              />
-            </div> */}
-
-      {/* <Slider
-              className='max-w-20'
-              defaultValue={[100, 500]}
-              formatOptions={{ style: 'currency', currency: 'USD' }}
-              label='Price Range'
-              maxValue={1000}
-              minValue={0}
-              step={50}
-            /> */}
-
-      {selectedCategories.size > 0 || selectedProviders.size > 0 ? (
-        //|| priceRange.min
-        //|| priceRange.max
-        <Button variant='light' color='danger' onPress={clearFilters}>
-          <X size={20} />
-          Limpiar filtros
-        </Button>
+      {(categories?.value?.length ?? 0) > 0 || (providers?.value?.length ?? 0) > 0 ? (
+        <Tooltip content='Limpiar filtros'>
+          <Button variant='light' color='danger' onPress={clearFilters} isIconOnly>
+            <X size={20} />
+          </Button>
+        </Tooltip>
       ) : null}
     </section>
   )

@@ -9,23 +9,24 @@ import { setSelectedProduct } from '../../store/slices/productsSlice'
 interface ProductsTableProps {
   wrapperHeight?: number
   filterValue?: string
-  selectedCategories?: Set<string>
-  selectedProviders?: Set<string>
+  selectedCategories?: string[]
+  selectedProviders?: string[]
 }
 
-const ProductsTable = ({
-  wrapperHeight,
-  filterValue = '',
-  selectedCategories = new Set([]),
-  selectedProviders = new Set([])
-}: ProductsTableProps) => {
+const ProductsTable = ({ wrapperHeight, filterValue = '', selectedCategories = [], selectedProviders = [] }: ProductsTableProps) => {
   const rxProducts = useSelector((state: RootState) => state.productos.items)
   const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
   const loading = useSelector((state: RootState) => state.productos.loading)
   const dispatch = useDispatch()
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'category_description', direction: 'ascending' })
 
+  // useEffect(() => {
+  //   console.log('✅ Tabla recibió filtros actualizados:', { selectedCategories, selectedProviders, filterValue })
+  // }, [selectedCategories, selectedProviders, filterValue])
+
   const filteredItems = useMemo(() => {
+    console.log('Filtros activos:', { selectedCategories, selectedProviders, filterValue })
+
     return rxProducts.filter((item) => {
       const matchesSearch =
         item.description.toLowerCase().includes(filterValue.toLowerCase()) ||
@@ -34,8 +35,8 @@ const ProductsTable = ({
         item.provider_name.toLowerCase().includes(filterValue.toLowerCase()) ||
         item.spec?.toLowerCase().includes(filterValue.toLowerCase())
 
-      const matchesCategories = (selectedCategories as Set<string>).size === 0 || selectedCategories.has(item.category_description)
-      const matchesProviders = selectedProviders.size === 0 || selectedProviders.has(item.provider_name)
+      const matchesCategories = selectedCategories.length === 0 || selectedCategories.find((c) => c === item.category.toString())
+      const matchesProviders = selectedProviders.length === 0 || selectedProviders.find((p) => p === item.category.toString())
 
       const matchesWithPrice = item.public_price !== undefined && item.public_price > 0
 
