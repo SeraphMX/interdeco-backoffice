@@ -1,15 +1,19 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { Customer, Product, QuoteItem } from '../../types'
+import { Customer, Product, Quote, QuoteItem } from '../../types'
 
-interface QuoteState {
-  selectedCustomer: Customer | null
+interface QuoteState extends Quote {
   calculatedArea?: number
-  items: QuoteItem[]
 }
 
 const initialState: QuoteState = {
   selectedCustomer: null,
   calculatedArea: 0,
+  date: new Date().toISOString(),
+  subtotal: 0,
+  taxes: 0,
+  discount: 0,
+  total: 0,
+  status: 'draft',
   items: []
 }
 
@@ -41,6 +45,10 @@ const quoteSlice = createSlice({
       } else {
         // Otherwise, add the new item
         state.items.push(action.payload)
+
+        state.subtotal = state.items.reduce((sum, item) => sum + item.subtotal, 0)
+        state.taxes = state.subtotal * 0.16 // Assuming a fixed tax rate of 16%
+        state.total = state.subtotal + state.taxes - state.discount
       }
     },
 

@@ -32,6 +32,20 @@ export interface Material {
   proveedor: string
 }
 
+export interface Quote {
+  id?: string
+  selectedCustomer: Customer | null
+  date: string
+  items: QuoteItem[]
+  subtotal: number
+  taxes: number
+  discount: number
+  total: number
+  status: QuoteStatus
+}
+
+export type QuoteStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'finalized'
+
 export interface QuoteItem {
   id?: string
   product: Product
