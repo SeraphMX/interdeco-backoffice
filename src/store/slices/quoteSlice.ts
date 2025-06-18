@@ -5,12 +5,14 @@ interface QuoteState {
   selectedCustomer: Customer | null
   calculatedArea?: number
   items: QuoteItem[]
+  selectedItem: QuoteItem | null
 }
 
 const initialState: QuoteState = {
   selectedCustomer: null,
   calculatedArea: 0,
-  items: []
+  items: [],
+  selectedItem: null
 }
 
 const quoteSlice = createSlice({
@@ -30,6 +32,12 @@ const quoteSlice = createSlice({
     },
     clearCalculatedArea: (state) => {
       state.calculatedArea = 0
+    },
+    setSelectedItem: (state, action: PayloadAction<QuoteItem | null>) => {
+      state.selectedItem = action.payload
+    },
+    clearSelectedItem: (state) => {
+      state.selectedItem = null
     },
     addItem: (state, action: PayloadAction<QuoteItem>) => {
       const existingItemIndex = state.items.findIndex((item) => item.product === action.payload.product)
@@ -56,7 +64,16 @@ const quoteSlice = createSlice({
   }
 })
 
-export const { setSelectedCustomer, clearSelectedCustomer, addItem, removeItem, clearItems, setCalculatedArea, clearCalculatedArea } =
-  quoteSlice.actions
+export const {
+  setSelectedCustomer,
+  clearSelectedCustomer,
+  addItem,
+  removeItem,
+  clearItems,
+  setCalculatedArea,
+  clearCalculatedArea,
+  setSelectedItem,
+  clearSelectedItem
+} = quoteSlice.actions
 
 export default quoteSlice.reducer

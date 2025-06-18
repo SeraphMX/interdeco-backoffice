@@ -10,7 +10,8 @@ import ModalAddDiscount from '../components/quotes/modals/ModalAddDiscount'
 import CustomerIcon from '../components/shared/CustomerIcon'
 import { RootState } from '../store'
 import { Category } from '../store/slices/catalogSlice'
-import { clearItems, clearSelectedCustomer } from '../store/slices/quoteSlice'
+import { clearItems, clearSelectedCustomer, setSelectedItem } from '../store/slices/quoteSlice'
+import { QuoteItem } from '../types'
 
 const NuevaCotizacion = () => {
   const navigate = useNavigate()
@@ -27,6 +28,12 @@ const NuevaCotizacion = () => {
 
   const handleSave = () => {
     navigate('/cotizaciones')
+  }
+
+  const handleSetDiscount = (item: QuoteItem) => {
+    dispatch(setSelectedItem(item))
+
+    onOpenAddDiscount()
   }
 
   const updateItem = () => {}
@@ -116,7 +123,13 @@ const NuevaCotizacion = () => {
                         <p className='text-gray-600'>{item.product.description}</p>
                       </div>
 
-                      <Button isIconOnly color='success' variant='light' aria-label='Agregar descuento' onPress={onOpenAddDiscount}>
+                      <Button
+                        isIconOnly
+                        color='success'
+                        variant='light'
+                        aria-label='Agregar descuento'
+                        onPress={() => handleSetDiscount(item)}
+                      >
                         <Tag size={18} />
                       </Button>
 
