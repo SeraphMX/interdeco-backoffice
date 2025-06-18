@@ -8,6 +8,7 @@ import Cotizaciones from './pages/Cotizaciones'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import NuevaCotizacion from './pages/NuevaCotizacion'
+import { QuotePreviewPage } from './pages/PreviewPDF'
 import { store } from './store'
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
               <Route path='/cotizaciones' element={<Cotizaciones />} />
               <Route path='/cotizaciones/nueva' element={<NuevaCotizacion />} />
             </Route>
+            <Route path='/cotizacion/preview' element={<QuotePreviewPage />} />
           </Routes>
         </div>
       </Router>

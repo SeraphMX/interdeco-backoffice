@@ -239,7 +239,16 @@ const NuevaCotizacion = () => {
                   <Save />
                   Guardar
                 </Button>
-                <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='secondary' variant='ghost'>
+                <Button
+                  className='flex flex-col h-16 w-16 p-2 gap-0'
+                  color='secondary'
+                  variant='ghost'
+                  onPress={() => {
+                    const quoteToPreview = quote // <- tu objeto de cotización del store
+                    localStorage.setItem('previewQuote', JSON.stringify(quoteToPreview))
+                    window.open('/cotizacion/preview', '_blank')
+                  }}
+                >
                   <File />
                   Ver PDF
                 </Button>
