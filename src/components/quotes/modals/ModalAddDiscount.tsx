@@ -48,8 +48,6 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
   const discountType = watch('discountType')
   const discountValue = watch('discountValue')
 
-  const controllerKey = `discountValue-${discountType}`
-
   const handleSaveDiscount = handleSubmit(
     async () => {
       const discountValue = getValues('discountValue')
@@ -171,7 +169,7 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='lg' backdrop='blur'>
       <ModalContent>
         {(onClose) => (
-          <>
+          <form onSubmit={handleSaveDiscount} id='discount-form'>
             <ModalHeader className='flex flex-col gap-1'>Agregar descuento</ModalHeader>
             <ModalBody>
               <Controller
@@ -202,48 +200,47 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
                   </span>
                   <small>Precio original</small>
                 </div>
-                <form onSubmit={handleSaveDiscount} id='discount-form'>
-                  <Controller
-                    key={controllerKey}
-                    name='discountValue'
-                    control={control}
-                    rules={{
-                      required: 'Obligatorio',
-                      validate: {
-                        positive: (value) => {
-                          const num = value
-                          return (!isNaN(num) && (discountType === 'percentage' ? num >= 0 && num <= 100 : num >= 0)) || 'Inválido'
-                        },
-                        validDiscount: (value) => {
-                          const num = value
-                          if (isNaN(num)) return 'Debe ser un número'
-                          const discount = discountType === 'percentage' ? ((selectedItem?.subtotal ?? 0) * num) / 100 : num
-                          return discount <= (selectedItem?.subtotal ?? 0) || 'El descuento no puede ser mayor al subtotal'
-                        }
+
+                <Controller
+                  name='discountValue'
+                  control={control}
+                  rules={{
+                    required: 'Obligatorio',
+                    validate: {
+                      positive: (value) => {
+                        const num = value
+                        return (!isNaN(num) && (discountType === 'percentage' ? num >= 0 && num <= 100 : num >= 0)) || 'Inválido'
+                      },
+                      validDiscount: (value) => {
+                        const num = value
+                        if (isNaN(num)) return 'Debe ser un número'
+                        const discount = discountType === 'percentage' ? ((selectedItem?.subtotal ?? 0) * num) / 100 : num
+                        return discount <= (selectedItem?.subtotal ?? 0) || 'El descuento no puede ser mayor al subtotal'
                       }
-                    }}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        value={field.value.toString()}
-                        onFocus={(e) => e.target.select()}
-                        ref={(el) => {
-                          field.ref(el)
-                          inputRef.current = el
-                        }}
-                        label='Cantidad'
-                        type='number'
-                        classNames={{
-                          input: 'text-center',
-                          inputWrapper: 'justify-center',
-                          label: 'self-center text-center'
-                        }}
-                        isInvalid={!!errors.discountValue}
-                        errorMessage={errors.discountValue?.message}
-                      />
-                    )}
-                  />
-                </form>
+                    }
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      value={field.value.toString()}
+                      onFocus={(e) => e.target.select()}
+                      ref={(el) => {
+                        field.ref(el)
+                        inputRef.current = el
+                      }}
+                      label='Cantidad'
+                      type='number'
+                      classNames={{
+                        input: 'text-center',
+                        inputWrapper: 'justify-center',
+                        label: 'self-center text-center'
+                      }}
+                      isInvalid={!!errors.discountValue}
+                      errorMessage={errors.discountValue?.message}
+                    />
+                  )}
+                />
+
                 <div className='flex flex-col gap-2 justify-center items-center'>
                   <span className='text-lg font-semibold'>
                     {new Intl.NumberFormat('es-MX', {
@@ -261,11 +258,11 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
               <Button variant='light' color='danger' onPress={onClose} tabIndex={-1}>
                 Cerrar
               </Button>
-              <Button color='primary' isDisabled={!selectedItem} type='submit' form='discount-form'>
+              <Button color='primary' isDisabled={!selectedItem} type='submit'>
                 Aceptar
               </Button>
             </ModalFooter>
-          </>
+          </form>
         )}
       </ModalContent>
     </Modal>
