@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { Customer, Product, QuoteItem } from '../../types'
+import { Customer, QuoteItem } from '../../types'
 
 interface QuoteState {
   selectedCustomer: Customer | null
@@ -59,8 +59,8 @@ const quoteSlice = createSlice({
       }
     },
 
-    removeItem: (state, action: PayloadAction<Product>) => {
-      const itemIndex = state.items.findIndex((item) => item.product === action.payload)
+    removeItem: (state, action: PayloadAction<QuoteItem>) => {
+      const itemIndex = state.items.findIndex((item) => item.product.id === action.payload.product.id)
       if (itemIndex !== -1) {
         state.items.splice(itemIndex, 1)
       }

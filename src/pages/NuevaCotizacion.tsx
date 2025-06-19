@@ -7,10 +7,11 @@ import ModalAddProduct from '../components/quotes/modals/ModalAddProduct'
 import ModalSelectCustomer from '../components/quotes/modals/ModalSelectCustomer'
 
 import ModalAddDiscount from '../components/quotes/modals/ModalAddDiscount'
+import ModalConfirmRemoveItem from '../components/quotes/modals/ModalConfirmRemoveItem'
 import CustomerIcon from '../components/shared/CustomerIcon'
 import { RootState } from '../store'
 import { Category } from '../store/slices/catalogSlice'
-import { clearItems, clearSelectedCustomer, setSelectedItem } from '../store/slices/quoteSlice'
+import { clearItems, clearSelectedCustomer, removeItem, setSelectedItem } from '../store/slices/quoteSlice'
 import { QuoteItem } from '../types'
 
 const NuevaCotizacion = () => {
@@ -25,6 +26,7 @@ const NuevaCotizacion = () => {
   const { isOpen: isOpenSelectCustomer, onOpen: onOpenSelectCustomer, onOpenChange: onOpenChangeSelectCustomer } = useDisclosure()
   const { isOpen: isOpenAddProduct, onOpen: onOpenAddProduct, onOpenChange: onOpenChangeAddProduct } = useDisclosure()
   const { isOpen: isOpenAddDiscount, onOpen: onOpenAddDiscount, onOpenChange: onOpenChangeAddDiscount } = useDisclosure()
+  const { isOpen: isOpenConfirmRemoveItem, onOpen: onOpenConfirmRemoveItem, onOpenChange: onOpenChangeConfirmRemoveItem } = useDisclosure()
 
   const handleSave = () => {
     navigate('/cotizaciones')
@@ -37,7 +39,17 @@ const NuevaCotizacion = () => {
   }
 
   const updateItem = () => {}
-  const removeItem = () => {}
+  const handleConfirmRemoveItem = (item: QuoteItem) => {
+    console.log('item paara eliminar', item)
+    dispatch(setSelectedItem(item))
+    onOpenConfirmRemoveItem()
+  }
+
+  const handleRemoveItem = () => {
+    console.log('removiendo item', quote.selectedItem?.product.spec)
+    dispatch(removeItem(quote.selectedItem as QuoteItem))
+    onOpenChangeConfirmRemoveItem()
+  }
 
   const handleClearItems = () => {
     dispatch(clearItems())
@@ -115,7 +127,7 @@ const NuevaCotizacion = () => {
                     <header className='flex items-center gap-4 p-4 bg-gray-50'>
                       <div className='flex-grow min-w-0'>
                         <h3 className='font-medium text-lg flex gap-4 items-center'>
-                          {item.product.sku}
+                          {item.product.sku} {item.product.spec}
                           <Chip className={categoryColor} size='sm' variant='flat'>
                             {item.product.category_description}
                           </Chip>
@@ -143,9 +155,21 @@ const NuevaCotizacion = () => {
                         aria-label='Cantidad requerida'
                       />
 
-                      <Button isIconOnly color='danger' variant='light' aria-label='Eliminar artículo'>
+                      <Button
+                        isIconOnly
+                        color='danger'
+                        variant='light'
+                        aria-label='Eliminar artículo'
+                        onPress={() => handleConfirmRemoveItem(item)}
+                      >
                         <Minus size={18} />
                       </Button>
+
+                      <ModalConfirmRemoveItem
+                        isOpen={isOpenConfirmRemoveItem}
+                        onOpenChange={onOpenChangeConfirmRemoveItem}
+                        onConfirm={handleRemoveItem}
+                      />
                     </header>
 
                     <section className='border-t border-gray-200 p-4'>
@@ -163,7 +187,7 @@ const NuevaCotizacion = () => {
                             {isExceeding && (
                               <div className='flex justify-between'>
                                 <dt>{item.product.measurement_unit} Cotizados</dt>
-                                <dd className='text-gray-600'>{item.totalQuantity}</dd>
+                                <dd className='text-gray-600'>{item.totalQuantity.toFixed(2)}</dd>
                               </div>
                             )}
                             {surplus > 0 && (
