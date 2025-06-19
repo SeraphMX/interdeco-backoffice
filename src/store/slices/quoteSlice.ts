@@ -40,7 +40,7 @@ const quoteSlice = createSlice({
       state.selectedItem = null
     },
     addItem: (state, action: PayloadAction<QuoteItem>) => {
-      const existingItemIndex = state.items.findIndex((item) => item.product === action.payload.product)
+      const existingItemIndex = state.items.findIndex((item) => item.product.id === action.payload.product.id)
       if (existingItemIndex !== -1) {
         // If item already exists, update the quantity
         state.items[existingItemIndex].requiredQuantity += action.payload.requiredQuantity
