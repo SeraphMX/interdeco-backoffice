@@ -143,10 +143,16 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
       return
     }
 
-    const discount = discountType === 'percentage' ? (baseSubtotal * value) / 100 : value
+    console.log('porcentaje', discountType === 'percentage', 'valor', value)
 
-    const newPrice = baseSubtotal - discount
-    setDiscountPrice(newPrice >= 0 ? newPrice : 0)
+    if (discountType === 'percentage' && value == 100) {
+      console.log('Cambiar a 0')
+      setDiscountPrice(0)
+    } else {
+      const discount = discountType === 'percentage' ? (baseSubtotal * value) / 100 : value
+      const newPrice = Math.round((baseSubtotal - discount) * 100) / 100
+      setDiscountPrice(newPrice >= 0 ? newPrice : 0)
+    }
   }, [discountValue, discountType, selectedItem])
 
   useEffect(() => {
@@ -245,7 +251,7 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
                       currency: 'MXN',
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2
-                    }).format(discountPrice || selectedItem?.subtotal || 0)}
+                    }).format(discountPrice || 0)}
                   </span>
                   <small>Con descuento</small>
                 </div>

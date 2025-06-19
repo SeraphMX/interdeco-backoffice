@@ -216,12 +216,12 @@ const NuevaCotizacion = () => {
                                   <dt className='flex items-center gap-2'>
                                     Descuento
                                     <Chip color='success' classNames={{ base: 'text-xs' }} size='sm' variant='flat'>
-                                      {item.discountType === 'fixed' && '$'}
-                                      {item.discount}
+                                      {item.discountType === 'percentage' ? item.discount : 'Fijo'}
                                       {item.discountType === 'percentage' && '%'}
                                     </Chip>
                                   </dt>
                                   <dd className='text-gray-600'>
+                                    -
                                     {new Intl.NumberFormat('es-MX', {
                                       style: 'currency',
                                       currency: 'MXN',
