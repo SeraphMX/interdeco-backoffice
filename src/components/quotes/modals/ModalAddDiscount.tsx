@@ -130,7 +130,7 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
   }, [discountType, selectedItem, setValue])
 
   useEffect(() => {
-    if (!selectedItem) return
+    if (!selectedItem || !isOpen) return
 
     const baseSubtotal = selectedItem.originalSubtotal ?? selectedItem.subtotal ?? 0
 
@@ -150,7 +150,7 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
       const newPrice = Math.round((baseSubtotal - discount) * 100) / 100
       setDiscountPrice(newPrice >= 0 ? newPrice : 0)
     }
-  }, [discountValue, discountType, selectedItem])
+  }, [discountValue, discountType, selectedItem, isOpen, reset])
 
   useEffect(() => {
     if (!selectedItem || !isOpen) return
