@@ -1,5 +1,5 @@
 import { Avatar, Badge, Button, Card, CardBody, Chip, Input, Tooltip, useDisclosure } from '@heroui/react'
-import { ArrowLeft, ArrowRightLeft, File, MailPlus, Minus, Plus, Save, Tag, X } from 'lucide-react'
+import { ArrowLeft, ArrowRightLeft, File, MailPlus, Minus, Plus, Save, Tag, Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
@@ -7,6 +7,7 @@ import ModalAddProduct from '../components/quotes/modals/ModalAddProduct'
 import ModalSelectCustomer from '../components/quotes/modals/ModalSelectCustomer'
 
 import ModalAddDiscount from '../components/quotes/modals/ModalAddDiscount'
+import ModalConfirmClear from '../components/quotes/modals/ModalConfirmClear'
 import ModalConfirmRemoveItem from '../components/quotes/modals/ModalConfirmRemoveItem'
 import CustomerIcon from '../components/shared/CustomerIcon'
 import { quoteService } from '../services/quoteService'
@@ -30,6 +31,7 @@ const NuevaCotizacion = () => {
   const { isOpen: isOpenAddProduct, onOpen: onOpenAddProduct, onOpenChange: onOpenChangeAddProduct } = useDisclosure()
   const { isOpen: isOpenAddDiscount, onOpen: onOpenAddDiscount, onOpenChange: onOpenChangeAddDiscount } = useDisclosure()
   const { isOpen: isOpenConfirmRemoveItem, onOpen: onOpenConfirmRemoveItem, onOpenChange: onOpenChangeConfirmRemoveItem } = useDisclosure()
+  const { isOpen: isOpenConfirmClear, onOpen: onOpenConfirmClear, onOpenChange: onOpenChangeConfirmClear } = useDisclosure()
 
   const handleSave = () => {
     navigate('/cotizaciones')
@@ -66,6 +68,7 @@ const NuevaCotizacion = () => {
 
   const handleClearItems = () => {
     dispatch(clearItems())
+    onOpenChangeConfirmClear()
   }
 
   useMemo(() => {
@@ -170,8 +173,6 @@ const NuevaCotizacion = () => {
                         <Tag size={18} />
                       </Button>
 
-                      <ModalAddDiscount isOpen={isOpenAddDiscount} onOpenChange={onOpenChangeAddDiscount} />
-
                       <Input
                         type='number'
                         className='w-24'
@@ -191,12 +192,6 @@ const NuevaCotizacion = () => {
                       >
                         <Minus size={18} />
                       </Button>
-
-                      <ModalConfirmRemoveItem
-                        isOpen={isOpenConfirmRemoveItem}
-                        onOpenChange={onOpenChangeConfirmRemoveItem}
-                        onConfirm={handleRemoveItem}
-                      />
                     </header>
 
                     <section className='border-t border-gray-200 p-4'>
@@ -306,6 +301,12 @@ const NuevaCotizacion = () => {
                   </article>
                 )
               })}
+              <ModalAddDiscount isOpen={isOpenAddDiscount} onOpenChange={onOpenChangeAddDiscount} />
+              <ModalConfirmRemoveItem
+                isOpen={isOpenConfirmRemoveItem}
+                onOpenChange={onOpenChangeConfirmRemoveItem}
+                onConfirm={handleRemoveItem}
+              />
             </div>
           </CardBody>
         </Card>
@@ -315,10 +316,11 @@ const NuevaCotizacion = () => {
               Agregar producto
             </Button>
             {quote.items.length > 0 && (
-              <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={handleClearItems}>
+              <Button size='md' color='danger' variant='light' startContent={<Trash2 size={18} />} onPress={onOpenConfirmClear}>
                 Limpiar productos
               </Button>
             )}
+            <ModalConfirmClear isOpen={isOpenConfirmClear} onOpenChange={onOpenChangeConfirmClear} onConfirm={handleClearItems} />
             <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
           </div>
         </section>
