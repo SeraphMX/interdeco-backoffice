@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { Customer, Product, QuoteItem } from '../../types'
+import { quoteService } from '../../services/quoteService'
+import { Customer, QuoteItem } from '../../types'
 
 interface QuoteState {
   selectedCustomer: Customer | null
@@ -52,15 +53,22 @@ const quoteSlice = createSlice({
       }
     },
     updateItem: (state, action: PayloadAction<QuoteItem>) => {
-      const itemIndex = state.items.findIndex((item) => item.product.id === action.payload.product.id)
+      const index = state.items.findIndex((i) => i.product.id === action.payload.product.id)
+      if (index !== -1) {
+        const updated = quoteService.buildQuoteItem({
+          product: action.payload.product,
+          requiredQuantity: action.payload.requiredQuantity,
+          discount: action.payload.discount,
+          discountType: action.payload.discountType,
+          id: action.payload.id
+        })
 
-      if (itemIndex !== -1) {
-        state.items[itemIndex] = action.payload
+        state.items[index] = updated
       }
     },
 
-    removeItem: (state, action: PayloadAction<Product>) => {
-      const itemIndex = state.items.findIndex((item) => item.product === action.payload)
+    removeItem: (state, action: PayloadAction<QuoteItem>) => {
+      const itemIndex = state.items.findIndex((item) => item.product.id === action.payload.product.id)
       if (itemIndex !== -1) {
         state.items.splice(itemIndex, 1)
       }

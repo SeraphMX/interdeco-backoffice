@@ -1,16 +1,19 @@
 import { Avatar, Badge, Button, Card, CardBody, Chip, Input, Tooltip, useDisclosure } from '@heroui/react'
-import { ArrowLeft, ArrowRightLeft, File, MailPlus, Minus, Plus, Save, Tag, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { ArrowLeft, ArrowRightLeft, File, MailPlus, Minus, Plus, Save, Tag, Trash2, X } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import ModalAddProduct from '../components/quotes/modals/ModalAddProduct'
 import ModalSelectCustomer from '../components/quotes/modals/ModalSelectCustomer'
 
 import ModalAddDiscount from '../components/quotes/modals/ModalAddDiscount'
+import ModalConfirmClear from '../components/quotes/modals/ModalConfirmClear'
+import ModalConfirmRemoveItem from '../components/quotes/modals/ModalConfirmRemoveItem'
 import CustomerIcon from '../components/shared/CustomerIcon'
+import { quoteService } from '../services/quoteService'
 import { RootState } from '../store'
 import { Category } from '../store/slices/catalogSlice'
-import { clearItems, clearSelectedCustomer, setSelectedItem } from '../store/slices/quoteSlice'
+import { clearItems, clearSelectedCustomer, removeItem, setSelectedItem, updateItem } from '../store/slices/quoteSlice'
 import { QuoteItem } from '../types'
 
 const NuevaCotizacion = () => {
@@ -21,10 +24,14 @@ const NuevaCotizacion = () => {
   const [subtotal, setSubtotal] = useState(0)
   const [total, setTotal] = useState(0)
   const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const prevItemsLengthRef = useRef(quote.items.length)
 
   const { isOpen: isOpenSelectCustomer, onOpen: onOpenSelectCustomer, onOpenChange: onOpenChangeSelectCustomer } = useDisclosure()
   const { isOpen: isOpenAddProduct, onOpen: onOpenAddProduct, onOpenChange: onOpenChangeAddProduct } = useDisclosure()
   const { isOpen: isOpenAddDiscount, onOpen: onOpenAddDiscount, onOpenChange: onOpenChangeAddDiscount } = useDisclosure()
+  const { isOpen: isOpenConfirmRemoveItem, onOpen: onOpenConfirmRemoveItem, onOpenChange: onOpenChangeConfirmRemoveItem } = useDisclosure()
+  const { isOpen: isOpenConfirmClear, onOpen: onOpenConfirmClear, onOpenChange: onOpenChangeConfirmClear } = useDisclosure()
 
   const handleSave = () => {
     navigate('/cotizaciones')
@@ -36,11 +43,32 @@ const NuevaCotizacion = () => {
     onOpenAddDiscount()
   }
 
-  const updateItem = () => {}
-  const removeItem = () => {}
+  const handleConfirmRemoveItem = (item: QuoteItem) => {
+    console.log('item paara eliminar', item)
+    dispatch(setSelectedItem(item))
+    onOpenConfirmRemoveItem()
+  }
+
+  const handleUpdateQuantity = (item: QuoteItem, newQuantity: number) => {
+    const findItem = quote.items.find((i) => i.product.id === item.product.id)
+    if (findItem) {
+      const updatedItem: QuoteItem = quoteService.buildQuoteItem({
+        ...findItem,
+        requiredQuantity: newQuantity
+      })
+      dispatch(updateItem(updatedItem))
+    }
+  }
+
+  const handleRemoveItem = () => {
+    console.log('removiendo item', quote.selectedItem?.product.spec)
+    dispatch(removeItem(quote.selectedItem as QuoteItem))
+    onOpenChangeConfirmRemoveItem()
+  }
 
   const handleClearItems = () => {
     dispatch(clearItems())
+    onOpenChangeConfirmClear()
   }
 
   useMemo(() => {
@@ -50,6 +78,18 @@ const NuevaCotizacion = () => {
       setTotal(subtotal + taxes)
     }
   }, [quote.items, subtotal, taxes])
+
+  useEffect(() => {
+    if (quote.items.length > prevItemsLengthRef.current) {
+      // Se agregó un nuevo producto
+      scrollRef.current?.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
+
+    prevItemsLengthRef.current = quote.items.length
+  }, [quote.items.length])
 
   return (
     <div className='container  space-y-4  h-full flex flex-col'>
@@ -98,7 +138,7 @@ const NuevaCotizacion = () => {
         <ModalSelectCustomer isOpen={isOpenSelectCustomer} onOpenChange={onOpenChangeSelectCustomer} />
       </section>
 
-      <div className='flex-grow overflow-y-auto relative rounded-xl  shadow-medium bg-white'>
+      <div className='flex-grow overflow-y-auto relative rounded-xl  shadow-medium bg-white' ref={scrollRef}>
         <Card className='rounded-none'>
           <CardBody>
             <div className='space-y-5 p-2'>
@@ -111,11 +151,11 @@ const NuevaCotizacion = () => {
                   ((item.product?.price ?? 0) * (1 + (item.product.utility ?? 0) / 100) * (item.product.package_unit ?? 1)).toFixed(2)
                 )
                 return (
-                  <article key={item.id} className='border rounded-lg overflow-hidden'>
+                  <article key={item.product.id} className='border rounded-lg overflow-hidden'>
                     <header className='flex items-center gap-4 p-4 bg-gray-50'>
                       <div className='flex-grow min-w-0'>
                         <h3 className='font-medium text-lg flex gap-4 items-center'>
-                          {item.product.sku}
+                          {item.product.sku} {item.product.spec}
                           <Chip className={categoryColor} size='sm' variant='flat'>
                             {item.product.category_description}
                           </Chip>
@@ -133,17 +173,23 @@ const NuevaCotizacion = () => {
                         <Tag size={18} />
                       </Button>
 
-                      <ModalAddDiscount isOpen={isOpenAddDiscount} onOpenChange={onOpenChangeAddDiscount} />
-
                       <Input
                         type='number'
                         className='w-24'
                         value={item.requiredQuantity.toString()}
                         size='sm'
                         aria-label='Cantidad requerida'
+                        onChange={(e) => handleUpdateQuantity(item, Number(e.target.value))}
+                        onFocus={(e) => e.target.select()}
                       />
 
-                      <Button isIconOnly color='danger' variant='light' aria-label='Eliminar artículo'>
+                      <Button
+                        isIconOnly
+                        color='danger'
+                        variant='light'
+                        aria-label='Eliminar artículo'
+                        onPress={() => handleConfirmRemoveItem(item)}
+                      >
                         <Minus size={18} />
                       </Button>
                     </header>
@@ -163,7 +209,7 @@ const NuevaCotizacion = () => {
                             {isExceeding && (
                               <div className='flex justify-between'>
                                 <dt>{item.product.measurement_unit} Cotizados</dt>
-                                <dd className='text-gray-600'>{item.totalQuantity}</dd>
+                                <dd className='text-gray-600'>{item.totalQuantity.toFixed(2)}</dd>
                               </div>
                             )}
                             {surplus > 0 && (
@@ -255,6 +301,12 @@ const NuevaCotizacion = () => {
                   </article>
                 )
               })}
+              <ModalAddDiscount isOpen={isOpenAddDiscount} onOpenChange={onOpenChangeAddDiscount} />
+              <ModalConfirmRemoveItem
+                isOpen={isOpenConfirmRemoveItem}
+                onOpenChange={onOpenChangeConfirmRemoveItem}
+                onConfirm={handleRemoveItem}
+              />
             </div>
           </CardBody>
         </Card>
@@ -264,10 +316,11 @@ const NuevaCotizacion = () => {
               Agregar producto
             </Button>
             {quote.items.length > 0 && (
-              <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={handleClearItems}>
+              <Button size='md' color='danger' variant='light' startContent={<Trash2 size={18} />} onPress={onOpenConfirmClear}>
                 Limpiar productos
               </Button>
             )}
+            <ModalConfirmClear isOpen={isOpenConfirmClear} onOpenChange={onOpenChangeConfirmClear} onConfirm={handleClearItems} />
             <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
           </div>
         </section>
