@@ -12,7 +12,7 @@ interface ModalSelectCustomerProps {
 const ModalConfirmRemoveItem = ({ isOpen, onOpenChange, onConfirm }: ModalSelectCustomerProps) => {
   const selectedItem = useSelector((state: RootState) => state.quote.selectedItem)
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='sm' backdrop='blur'>
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='sm' backdrop='opaque'>
       <ModalContent>
         {(onClose) => (
           <>

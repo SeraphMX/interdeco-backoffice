@@ -165,7 +165,7 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
   }, [selectedItem, isOpen, reset])
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='lg' backdrop='blur'>
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='lg' backdrop='opaque'>
       <ModalContent>
         {(onClose) => (
           <form onSubmit={handleSaveDiscount} id='discount-form'>
