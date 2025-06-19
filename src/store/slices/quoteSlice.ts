@@ -5,12 +5,14 @@ interface QuoteState {
   selectedCustomer: Customer | null
   calculatedArea?: number
   items: QuoteItem[]
+  selectedItem: QuoteItem | null
 }
 
 const initialState: QuoteState = {
   selectedCustomer: null,
   calculatedArea: 0,
-  items: []
+  items: [],
+  selectedItem: null
 }
 
 const quoteSlice = createSlice({
@@ -31,6 +33,12 @@ const quoteSlice = createSlice({
     clearCalculatedArea: (state) => {
       state.calculatedArea = 0
     },
+    setSelectedItem: (state, action: PayloadAction<QuoteItem | null>) => {
+      state.selectedItem = action.payload
+    },
+    clearSelectedItem: (state) => {
+      state.selectedItem = null
+    },
     addItem: (state, action: PayloadAction<QuoteItem>) => {
       const existingItemIndex = state.items.findIndex((item) => item.product === action.payload.product)
       if (existingItemIndex !== -1) {
@@ -41,6 +49,13 @@ const quoteSlice = createSlice({
       } else {
         // Otherwise, add the new item
         state.items.push(action.payload)
+      }
+    },
+    updateItem: (state, action: PayloadAction<QuoteItem>) => {
+      const itemIndex = state.items.findIndex((item) => item.product.id === action.payload.product.id)
+
+      if (itemIndex !== -1) {
+        state.items[itemIndex] = action.payload
       }
     },
 
@@ -56,7 +71,17 @@ const quoteSlice = createSlice({
   }
 })
 
-export const { setSelectedCustomer, clearSelectedCustomer, addItem, removeItem, clearItems, setCalculatedArea, clearCalculatedArea } =
-  quoteSlice.actions
+export const {
+  setSelectedCustomer,
+  clearSelectedCustomer,
+  addItem,
+  updateItem,
+  removeItem,
+  clearItems,
+  setCalculatedArea,
+  clearCalculatedArea,
+  setSelectedItem,
+  clearSelectedItem
+} = quoteSlice.actions
 
 export default quoteSlice.reducer

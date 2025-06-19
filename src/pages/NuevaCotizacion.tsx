@@ -1,15 +1,17 @@
 import { Avatar, Badge, Button, Card, CardBody, Chip, Input, Tooltip, useDisclosure } from '@heroui/react'
-import { ArrowLeft, ArrowRightLeft, File, MailPlus, Minus, Plus, Save, X } from 'lucide-react'
+import { ArrowLeft, ArrowRightLeft, File, MailPlus, Minus, Plus, Save, Tag, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import ModalAddProduct from '../components/quotes/modals/ModalAddProduct'
 import ModalSelectCustomer from '../components/quotes/modals/ModalSelectCustomer'
 
+import ModalAddDiscount from '../components/quotes/modals/ModalAddDiscount'
 import CustomerIcon from '../components/shared/CustomerIcon'
 import { RootState } from '../store'
 import { Category } from '../store/slices/catalogSlice'
-import { clearItems, clearSelectedCustomer } from '../store/slices/quoteSlice'
+import { clearItems, clearSelectedCustomer, setSelectedItem } from '../store/slices/quoteSlice'
+import { QuoteItem } from '../types'
 
 const NuevaCotizacion = () => {
   const navigate = useNavigate()
@@ -22,9 +24,16 @@ const NuevaCotizacion = () => {
 
   const { isOpen: isOpenSelectCustomer, onOpen: onOpenSelectCustomer, onOpenChange: onOpenChangeSelectCustomer } = useDisclosure()
   const { isOpen: isOpenAddProduct, onOpen: onOpenAddProduct, onOpenChange: onOpenChangeAddProduct } = useDisclosure()
+  const { isOpen: isOpenAddDiscount, onOpen: onOpenAddDiscount, onOpenChange: onOpenChangeAddDiscount } = useDisclosure()
 
   const handleSave = () => {
     navigate('/cotizaciones')
+  }
+
+  const handleSetDiscount = (item: QuoteItem) => {
+    dispatch(setSelectedItem(item))
+
+    onOpenAddDiscount()
   }
 
   const updateItem = () => {}
@@ -114,13 +123,26 @@ const NuevaCotizacion = () => {
                         <p className='text-gray-600'>{item.product.description}</p>
                       </div>
 
+                      <Button
+                        isIconOnly
+                        color='success'
+                        variant='light'
+                        aria-label='Agregar descuento'
+                        onPress={() => handleSetDiscount(item)}
+                      >
+                        <Tag size={18} />
+                      </Button>
+
+                      <ModalAddDiscount isOpen={isOpenAddDiscount} onOpenChange={onOpenChangeAddDiscount} />
+
                       <Input
                         type='number'
-                        className='w-20'
+                        className='w-24'
                         value={item.requiredQuantity.toString()}
                         size='sm'
                         aria-label='Cantidad requerida'
                       />
+
                       <Button isIconOnly color='danger' variant='light' aria-label='Eliminar artículo'>
                         <Minus size={18} />
                       </Button>
@@ -177,16 +199,55 @@ const NuevaCotizacion = () => {
                               </dd>
                             </div>
                             <div className='flex justify-between'>
-                              <dt className='font-medium'>Subtotal</dt>
-                              <dd className='text-gray-600 font-medium text-lg'>
+                              <dt className={`${!item.discount && 'font-medium'}`}>Subtotal</dt>
+                              <dd className={`${!item.discount && 'font-medium text-lg'} text-gray-600 `}>
                                 {new Intl.NumberFormat('es-MX', {
                                   style: 'currency',
                                   currency: 'MXN',
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2
-                                }).format(item.subtotal || 0)}
+                                }).format(item.discount ? item.originalSubtotal ?? 0 : item.subtotal ?? 0)}
                               </dd>
                             </div>
+
+                            {(item.discount ?? 0) > 0 && (
+                              <>
+                                <div className='flex justify-between'>
+                                  <dt className='flex items-center gap-2'>
+                                    Descuento
+                                    <Chip color='success' classNames={{ base: 'text-xs' }} size='sm' variant='flat'>
+                                      {item.discountType === 'percentage' ? item.discount : 'Fijo'}
+                                      {item.discountType === 'percentage' && '%'}
+                                    </Chip>
+                                  </dt>
+                                  <dd className='text-gray-600'>
+                                    -
+                                    {new Intl.NumberFormat('es-MX', {
+                                      style: 'currency',
+                                      currency: 'MXN',
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2
+                                    }).format(
+                                      item.discountType === 'percentage'
+                                        ? (item.originalSubtotal ?? 0) * ((item.discount ?? 0) / 100)
+                                        : item.discount ?? 0
+                                    )}
+                                  </dd>
+                                </div>
+
+                                <div className='flex justify-between'>
+                                  <dt className='font-medium'>Subtotal</dt>
+                                  <dd className='text-gray-600 font-medium text-lg'>
+                                    {new Intl.NumberFormat('es-MX', {
+                                      style: 'currency',
+                                      currency: 'MXN',
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2
+                                    }).format(item.subtotal || 0)}
+                                  </dd>
+                                </div>
+                              </>
+                            )}
                           </dl>
                         </section>
                       </div>
