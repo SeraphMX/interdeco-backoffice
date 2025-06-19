@@ -29,7 +29,6 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
   }
 
   const {
-    register,
     getValues,
     watch,
     setValue,
