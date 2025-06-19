@@ -23,7 +23,7 @@ const ModalConfirmRemoveItem = ({ isOpen, onOpenChange, onConfirm }: ModalSelect
                 <span className='font-semibold text-sm'>
                   {selectedItem?.product.sku} {selectedItem?.product.spec}{' '}
                 </span>
-                - {selectedItem?.totalQuantity} {selectedItem?.product.measurement_unit}
+                - {selectedItem?.totalQuantity.toFixed(2)} {selectedItem?.product.measurement_unit}
               </p>
               <Alert
                 classNames={{ alertIcon: 'fill-none', base: 'p-1' }}
