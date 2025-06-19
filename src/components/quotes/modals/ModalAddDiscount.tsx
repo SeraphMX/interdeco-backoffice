@@ -1,6 +1,6 @@
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Radio, RadioGroup } from '@heroui/react'
 import { useEffect, useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../../store'
 import { updateItem } from '../../../store/slices/quoteSlice'
@@ -14,12 +14,17 @@ interface ModalSelectCustomerProps {
 const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) => {
   const selectedItem = useSelector((state: RootState) => state.quote.selectedItem)
   const dispatch = useDispatch()
-  const [discountType, setDiscountType] = useState('percentage')
   const [discountPrice, setDiscountPrice] = useState(0)
   const inputRef = useRef<HTMLInputElement | null>(null)
+  const previousDiscountTypeRef = useRef<DiscountFormValues['discountType']>()
+
+  const discountValuesRef = useRef<{ percentage: number; fixed: number }>({
+    percentage: selectedItem?.discountType === 'percentage' ? selectedItem?.discount ?? 0 : 0,
+    fixed: selectedItem?.discountType === 'fixed' ? selectedItem?.discount ?? 0 : 0
+  })
 
   interface DiscountFormValues {
-    discountValue: string
+    discountValue: number
     discountType: 'percentage' | 'fixed'
   }
 
@@ -29,59 +34,97 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
     watch,
     setValue,
     reset,
+    handleSubmit,
+    control,
     formState: { errors }
   } = useForm<DiscountFormValues>({
-    mode: 'onChange',
+    mode: 'all',
     defaultValues: {
       discountType: selectedItem?.discountType || 'percentage',
-      discountValue: selectedItem?.discount?.toString() || '0'
+      discountValue: selectedItem?.discount || 0
     }
   })
 
+  const discountType = watch('discountType')
   const discountValue = watch('discountValue')
 
-  const handleSaveDiscount = () => {
-    const discountValue = parseFloat(getValues('discountValue'))
-    if (isNaN(discountValue) || discountValue < 0) {
-      console.error('Descuento inválido')
-      return
+  const controllerKey = `discountValue-${discountType}`
+
+  const handleSaveDiscount = handleSubmit(
+    async () => {
+      const discountValue = getValues('discountValue')
+      if (isNaN(discountValue) || discountValue < 0) {
+        console.error('Descuento inválido')
+        return
+      }
+
+      const baseSubtotal = selectedItem?.originalSubtotal ?? selectedItem?.subtotal ?? 0
+      const discount = discountType === 'percentage' ? baseSubtotal * (discountValue / 100) : discountValue
+      const finalPrice = baseSubtotal - discount
+
+      console.log('Descuento aplicado:', discount, 'Precio final:', finalPrice)
+
+      dispatch(
+        updateItem({
+          ...selectedItem,
+          discountType,
+          originalSubtotal: selectedItem?.originalSubtotal ?? selectedItem?.subtotal,
+          discount: getValues('discountValue'),
+          subtotal: discountPrice
+        } as QuoteItem)
+      )
+
+      onOpenChange(false)
+    },
+    (errors) => {
+      console.error('Errores de validación:', errors)
+    }
+  )
+
+  useEffect(() => {
+    if (!selectedItem || !isOpen) return
+
+    const type = selectedItem.discountType || 'percentage'
+    const discountRaw = selectedItem.discount ?? 0
+
+    // Inicializa el ref, sólo el tipo activo tiene valor guardado, el otro es 0
+    discountValuesRef.current = {
+      percentage: type === 'percentage' ? discountRaw : 0,
+      fixed: type === 'fixed' ? discountRaw : 0
     }
 
-    const discount = discountType === 'percentage' ? (selectedItem?.subtotal ?? 0) * (discountValue / 100) : discountValue
-    const finalPrice = (selectedItem?.subtotal ?? 0) - discount
+    reset({
+      discountType: type,
+      discountValue: discountRaw
+    })
 
-    console.log('Descuento aplicado:', discount, 'Precio final:', finalPrice)
+    const baseSubtotal = selectedItem.originalSubtotal ?? selectedItem.subtotal ?? 0
+    const discount = type === 'percentage' ? (baseSubtotal * discountRaw) / 100 : discountRaw
+    setDiscountPrice(baseSubtotal - discount)
 
-    dispatch(
-      updateItem({
-        ...selectedItem,
-        discountType,
-        originalSubtotal: selectedItem?.subtotal,
-        discount: parseFloat(getValues('discountValue')),
-        subtotal: discountPrice
-      } as QuoteItem)
-    )
+    previousDiscountTypeRef.current = type
+  }, [isOpen, selectedItem, reset])
 
-    onOpenChange(false)
-  }
+  //
 
   useEffect(() => {
     if (!selectedItem) return
-    const originalType = selectedItem.discountType || 'percentage'
-    console.log('Descuento cambiado:', discountType, 'Original:', originalType)
-    const baseSubtotal = selectedItem.originalSubtotal ?? selectedItem.subtotal ?? 0
 
-    if (discountType !== originalType) {
-      // Si cambió el tipo, resetea todo
-      setValue('discountValue', '0', { shouldValidate: true })
-      setDiscountPrice(baseSubtotal)
-    } else {
-      // Si es el mismo tipo, usa el valor existente
-      const rawDiscount = selectedItem.discount ?? 0
-      setValue('discountValue', rawDiscount.toString(), { shouldValidate: true })
-      const discount = discountType === 'percentage' ? (baseSubtotal * rawDiscount) / 100 : rawDiscount
+    const baseSubtotal = selectedItem.originalSubtotal ?? selectedItem.subtotal ?? 0
+    const previousDiscountType = previousDiscountTypeRef.current
+
+    if (previousDiscountType !== discountType) {
+      // Si ya tenemos un valor guardado para este tipo, úsalo, si no, pon 0
+      const storedValue = discountValuesRef.current[discountType]
+      const valueToSet = storedValue !== undefined ? storedValue : 0
+
+      setValue('discountValue', valueToSet, { shouldValidate: true, shouldDirty: true })
+
+      const discount = discountType === 'percentage' ? (baseSubtotal * valueToSet) / 100 : valueToSet
       setDiscountPrice(baseSubtotal - discount)
     }
+
+    previousDiscountTypeRef.current = discountType
 
     setTimeout(() => {
       inputRef.current?.focus()
@@ -90,28 +133,29 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
   }, [discountType, selectedItem, setValue])
 
   useEffect(() => {
-    if (!selectedItem || !isOpen) return
-    console.log('Cargando modal con item:', selectedItem)
+    if (!selectedItem) return
 
-    setTimeout(() => {
-      inputRef.current?.focus()
-      inputRef.current?.select()
-    }, 100)
-  }, [selectedItem, isOpen, reset])
+    const baseSubtotal = selectedItem.originalSubtotal ?? selectedItem.subtotal ?? 0
+
+    const value = discountValue
+    if (isNaN(value)) {
+      setDiscountPrice(baseSubtotal)
+      return
+    }
+
+    const discount = discountType === 'percentage' ? (baseSubtotal * value) / 100 : value
+
+    const newPrice = baseSubtotal - discount
+    setDiscountPrice(newPrice >= 0 ? newPrice : 0)
+  }, [discountValue, discountType, selectedItem])
 
   useEffect(() => {
     if (!selectedItem || !isOpen) return
 
     const type = selectedItem.discountType || 'percentage'
     const discountRaw = selectedItem.discount ?? 0
-    const discountStr = discountRaw.toString()
     const baseSubtotal = selectedItem.discount ? selectedItem.originalSubtotal ?? 0 : selectedItem.subtotal ?? 0
 
-    setDiscountType(type)
-    reset({
-      discountType: type,
-      discountValue: discountStr
-    })
     const discount = type === 'percentage' ? (baseSubtotal * discountRaw) / 100 : discountRaw
 
     setDiscountPrice(baseSubtotal - discount)
@@ -124,16 +168,21 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
           <>
             <ModalHeader className='flex flex-col gap-1'>Agregar descuento</ModalHeader>
             <ModalBody>
-              <RadioGroup
-                {...register('discountType')}
-                label='Elije el tipo de descuento'
-                orientation='horizontal'
-                value={discountType}
-                onValueChange={setDiscountType}
-              >
-                <Radio value='percentage'>Porcentaje</Radio>
-                <Radio value='fixed'>Directo</Radio>
-              </RadioGroup>
+              <Controller
+                name='discountType'
+                control={control}
+                render={({ field }) => (
+                  <RadioGroup
+                    label='Elije el tipo de descuento'
+                    orientation='horizontal'
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <Radio value='percentage'>Porcentaje</Radio>
+                    <Radio value='fixed'>Directo</Radio>
+                  </RadioGroup>
+                )}
+              />
 
               <section className='grid grid-cols-1 md:grid-cols-3 gap-4 mt-4'>
                 <div className='flex flex-col gap-2 justify-center items-center'>
@@ -147,39 +196,48 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
                   </span>
                   <small>Precio original</small>
                 </div>
-                <Input
-                  {...register('discountValue', {
-                    required: 'Obligatorio',
-                    validate: {
-                      positive: (value) => {
-                        const num = parseFloat(value)
-                        return (!isNaN(num) && (discountType === 'percentage' ? num >= 0 && num <= 100 : num >= 0)) || 'Inválido'
-                      },
-                      validDiscount: (value) => {
-                        const num = parseFloat(value)
-                        if (isNaN(num)) return 'Debe ser un número'
-                        const discount = discountType === 'percentage' ? ((selectedItem?.subtotal ?? 0) * num) / 100 : num
-                        return discount <= (selectedItem?.subtotal ?? 0) || 'El descuento no puede ser mayor al subtotal'
+                <form onSubmit={handleSaveDiscount} id='discount-form'>
+                  <Controller
+                    key={controllerKey}
+                    name='discountValue'
+                    control={control}
+                    rules={{
+                      required: 'Obligatorio',
+                      validate: {
+                        positive: (value) => {
+                          const num = value
+                          return (!isNaN(num) && (discountType === 'percentage' ? num >= 0 && num <= 100 : num >= 0)) || 'Inválido'
+                        },
+                        validDiscount: (value) => {
+                          const num = value
+                          if (isNaN(num)) return 'Debe ser un número'
+                          const discount = discountType === 'percentage' ? ((selectedItem?.subtotal ?? 0) * num) / 100 : num
+                          return discount <= (selectedItem?.subtotal ?? 0) || 'El descuento no puede ser mayor al subtotal'
+                        }
                       }
-                    }
-                  })}
-                  ref={(el) => {
-                    register('discountValue').ref(el)
-                    inputRef.current = el
-                  }}
-                  value={discountValue.toString()}
-                  onChange={(e) => setValue('discountValue', e.target.value, { shouldValidate: true })}
-                  onFocus={(e) => e.target.select()}
-                  label='Cantidad'
-                  className='text-center'
-                  classNames={{
-                    input: 'text-center',
-                    inputWrapper: 'justify-center',
-                    label: 'self-center text-center'
-                  }}
-                  isInvalid={!!errors.discountValue}
-                  errorMessage={errors.discountValue?.message}
-                />
+                    }}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        value={field.value.toString()}
+                        onFocus={(e) => e.target.select()}
+                        ref={(el) => {
+                          field.ref(el)
+                          inputRef.current = el
+                        }}
+                        label='Cantidad'
+                        type='number'
+                        classNames={{
+                          input: 'text-center',
+                          inputWrapper: 'justify-center',
+                          label: 'self-center text-center'
+                        }}
+                        isInvalid={!!errors.discountValue}
+                        errorMessage={errors.discountValue?.message}
+                      />
+                    )}
+                  />
+                </form>
                 <div className='flex flex-col gap-2 justify-center items-center'>
                   <span className='text-lg font-semibold'>
                     {new Intl.NumberFormat('es-MX', {
@@ -194,10 +252,10 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
               </section>
             </ModalBody>
             <ModalFooter>
-              <Button variant='light' color='danger' onPress={onClose}>
+              <Button variant='light' color='danger' onPress={onClose} tabIndex={-1}>
                 Cerrar
               </Button>
-              <Button color='primary' isDisabled={!selectedItem} onPress={handleSaveDiscount}>
+              <Button color='primary' isDisabled={!selectedItem} type='submit' form='discount-form'>
                 Aceptar
               </Button>
             </ModalFooter>

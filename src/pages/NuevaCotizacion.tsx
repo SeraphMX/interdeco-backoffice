@@ -137,7 +137,7 @@ const NuevaCotizacion = () => {
 
                       <Input
                         type='number'
-                        className='w-20'
+                        className='w-24'
                         value={item.requiredQuantity.toString()}
                         size='sm'
                         aria-label='Cantidad requerida'
