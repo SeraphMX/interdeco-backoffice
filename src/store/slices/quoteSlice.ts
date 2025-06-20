@@ -1,19 +1,28 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { quoteService } from '../../services/quoteService'
-import { Customer, QuoteItem } from '../../types'
+import { Customer, Quote, QuoteItem, QuoteStatus } from '../../types'
 
 interface QuoteState {
   selectedCustomer: Customer | null
   calculatedArea?: number
-  items: QuoteItem[]
+
   selectedItem: QuoteItem | null
+  data: Quote
 }
 
 const initialState: QuoteState = {
   selectedCustomer: null,
   calculatedArea: 0,
-  items: [],
-  selectedItem: null
+  selectedItem: null,
+  data: {
+    id: null,
+    customer_id: null,
+    created_at: null,
+    last_updated: null,
+    items: [],
+    total: 0,
+    status: 'open'
+  }
 }
 
 const quoteSlice = createSlice({
@@ -23,10 +32,12 @@ const quoteSlice = createSlice({
     setSelectedCustomer: (state, action: PayloadAction<Customer | null>) => {
       console.log('first')
       state.selectedCustomer = action.payload
+      state.data.customer_id = action.payload?.id ?? null
       console.log('Sec')
     },
     clearSelectedCustomer: (state) => {
       state.selectedCustomer = null
+      state.data.customer_id = null
     },
     setCalculatedArea: (state, action: PayloadAction<number>) => {
       state.calculatedArea = action.payload
@@ -41,19 +52,21 @@ const quoteSlice = createSlice({
       state.selectedItem = null
     },
     addItem: (state, action: PayloadAction<QuoteItem>) => {
-      const existingItemIndex = state.items.findIndex((item) => item.product.id === action.payload.product.id)
+      const existingItemIndex = (state.data.items ?? []).findIndex((item) => item.product.id === action.payload.product.id)
       if (existingItemIndex !== -1) {
         // If item already exists, update the quantity
-        state.items[existingItemIndex].requiredQuantity += action.payload.requiredQuantity
-        state.items[existingItemIndex].totalQuantity += action.payload.totalQuantity
-        state.items[existingItemIndex].subtotal += action.payload.subtotal
+        if (state.data.items && state.data.items[existingItemIndex]) {
+          state.data.items[existingItemIndex].requiredQuantity += action.payload.requiredQuantity
+          state.data.items[existingItemIndex].totalQuantity += action.payload.totalQuantity
+          state.data.items[existingItemIndex].subtotal += action.payload.subtotal
+        }
       } else {
         // Otherwise, add the new item
-        state.items.push(action.payload)
+        ;(state.data.items ?? []).push(action.payload)
       }
     },
     updateItem: (state, action: PayloadAction<QuoteItem>) => {
-      const index = state.items.findIndex((i) => i.product.id === action.payload.product.id)
+      const index = (state.data.items ?? []).findIndex((i) => i.product.id === action.payload.product.id)
       if (index !== -1) {
         const updated = quoteService.buildQuoteItem({
           product: action.payload.product,
@@ -63,18 +76,29 @@ const quoteSlice = createSlice({
           id: action.payload.id
         })
 
-        state.items[index] = updated
+        if (state.data.items) {
+          state.data.items[index] = updated
+        }
       }
     },
 
     removeItem: (state, action: PayloadAction<QuoteItem>) => {
-      const itemIndex = state.items.findIndex((item) => item.product.id === action.payload.product.id)
+      const itemIndex = (state.data.items ?? []).findIndex((item) => item.product.id === action.payload.product.id)
       if (itemIndex !== -1) {
-        state.items.splice(itemIndex, 1)
+        ;(state.data.items ?? []).splice(itemIndex, 1)
       }
     },
     clearItems: (state) => {
-      state.items = []
+      state.data.items = []
+    },
+    setQuoteId: (state, action: PayloadAction<number | null>) => {
+      state.data.id = action.payload
+    },
+    setQuoteTotal: (state, action: PayloadAction<number>) => {
+      state.data.total = action.payload
+    },
+    setQuoteStatus: (state, action: PayloadAction<string | null>) => {
+      state.data.status = action.payload as QuoteStatus | 'open'
     }
   }
 })
@@ -89,7 +113,10 @@ export const {
   setCalculatedArea,
   clearCalculatedArea,
   setSelectedItem,
-  clearSelectedItem
+  clearSelectedItem,
+  setQuoteId,
+  setQuoteTotal,
+  setQuoteStatus
 } = quoteSlice.actions
 
 export default quoteSlice.reducer
