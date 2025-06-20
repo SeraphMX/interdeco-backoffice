@@ -7,7 +7,7 @@ type FormatStyle = 'short' | 'long'
 
 export function formatDate(
   input: string | Date,
-  style: FormatStyle = 'short',
+  style: FormatStyle = 'long',
   locale = DEFAULT_LOCALE,
   timeZone = DEFAULT_TIMEZONE,
   customOptions?: Intl.DateTimeFormatOptions
