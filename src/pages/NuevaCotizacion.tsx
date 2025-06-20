@@ -459,9 +459,11 @@ const NuevaCotizacion = () => {
             <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
           </section>
           <section className='flex justify-end items-center gap-2'>
-            <Chip color='primary' className='text-sm' variant='flat' size='lg'>
-              {quote.data.items?.length ?? 0} {(quote.data.items?.length ?? 0) > 1 ? 'items' : 'item'}
-            </Chip>{' '}
+            {(quote.data.items?.length ?? 0) > 0 && (
+              <Chip color='primary' className='text-sm' variant='flat' size='lg'>
+                {quote.data.items?.length ?? 0} {(quote.data.items?.length ?? 0) > 1 ? 'items' : 'item'}
+              </Chip>
+            )}
             <Chip
               color={isSaving ? 'primary' : isSaved ? 'success' : isDirty ? 'warning' : 'default'}
               className='text-sm'
