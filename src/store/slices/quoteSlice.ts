@@ -4,7 +4,7 @@ import { Customer, Quote, QuoteItem, QuoteStatus } from '../../types'
 
 interface QuoteState {
   selectedCustomer: Customer | null
-  calculatedArea?: number
+  calculatedArea: number
 
   selectedItem: QuoteItem | null
   data: Quote
@@ -62,7 +62,8 @@ const quoteSlice = createSlice({
         }
       } else {
         // Otherwise, add the new item
-        ;(state.data.items ?? []).push(action.payload)
+        state.data.items = state.data.items ?? []
+        state.data.items.push(action.payload)
       }
     },
     updateItem: (state, action: PayloadAction<QuoteItem>) => {
@@ -97,9 +98,10 @@ const quoteSlice = createSlice({
     setQuoteTotal: (state, action: PayloadAction<number>) => {
       state.data.total = action.payload
     },
-    setQuoteStatus: (state, action: PayloadAction<string | null>) => {
-      state.data.status = action.payload as QuoteStatus | 'open'
-    }
+    setQuoteStatus: (state, action: PayloadAction<QuoteStatus | null>) => {
+      state.data.status = action.payload
+    },
+    clearQuote: () => initialState
   }
 })
 
@@ -116,7 +118,8 @@ export const {
   clearSelectedItem,
   setQuoteId,
   setQuoteTotal,
-  setQuoteStatus
+  setQuoteStatus,
+  clearQuote
 } = quoteSlice.actions
 
 export default quoteSlice.reducer
