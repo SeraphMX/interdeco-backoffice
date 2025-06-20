@@ -31,7 +31,7 @@ function App() {
               <Route path='/cotizaciones' element={<Cotizaciones />} />
               <Route path='/cotizaciones/nueva' element={<NuevaCotizacion />} />
             </Route>
-            <Route path='/cotizacion/preview' element={<QuotePreviewPage />} />
+            <Route path='/cotizaciones/preview' element={<QuotePreviewPage />} />
           </Routes>
         </div>
       </Router>
