@@ -28,7 +28,7 @@ const ModalConfirmDeleteQuote = ({ isOpen, onOpenChange, onConfirm }: ModalSelec
                   hideIconWrapper
                   color='danger'
                   icon={<TriangleAlert />}
-                  title='Atención'
+                  title='Advertencia'
                   description='Esto no se puede deshacer'
                 />
               ) : (

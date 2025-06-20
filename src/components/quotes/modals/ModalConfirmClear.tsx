@@ -22,7 +22,8 @@ const ModalConfirmClear = ({ isOpen, onOpenChange, onConfirm }: ModalSelectCusto
                 hideIconWrapper
                 color='danger'
                 icon={<TriangleAlert />}
-                title='Esto no se puede deshacer'
+                title='Advertencia'
+                description='Esto no se puede deshacer'
               />
             </ModalBody>
             <ModalFooter>
