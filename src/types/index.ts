@@ -55,7 +55,7 @@ export interface Quote {
   status: QuoteStatus | null
 }
 
-export type QuoteStatus = 'draft' | 'sent' | 'success' | 'rejected' | 'expired' | 'open'
+export type QuoteStatus = 'draft' | 'sent' | 'success' | 'rejected' | 'expired' | 'open' | 'archived'
 
 export type CotizacionStatus = 'pendiente' | 'aprobada' | 'rechazada' | 'finalizada'
 

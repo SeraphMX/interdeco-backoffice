@@ -143,5 +143,20 @@ export const quoteService = {
     } catch (e) {
       return { success: false, error: (e as Error).message }
     }
+  },
+  async deleteQuote(quoteId: number): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (!quoteId) {
+        throw new Error('El ID de la cotización es requerido para eliminarla.')
+      }
+      // 1. Eliminar los ítems de la cotización, supabase eliminara los ítems relacionados automáticamente
+      const { error: deleteQuoteError } = await supabase.from('quotes').delete().eq('id', quoteId)
+
+      if (deleteQuoteError) throw deleteQuoteError
+
+      return { success: true }
+    } catch (e) {
+      return { success: false, error: (e as Error).message }
+    }
   }
 }
