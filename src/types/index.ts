@@ -1,3 +1,4 @@
+export type uiColors = 'primary' | 'secondary' | 'success' | 'danger' | 'default' | 'warning'
 export interface Cliente {
   id: string
   nombre: string
@@ -52,10 +53,23 @@ export interface QuoteItem {
   requiredQuantity: number
   totalQuantity: number
   packagesRequired?: number
+  originalSubtotal?: number
   subtotal: number
-  discount?: number
   discountType?: 'percentage' | 'fixed'
+  discount?: number
 }
+
+export interface Quote {
+  id?: number | null
+  customer_id?: number | null
+  created_at?: string | null
+  last_updated?: string | null
+  items?: QuoteItem[]
+  total: number
+  status: QuoteStatus | null
+}
+
+export type QuoteStatus = 'draft' | 'sent' | 'success' | 'rejected' | 'expired' | 'open' | 'archived'
 
 export type CotizacionStatus = 'pendiente' | 'aprobada' | 'rechazada' | 'finalizada'
 
@@ -157,4 +171,11 @@ export const measureUnits = [
   { key: 'PZ', label: 'Pieza', plural: 'Piezas' },
   { key: 'CJ', label: 'Caja', plural: 'Cajas' },
   { key: 'BG', label: 'Bolsa', plural: 'Bolsas' }
+]
+export const quoteStatus = [
+  { key: 'open', label: 'abierta', color: 'primary' },
+  { key: 'sent', label: 'enviada', color: 'secondary' },
+  { key: 'success', label: 'aceptada', plural: 'success' },
+  { key: 'rejected', label: 'rechazada', plural: 'danger' },
+  { key: 'expired', label: 'expirada', plural: 'default' }
 ]
