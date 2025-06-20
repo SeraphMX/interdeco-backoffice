@@ -5,7 +5,7 @@ type FormatStyle = 'short' | 'long'
 
 export function formatCurrency(
   amount: number,
-  style: FormatStyle = 'short',
+  style: FormatStyle = 'long',
   locale = DEFAULT_LOCALE,
   currency = DEFAULT_CURRENCY,
   customOptions?: Intl.NumberFormatOptions

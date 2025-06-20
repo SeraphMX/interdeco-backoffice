@@ -91,6 +91,11 @@ const NuevaCotizacion = () => {
     }
   }
 
+  const handlePreviewQuote = () => {
+    sessionStorage.setItem('previewQuote', JSON.stringify(quote.data))
+    window.open('/cotizaciones/preview', '_blank')
+  }
+
   const handleDeleteQuote = async () => {
     if (!quote.data.id) {
       addToast({
@@ -499,7 +504,7 @@ const NuevaCotizacion = () => {
                     Guardar
                   </Button>
                 )}
-                <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='secondary' variant='ghost'>
+                <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='secondary' variant='ghost' onPress={handlePreviewQuote}>
                   <File />
                   Ver PDF
                 </Button>
