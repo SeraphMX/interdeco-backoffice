@@ -1,5 +1,20 @@
-import { Avatar, Badge, Button, Card, CardBody, Chip, Input, Tooltip, useDisclosure } from '@heroui/react'
-import { ArrowLeft, ArrowRightLeft, File, MailPlus, Minus, Plus, Save, Tag, Trash2, X } from 'lucide-react'
+import { addToast, Avatar, Badge, Button, Card, CardBody, Chip, Input, Spinner, Tooltip, useDisclosure } from '@heroui/react'
+import {
+  ArrowLeft,
+  ArrowRightLeft,
+  BrushCleaning,
+  CloudAlert,
+  CloudCheck,
+  File,
+  MailPlus,
+  Minus,
+  PackagePlus,
+  Plus,
+  Save,
+  Tag,
+  Trash2,
+  X
+} from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
@@ -10,11 +25,20 @@ import ModalAddDiscount from '../components/quotes/modals/ModalAddDiscount'
 import ModalConfirmClear from '../components/quotes/modals/ModalConfirmClear'
 import ModalConfirmRemoveItem from '../components/quotes/modals/ModalConfirmRemoveItem'
 import CustomerIcon from '../components/shared/CustomerIcon'
+import { useDebouncedAutoSave } from '../hooks/useDebounceAutosave'
 import { quoteService } from '../services/quoteService'
 import { RootState } from '../store'
 import { Category } from '../store/slices/catalogSlice'
-import { clearItems, clearSelectedCustomer, removeItem, setSelectedItem, updateItem } from '../store/slices/quoteSlice'
-import { QuoteItem } from '../types'
+import {
+  clearItems,
+  clearSelectedCustomer,
+  removeItem,
+  setQuoteId,
+  setQuoteTotal,
+  setSelectedItem,
+  updateItem
+} from '../store/slices/quoteSlice'
+import { QuoteItem, quoteStatus, uiColors } from '../types'
 
 const NuevaCotizacion = () => {
   const navigate = useNavigate()
@@ -22,10 +46,10 @@ const NuevaCotizacion = () => {
   const quote = useSelector((state: RootState) => state.quote)
   const [taxes, setTaxes] = useState(0)
   const [subtotal, setSubtotal] = useState(0)
-  const [total, setTotal] = useState(0)
+
   const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const prevItemsLengthRef = useRef(quote.items.length)
+  const prevItemsLengthRef = useRef((quote.data.items ?? []).length)
 
   const { isOpen: isOpenSelectCustomer, onOpen: onOpenSelectCustomer, onOpenChange: onOpenChangeSelectCustomer } = useDisclosure()
   const { isOpen: isOpenAddProduct, onOpen: onOpenAddProduct, onOpenChange: onOpenChangeAddProduct } = useDisclosure()
@@ -33,8 +57,46 @@ const NuevaCotizacion = () => {
   const { isOpen: isOpenConfirmRemoveItem, onOpen: onOpenConfirmRemoveItem, onOpenChange: onOpenChangeConfirmRemoveItem } = useDisclosure()
   const { isOpen: isOpenConfirmClear, onOpen: onOpenConfirmClear, onOpenChange: onOpenChangeConfirmClear } = useDisclosure()
 
-  const handleSave = () => {
-    navigate('/cotizaciones')
+  const { isSaving, isSaved, isDirty } = useDebouncedAutoSave(quote.data, 3000)
+
+  const handleSave = async () => {
+    if (!quote.data.id) {
+      const savedQuote = await quoteService.saveQuote(quote.data)
+
+      if (savedQuote.success) {
+        dispatch(setQuoteId(savedQuote.quote?.id ?? null))
+        addToast({
+          title: 'Cotización guardada',
+          description: 'La cotizacion de ha guardado a las 5.',
+          color: 'success'
+        })
+      } else {
+        console.error('Error al guardar la cotización:', savedQuote.error)
+        addToast({
+          title: 'Error al guardar',
+          description: 'Hubo un error al guardar la cotización. Inténtalo de nuevo.',
+          color: 'danger'
+        })
+      }
+    } else {
+      // Si ya tiene ID, actualiza la cotización existente
+      const updatedQuote = await quoteService.updateQuote(quote.data)
+
+      if (updatedQuote.success) {
+        addToast({
+          title: 'Cotización actualizada',
+          description: 'La cotización se ha actualizado correctamente.',
+          color: 'success'
+        })
+      } else {
+        console.error('Error al actualizar la cotización:', updatedQuote.error)
+        addToast({
+          title: 'Error al actualizar',
+          description: 'Hubo un error al actualizar la cotización. Inténtalo de nuevo.',
+          color: 'danger'
+        })
+      }
+    }
   }
 
   const handleSetDiscount = (item: QuoteItem) => {
@@ -50,7 +112,7 @@ const NuevaCotizacion = () => {
   }
 
   const handleUpdateQuantity = (item: QuoteItem, newQuantity: number) => {
-    const findItem = quote.items.find((i) => i.product.id === item.product.id)
+    const findItem = (quote.data.items ?? []).find((i) => i.product.id === item.product.id)
     if (findItem) {
       const updatedItem: QuoteItem = quoteService.buildQuoteItem({
         ...findItem,
@@ -72,15 +134,15 @@ const NuevaCotizacion = () => {
   }
 
   useMemo(() => {
-    if (quote.items.length > 0) {
-      setSubtotal(quote.items.reduce((acc, item) => acc + item.subtotal, 0))
-      setTaxes(quote.items.reduce((acc, item) => acc + item.subtotal * 0.16, 0))
-      setTotal(subtotal + taxes)
+    if ((quote.data.items ?? []).length > 0) {
+      setSubtotal((quote.data.items ?? []).reduce((acc, item) => acc + item.subtotal, 0))
+      setTaxes((quote.data.items ?? []).reduce((acc, item) => acc + item.subtotal * 0.16, 0))
+      dispatch(setQuoteTotal(subtotal + taxes))
     }
-  }, [quote.items, subtotal, taxes])
+  }, [quote.data.items, subtotal, taxes, dispatch])
 
   useEffect(() => {
-    if (quote.items.length > prevItemsLengthRef.current) {
+    if (quote.data.items && quote.data.items.length > prevItemsLengthRef.current) {
       // Se agregó un nuevo producto
       scrollRef.current?.scrollTo({
         top: scrollRef.current.scrollHeight,
@@ -88,8 +150,8 @@ const NuevaCotizacion = () => {
       })
     }
 
-    prevItemsLengthRef.current = quote.items.length
-  }, [quote.items.length])
+    prevItemsLengthRef.current = quote.data.items?.length || 0
+  }, [quote.data.items, scrollRef])
 
   return (
     <div className='container  space-y-4  h-full flex flex-col'>
@@ -98,7 +160,16 @@ const NuevaCotizacion = () => {
           <Button isIconOnly variant='light' onPress={() => navigate('/cotizaciones')}>
             <ArrowLeft size={24} />
           </Button>
-          <h1 className='text-3xl font-bold text-gray-900'>Nueva Cotización</h1>
+          <h1 className='text-3xl font-bold text-gray-900 flex items-center gap-2'>
+            {quote.data.id ? 'Cotización' : 'Nueva Cotización'}{' '}
+            <Chip
+              className='capitalize'
+              variant='bordered'
+              color={(quoteStatus.find((s) => s.key === quote.data.status)?.color as uiColors) || 'default'}
+            >
+              {quoteStatus.find((s) => s.key === quote.data.status)?.label}
+            </Chip>
+          </h1>
         </div>
         <div className='flex items-center gap-4'>
           {quote.selectedCustomer && (
@@ -138,169 +209,177 @@ const NuevaCotizacion = () => {
         <ModalSelectCustomer isOpen={isOpenSelectCustomer} onOpenChange={onOpenChangeSelectCustomer} />
       </section>
 
-      <div className='flex-grow overflow-y-auto relative rounded-xl  shadow-medium bg-white' ref={scrollRef}>
+      <div className=' overflow-y-auto relative rounded-xl  shadow-medium bg-white' ref={scrollRef}>
         <Card className='rounded-none'>
           <CardBody>
             <div className='space-y-5 p-2'>
-              {quote.items.map((item) => {
-                const surplus = item.totalQuantity - item.requiredQuantity
-                const isExceeding = surplus > 0
-                const category = rxCategories.find((cat: Category) => cat.description === item.product.category_description)
-                const categoryColor = category?.color || 'bg-gray-300'
-                const pricePerPackage = Number(
-                  ((item.product?.price ?? 0) * (1 + (item.product.utility ?? 0) / 100) * (item.product.package_unit ?? 1)).toFixed(2)
-                )
-                return (
-                  <article key={item.product.id} className='border rounded-lg overflow-hidden'>
-                    <header className='flex items-center gap-4 p-4 bg-gray-50'>
-                      <div className='flex-grow min-w-0'>
-                        <h3 className='font-medium text-lg flex gap-4 items-center'>
-                          {item.product.sku} {item.product.spec}
-                          <Chip className={categoryColor} size='sm' variant='flat'>
-                            {item.product.category_description}
-                          </Chip>
-                        </h3>
-                        <p className='text-gray-600'>{item.product.description}</p>
-                      </div>
+              {quote.data.items?.length === 0 ? (
+                <section className='flex flex-col items-center justify-center h-48 space-y-2'>
+                  <PackagePlus size={48} className='mx-auto text-gray-400 ' />
+                  <h2 className='text-center text-gray-600 text-lg font-medium'>No hay productos</h2>
+                  <p className='text-center text-gray-500'>Agrega productos para comenzar a cotizar</p>
+                </section>
+              ) : (
+                (quote.data.items ?? []).map((item) => {
+                  const surplus = item.totalQuantity - item.requiredQuantity
+                  const isExceeding = surplus > 0
+                  const category = rxCategories.find((cat: Category) => cat.description === item.product.category_description)
+                  const categoryColor = category?.color || 'bg-gray-300'
+                  const pricePerPackage = Number(
+                    ((item.product?.price ?? 0) * (1 + (item.product.utility ?? 0) / 100) * (item.product.package_unit ?? 1)).toFixed(2)
+                  )
+                  return (
+                    <article key={item.product.id} className='border rounded-lg overflow-hidden'>
+                      <header className='flex items-center gap-4 p-4 bg-gray-50'>
+                        <div className='flex-grow min-w-0'>
+                          <h3 className='font-medium text-lg flex gap-4 items-center'>
+                            {item.product.sku} {item.product.spec}
+                            <Chip className={categoryColor} size='sm' variant='flat'>
+                              {item.product.category_description}
+                            </Chip>
+                          </h3>
+                          <p className='text-gray-600'>{item.product.description}</p>
+                        </div>
 
-                      <Button
-                        isIconOnly
-                        color='success'
-                        variant='light'
-                        aria-label='Agregar descuento'
-                        onPress={() => handleSetDiscount(item)}
-                      >
-                        <Tag size={18} />
-                      </Button>
+                        <Button
+                          isIconOnly
+                          color='success'
+                          variant='light'
+                          aria-label='Agregar descuento'
+                          onPress={() => handleSetDiscount(item)}
+                        >
+                          <Tag size={18} />
+                        </Button>
 
-                      <Input
-                        type='number'
-                        className='w-24'
-                        value={item.requiredQuantity.toString()}
-                        size='sm'
-                        aria-label='Cantidad requerida'
-                        onChange={(e) => handleUpdateQuantity(item, Number(e.target.value))}
-                        onFocus={(e) => e.target.select()}
-                      />
+                        <Input
+                          type='number'
+                          className='w-24'
+                          value={item.requiredQuantity.toString()}
+                          size='sm'
+                          aria-label='Cantidad requerida'
+                          onChange={(e) => handleUpdateQuantity(item, Number(e.target.value))}
+                          onFocus={(e) => e.target.select()}
+                        />
 
-                      <Button
-                        isIconOnly
-                        color='danger'
-                        variant='light'
-                        aria-label='Eliminar artículo'
-                        onPress={() => handleConfirmRemoveItem(item)}
-                      >
-                        <Minus size={18} />
-                      </Button>
-                    </header>
+                        <Button
+                          isIconOnly
+                          color='danger'
+                          variant='light'
+                          aria-label='Eliminar artículo'
+                          onPress={() => handleConfirmRemoveItem(item)}
+                        >
+                          <Minus size={18} />
+                        </Button>
+                      </header>
 
-                    <section className='border-t border-gray-200 p-4'>
-                      {/* Sección de detalles */}
-                      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                        <section>
-                          {/* Bloque de cantidades */}
-                          <h4 className='sr-only'>Detalles de cantidades</h4> {/* Título oculto solo para accesibilidad */}
-                          <dl className='space-y-3'>
-                            {/* Lista de definiciones */}
-                            <div className='flex justify-between'>
-                              <dt>{item.product.measurement_unit} Requeridos</dt>
-                              <dd className='text-gray-600'>{item.requiredQuantity} </dd>
-                            </div>
-                            {isExceeding && (
+                      <section className='border-t border-gray-200 p-4'>
+                        {/* Sección de detalles */}
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                          <section>
+                            {/* Bloque de cantidades */}
+                            <h4 className='sr-only'>Detalles de cantidades</h4> {/* Título oculto solo para accesibilidad */}
+                            <dl className='space-y-3'>
+                              {/* Lista de definiciones */}
                               <div className='flex justify-between'>
-                                <dt>{item.product.measurement_unit} Cotizados</dt>
-                                <dd className='text-gray-600'>{item.totalQuantity.toFixed(2)}</dd>
+                                <dt>{item.product.measurement_unit} Requeridos</dt>
+                                <dd className='text-gray-600'>{item.requiredQuantity} </dd>
                               </div>
-                            )}
-                            {surplus > 0 && (
+                              {isExceeding && (
+                                <div className='flex justify-between'>
+                                  <dt>{item.product.measurement_unit} Cotizados</dt>
+                                  <dd className='text-gray-600'>{item.totalQuantity.toFixed(2)}</dd>
+                                </div>
+                              )}
+                              {surplus > 0 && (
+                                <div className='flex justify-between'>
+                                  <dt>Excedente</dt>
+                                  <dd className='text-gray-600'>
+                                    {surplus.toFixed(2)} {item.product.measurement_unit}
+                                  </dd>
+                                </div>
+                              )}
+                            </dl>
+                          </section>
+
+                          <section>
+                            <h4 className='sr-only'>Detalles de precios</h4>
+                            <dl className='space-y-3'>
+                              {isExceeding && (
+                                <div className='flex justify-between'>
+                                  <dt className='font-medium'>Paquetes necesarios</dt>
+                                  <dd className='text-gray-600'>{item.packagesRequired}</dd>
+                                </div>
+                              )}
+
                               <div className='flex justify-between'>
-                                <dt>Excedente</dt>
+                                <dt>Precio por paquete</dt>
                                 <dd className='text-gray-600'>
-                                  {surplus.toFixed(2)} {item.product.measurement_unit}
+                                  {new Intl.NumberFormat('es-MX', {
+                                    style: 'currency',
+                                    currency: 'MXN',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                  }).format(pricePerPackage)}
                                 </dd>
                               </div>
-                            )}
-                          </dl>
-                        </section>
-
-                        <section>
-                          <h4 className='sr-only'>Detalles de precios</h4>
-                          <dl className='space-y-3'>
-                            {isExceeding && (
                               <div className='flex justify-between'>
-                                <dt className='font-medium'>Paquetes necesarios</dt>
-                                <dd className='text-gray-600'>{item.packagesRequired}</dd>
+                                <dt className={`${!item.discount && 'font-medium'}`}>Subtotal</dt>
+                                <dd className={`${!item.discount && 'font-medium text-lg'} text-gray-600 `}>
+                                  {new Intl.NumberFormat('es-MX', {
+                                    style: 'currency',
+                                    currency: 'MXN',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                  }).format(item.discount ? item.originalSubtotal ?? 0 : item.subtotal ?? 0)}
+                                </dd>
                               </div>
-                            )}
 
-                            <div className='flex justify-between'>
-                              <dt>Precio por paquete</dt>
-                              <dd className='text-gray-600'>
-                                {new Intl.NumberFormat('es-MX', {
-                                  style: 'currency',
-                                  currency: 'MXN',
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2
-                                }).format(pricePerPackage)}
-                              </dd>
-                            </div>
-                            <div className='flex justify-between'>
-                              <dt className={`${!item.discount && 'font-medium'}`}>Subtotal</dt>
-                              <dd className={`${!item.discount && 'font-medium text-lg'} text-gray-600 `}>
-                                {new Intl.NumberFormat('es-MX', {
-                                  style: 'currency',
-                                  currency: 'MXN',
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2
-                                }).format(item.discount ? item.originalSubtotal ?? 0 : item.subtotal ?? 0)}
-                              </dd>
-                            </div>
+                              {(item.discount ?? 0) > 0 && (
+                                <>
+                                  <div className='flex justify-between'>
+                                    <dt className='flex items-center gap-2'>
+                                      Descuento
+                                      <Chip color='success' classNames={{ base: 'text-xs' }} size='sm' variant='flat'>
+                                        {item.discountType === 'percentage' ? item.discount : 'Fijo'}
+                                        {item.discountType === 'percentage' && '%'}
+                                      </Chip>
+                                    </dt>
+                                    <dd className='text-gray-600'>
+                                      -
+                                      {new Intl.NumberFormat('es-MX', {
+                                        style: 'currency',
+                                        currency: 'MXN',
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                      }).format(
+                                        item.discountType === 'percentage'
+                                          ? (item.originalSubtotal ?? 0) * ((item.discount ?? 0) / 100)
+                                          : item.discount ?? 0
+                                      )}
+                                    </dd>
+                                  </div>
 
-                            {(item.discount ?? 0) > 0 && (
-                              <>
-                                <div className='flex justify-between'>
-                                  <dt className='flex items-center gap-2'>
-                                    Descuento
-                                    <Chip color='success' classNames={{ base: 'text-xs' }} size='sm' variant='flat'>
-                                      {item.discountType === 'percentage' ? item.discount : 'Fijo'}
-                                      {item.discountType === 'percentage' && '%'}
-                                    </Chip>
-                                  </dt>
-                                  <dd className='text-gray-600'>
-                                    -
-                                    {new Intl.NumberFormat('es-MX', {
-                                      style: 'currency',
-                                      currency: 'MXN',
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2
-                                    }).format(
-                                      item.discountType === 'percentage'
-                                        ? (item.originalSubtotal ?? 0) * ((item.discount ?? 0) / 100)
-                                        : item.discount ?? 0
-                                    )}
-                                  </dd>
-                                </div>
-
-                                <div className='flex justify-between'>
-                                  <dt className='font-medium'>Subtotal</dt>
-                                  <dd className='text-gray-600 font-medium text-lg'>
-                                    {new Intl.NumberFormat('es-MX', {
-                                      style: 'currency',
-                                      currency: 'MXN',
-                                      minimumFractionDigits: 2,
-                                      maximumFractionDigits: 2
-                                    }).format(item.subtotal || 0)}
-                                  </dd>
-                                </div>
-                              </>
-                            )}
-                          </dl>
-                        </section>
-                      </div>
-                    </section>
-                  </article>
-                )
-              })}
+                                  <div className='flex justify-between'>
+                                    <dt className='font-medium'>Subtotal</dt>
+                                    <dd className='text-gray-600 font-medium text-lg'>
+                                      {new Intl.NumberFormat('es-MX', {
+                                        style: 'currency',
+                                        currency: 'MXN',
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                      }).format(item.subtotal || 0)}
+                                    </dd>
+                                  </div>
+                                </>
+                              )}
+                            </dl>
+                          </section>
+                        </div>
+                      </section>
+                    </article>
+                  )
+                })
+              )}
               <ModalAddDiscount isOpen={isOpenAddDiscount} onOpenChange={onOpenChangeAddDiscount} />
               <ModalConfirmRemoveItem
                 isOpen={isOpenConfirmRemoveItem}
@@ -310,48 +389,78 @@ const NuevaCotizacion = () => {
             </div>
           </CardBody>
         </Card>
-        <section className='sticky bottom-0 left-0 right-0  p-2   bg-white z-10 '>
-          <div className='flex justify-center items-center'>
+        <footer className='sticky bottom-0 left-0 right-0  p-2 px-6 shadow-medium bg-white z-10 flex justify-between items-center '>
+          <section className='flex justify-start items-center'>
             <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={onOpenAddProduct}>
               Agregar producto
             </Button>
-            {quote.items.length > 0 && (
-              <Button size='md' color='danger' variant='light' startContent={<Trash2 size={18} />} onPress={onOpenConfirmClear}>
+            {(quote.data.items ?? []).length > 0 && (
+              <Button size='md' color='danger' variant='light' startContent={<BrushCleaning size={18} />} onPress={onOpenConfirmClear}>
                 Limpiar productos
               </Button>
             )}
             <ModalConfirmClear isOpen={isOpenConfirmClear} onOpenChange={onOpenChangeConfirmClear} onConfirm={handleClearItems} />
             <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
-          </div>
-        </section>
+          </section>
+          <section className='flex justify-end items-center gap-2'>
+            <Chip color='primary' className='text-sm' variant='flat' size='lg'>
+              {quote.data.items?.length ?? 0} {(quote.data.items?.length ?? 0) > 1 ? 'items' : 'item'}
+            </Chip>{' '}
+            <Chip
+              color={isSaving ? 'primary' : isSaved ? 'success' : isDirty ? 'warning' : 'default'}
+              className='text-sm'
+              variant='flat'
+              size='lg'
+              startContent={
+                isSaved ? (
+                  <CloudCheck size={24} />
+                ) : isSaving ? (
+                  <Spinner size='sm' />
+                ) : isDirty ? (
+                  <CloudAlert size={24} />
+                ) : (
+                  <CloudCheck size={24} /> // opcional: ícono neutro o "guardado por default"
+                )
+              }
+            >
+              {isSaved ? 'Guardada' : isSaving ? 'Guardando...' : isDirty ? 'Sin guardar' : 'Sin cambios'}
+            </Chip>{' '}
+          </section>
+        </footer>
       </div>
 
-      {quote.items.length > 0 && (
+      {(quote.data.items ?? []).length > 0 && (
         <section>
           <Card className='p-4 px-8'>
             <CardBody className='flex flex-row justify-between items-center gap-4'>
               <section className='flex justify-end gap-3'>
-                <Button
-                  className='flex flex-col h-16 w-16 p-2 gap-0'
-                  color='danger'
-                  variant='ghost'
-                  onPress={() => navigate('/cotizaciones')}
-                >
-                  <X />
-                  Cancelar
-                </Button>
-                <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost' onPress={handleSave}>
-                  <Save />
-                  Guardar
-                </Button>
+                {!quote.data.id && (
+                  <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost' onPress={handleSave}>
+                    <Save />
+                    Guardar
+                  </Button>
+                )}
                 <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='secondary' variant='ghost'>
                   <File />
                   Ver PDF
                 </Button>
-                <Button className='flex flex-col h-16 w-16 p-2 gap-0 ' color='secondary' variant='ghost'>
-                  <MailPlus />
-                  Enviar
-                </Button>
+                {quote.data.id && (
+                  <>
+                    <Button className='flex flex-col h-16 w-16 p-2 gap-0 ' color='secondary' variant='ghost'>
+                      <MailPlus />
+                      Enviar
+                    </Button>
+                    <Button
+                      className='flex flex-col h-16 w-16 p-2 gap-0'
+                      color='danger'
+                      variant='ghost'
+                      onPress={() => navigate('/cotizaciones')}
+                    >
+                      <Trash2 />
+                      Eliminar
+                    </Button>
+                  </>
+                )}
               </section>
               <div className='flex flex-col gap-2 text-right'>
                 <div className='text-lg'>
@@ -364,7 +473,7 @@ const NuevaCotizacion = () => {
                 </div>
                 <div className='text-xl font-semibold'>
                   <span>Total:</span>
-                  <span className='ml-2'>{total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
+                  <span className='ml-2'>{quote.data.total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
                 </div>
               </div>
             </CardBody>
