@@ -16,7 +16,7 @@ import {
   Trash2,
   X
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import ModalAddProduct from '../components/quotes/modals/ModalAddProduct'
@@ -43,6 +43,7 @@ import {
   updateItem
 } from '../store/slices/quoteSlice'
 import { QuoteItem, quoteStatus, uiColors } from '../types'
+import { formatDate } from '../utils/date'
 
 const NuevaCotizacion = () => {
   const navigate = useNavigate()
@@ -75,8 +76,8 @@ const NuevaCotizacion = () => {
       if (savedQuote.success) {
         dispatch(setQuoteId(savedQuote.quote?.id ?? null))
         addToast({
-          title: 'Cotización guardada',
-          description: savedQuote.quote?.created_at,
+          title: 'Guardando cotización',
+          description: savedQuote.quote?.created_at ? formatDate(savedQuote.quote.created_at) : 'Fecha no disponible',
           color: 'success'
         })
       } else {
@@ -162,7 +163,7 @@ const NuevaCotizacion = () => {
   }
 
   const handleConfirmRemoveItem = (item: QuoteItem) => {
-    console.log('item paara eliminar', item)
+    console.log('item para eliminar', item)
     dispatch(setSelectedItem(item))
     onOpenConfirmRemoveItem()
   }
@@ -189,7 +190,7 @@ const NuevaCotizacion = () => {
     onOpenChangeConfirmClear()
   }
 
-  useMemo(() => {
+  useEffect(() => {
     if ((quote.data.items ?? []).length > 0) {
       setSubtotal((quote.data.items ?? []).reduce((acc, item) => acc + item.subtotal, 0))
       setTaxes((quote.data.items ?? []).reduce((acc, item) => acc + item.subtotal * 0.16, 0))
