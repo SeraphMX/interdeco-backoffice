@@ -48,6 +48,7 @@ export interface QuoteItem {
 export interface Quote {
   id?: number | null
   customer_id?: number | null
+  customer_name?: string | null
   created_at?: string | null
   last_updated?: string | null
   items?: QuoteItem[]

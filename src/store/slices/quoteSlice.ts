@@ -17,6 +17,7 @@ const initialState: QuoteState = {
   data: {
     id: null,
     customer_id: null,
+    customer_name: null,
     created_at: null,
     last_updated: null,
     items: [],
@@ -30,10 +31,9 @@ const quoteSlice = createSlice({
   initialState,
   reducers: {
     setSelectedCustomer: (state, action: PayloadAction<Customer | null>) => {
-      console.log('first')
       state.selectedCustomer = action.payload
       state.data.customer_id = action.payload?.id ?? null
-      console.log('Sec')
+      state.data.customer_name = action.payload?.name ?? null
     },
     clearSelectedCustomer: (state) => {
       state.selectedCustomer = null
