@@ -1,5 +1,6 @@
 import { addToast, Avatar, Badge, Button, Card, CardBody, Chip, Input, Spinner, Tooltip, useDisclosure } from '@heroui/react'
 import {
+  Archive,
   ArrowLeft,
   ArrowRightLeft,
   BrushCleaning,
@@ -23,6 +24,7 @@ import ModalSelectCustomer from '../components/quotes/modals/ModalSelectCustomer
 
 import ModalAddDiscount from '../components/quotes/modals/ModalAddDiscount'
 import ModalConfirmClear from '../components/quotes/modals/ModalConfirmClear'
+import ModalConfirmDeleteQuote from '../components/quotes/modals/ModalConfirmDeleteQuote'
 import ModalConfirmRemoveItem from '../components/quotes/modals/ModalConfirmRemoveItem'
 import CustomerIcon from '../components/shared/CustomerIcon'
 import { useDebouncedAutoSave } from '../hooks/useDebounceAutosave'
@@ -31,9 +33,11 @@ import { RootState } from '../store'
 import { Category } from '../store/slices/catalogSlice'
 import {
   clearItems,
+  clearQuote,
   clearSelectedCustomer,
   removeItem,
   setQuoteId,
+  setQuoteStatus,
   setQuoteTotal,
   setSelectedItem,
   updateItem
@@ -56,10 +60,15 @@ const NuevaCotizacion = () => {
   const { isOpen: isOpenAddDiscount, onOpen: onOpenAddDiscount, onOpenChange: onOpenChangeAddDiscount } = useDisclosure()
   const { isOpen: isOpenConfirmRemoveItem, onOpen: onOpenConfirmRemoveItem, onOpenChange: onOpenChangeConfirmRemoveItem } = useDisclosure()
   const { isOpen: isOpenConfirmClear, onOpen: onOpenConfirmClear, onOpenChange: onOpenChangeConfirmClear } = useDisclosure()
+  const {
+    isOpen: isOpenConfirmDeleteQuote,
+    onOpen: onOpenConfirmDeleteQuote,
+    onOpenChange: onOpenChangeConfirmDeleteQuote
+  } = useDisclosure()
 
   const { isSaving, isSaved, isDirty } = useDebouncedAutoSave(quote.data, 3000)
 
-  const handleSave = async () => {
+  const handleSaveQuote = async () => {
     if (!quote.data.id) {
       const savedQuote = await quoteService.saveQuote(quote.data)
 
@@ -67,7 +76,7 @@ const NuevaCotizacion = () => {
         dispatch(setQuoteId(savedQuote.quote?.id ?? null))
         addToast({
           title: 'Cotización guardada',
-          description: 'La cotizacion de ha guardado a las 5.',
+          description: savedQuote.quote?.created_at,
           color: 'success'
         })
       } else {
@@ -78,25 +87,72 @@ const NuevaCotizacion = () => {
           color: 'danger'
         })
       }
-    } else {
-      // Si ya tiene ID, actualiza la cotización existente
-      const updatedQuote = await quoteService.updateQuote(quote.data)
+    }
+  }
 
-      if (updatedQuote.success) {
+  const handleDeleteQuote = async () => {
+    if (!quote.data.id) {
+      addToast({
+        title: 'Error',
+        description: 'No se puede eliminar una cotización que no ha sido guardada.',
+        color: 'danger'
+      })
+      return
+    }
+
+    if (quote.data.status === 'open') {
+      const result = await quoteService.deleteQuote(quote.data.id)
+
+      if (result.success) {
         addToast({
-          title: 'Cotización actualizada',
-          description: 'La cotización se ha actualizado correctamente.',
+          title: 'Cotización eliminada',
+          description: 'La cotización ha sido eliminada correctamente.',
           color: 'success'
         })
+        dispatch(clearQuote())
+        navigate('/cotizaciones')
       } else {
-        console.error('Error al actualizar la cotización:', updatedQuote.error)
+        console.error('Error al eliminar la cotización:', result.error)
         addToast({
-          title: 'Error al actualizar',
-          description: 'Hubo un error al actualizar la cotización. Inténtalo de nuevo.',
+          title: 'Error al eliminar',
+          description: 'Hubo un error al eliminar la cotización. Inténtalo de nuevo.',
           color: 'danger'
         })
       }
+    } else {
+      const updateResult = await quoteService.updateQuote({ ...quote.data, status: 'archived' })
+
+      if (!updateResult.success) {
+        console.error('Error al archivar la cotización:', updateResult.error)
+        addToast({
+          title: 'Error al archivar',
+          description: 'Hubo un error al archivar la cotización. Inténtalo de nuevo.',
+          color: 'danger'
+        })
+        return
+      }
+
+      addToast({
+        title: 'Cotización archivada',
+        description: 'La cotización ha sido archivada correctamente.',
+        color: 'success'
+      })
+      navigate('/cotizaciones')
     }
+  }
+
+  const handleCloseQuote = () => {
+    dispatch(clearQuote())
+    navigate('/cotizaciones')
+  }
+
+  const handleSendQuote = () => {
+    dispatch(setQuoteStatus('sent'))
+    addToast({
+      title: 'Enviar cotización',
+      description: 'Funcionalidad de envío de cotización aún no implementada.',
+      color: 'primary'
+    })
   }
 
   const handleSetDiscount = (item: QuoteItem) => {
@@ -435,7 +491,7 @@ const NuevaCotizacion = () => {
             <CardBody className='flex flex-row justify-between items-center gap-4'>
               <section className='flex justify-end gap-3'>
                 {!quote.data.id && (
-                  <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost' onPress={handleSave}>
+                  <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost' onPress={handleSaveQuote}>
                     <Save />
                     Guardar
                   </Button>
@@ -446,19 +502,42 @@ const NuevaCotizacion = () => {
                 </Button>
                 {quote.data.id && (
                   <>
-                    <Button className='flex flex-col h-16 w-16 p-2 gap-0 ' color='secondary' variant='ghost'>
+                    <Button className='flex flex-col h-16 w-16 p-2 gap-0 ' color='secondary' variant='ghost' onPress={handleSendQuote}>
                       <MailPlus />
                       Enviar
                     </Button>
-                    <Button
-                      className='flex flex-col h-16 w-16 p-2 gap-0'
-                      color='danger'
-                      variant='ghost'
-                      onPress={() => navigate('/cotizaciones')}
-                    >
-                      <Trash2 />
-                      Eliminar
+                    {quote.data.status === 'open' ? (
+                      <Button
+                        className='flex flex-col h-16 w-16 p-2 gap-0'
+                        color='danger'
+                        variant='ghost'
+                        onPress={onOpenConfirmDeleteQuote}
+                      >
+                        <Trash2 />
+                        Eliminar
+                      </Button>
+                    ) : (
+                      quote.data.status !== 'sent' && (
+                        <Button
+                          className='flex flex-col h-16 w-16 p-2 gap-0'
+                          color='danger'
+                          variant='ghost'
+                          onPress={onOpenConfirmDeleteQuote}
+                        >
+                          <Archive />
+                          Archivar
+                        </Button>
+                      )
+                    )}
+                    <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='danger' variant='ghost' onPress={handleCloseQuote}>
+                      <X />
+                      Cerrar
                     </Button>
+                    <ModalConfirmDeleteQuote
+                      isOpen={isOpenConfirmDeleteQuote}
+                      onOpenChange={onOpenChangeConfirmDeleteQuote}
+                      onConfirm={handleDeleteQuote}
+                    />
                   </>
                 )}
               </section>
