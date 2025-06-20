@@ -3,18 +3,20 @@ import { es } from 'date-fns/locale'
 const DEFAULT_LOCALE = 'es-MX'
 const DEFAULT_TIMEZONE = 'America/Mexico_City'
 
-type FormatStyle = 'short' | 'long'
+type FormatStyle = 'short' | 'long' | 'fullDay'
 
-export function formatDate(
-  input: string | Date,
-  style: FormatStyle = 'long',
-  locale = DEFAULT_LOCALE,
-  timeZone = DEFAULT_TIMEZONE,
+interface FormatDateOptions {
+  style?: FormatStyle
+  locale?: string
+  timeZone?: string
   customOptions?: Intl.DateTimeFormatOptions
-): string {
+}
+
+export function formatDate(input: string | Date, options: FormatDateOptions = {}): string {
+  const { style = 'long', locale = DEFAULT_LOCALE, timeZone = DEFAULT_TIMEZONE, customOptions = {} } = options
+
   const date = typeof input === 'string' ? new Date(input) : input
 
-  // Estilo base según "short" o "long"
   const baseOptions: Intl.DateTimeFormatOptions =
     style === 'long'
       ? {
@@ -26,6 +28,14 @@ export function formatDate(
           hour12: true,
           timeZone
         }
+      : style === 'fullDay'
+      ? {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          timeZone
+        }
       : {
           day: '2-digit',
           month: '2-digit',
@@ -33,7 +43,6 @@ export function formatDate(
           timeZone
         }
 
-  // Si mandas opciones personalizadas, las mezcla (sobrescribe lo que necesites)
   const finalOptions = { ...baseOptions, ...customOptions }
 
   return new Intl.DateTimeFormat(locale, finalOptions).format(date)
