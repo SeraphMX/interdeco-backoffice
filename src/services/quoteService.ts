@@ -26,6 +26,7 @@ export const quoteService = {
 
     let subtotal = originalSubtotal
 
+    //TODO:Revisar descuentos globales
     if (discount > 0) {
       subtotal = discountType === 'percentage' ? round(originalSubtotal * (1 - discount / 100)) : round(originalSubtotal - discount)
     }

@@ -208,12 +208,22 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
                     validate: {
                       positive: (value) => {
                         const num = value
-                        return (!isNaN(num) && (discountType === 'percentage' ? num >= 0 && num <= 100 : num >= 0)) || 'Inválido'
+                        return (!isNaN(num) && (discountType === 'percentage' ? num >= 0 && num <= 100 : num >= 0)) || 'Descuento inválido'
                       },
                       validDiscount: (value) => {
                         const num = value
                         if (isNaN(num)) return 'Debe ser un número'
                         const discount = discountType === 'percentage' ? ((selectedItem?.subtotal ?? 0) * num) / 100 : num
+
+                        if (discountType === 'percentage' && num > (selectedItem?.product?.utility ?? 0) - 10)
+                          return 'No puede ser mayor a la utilidad mínima del producto'
+
+                        if (
+                          discountType === 'fixed' &&
+                          num > (selectedItem?.subtotal ?? 0) * (((selectedItem?.product?.utility ?? 0) - 10) / 100)
+                        )
+                          return 'No puede ser mayor a la utilidad mínima del producto'
+
                         return discount <= (selectedItem?.subtotal ?? 0) || 'El descuento no puede ser mayor al subtotal'
                       }
                     }
@@ -235,7 +245,7 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
                         label: 'self-center text-center'
                       }}
                       isInvalid={!!errors.discountValue}
-                      errorMessage={errors.discountValue?.message}
+                      //errorMessage={}
                     />
                   )}
                 />
@@ -252,6 +262,7 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
                   <small>Con descuento</small>
                 </div>
               </section>
+              <section className='text-danger text-center'>{errors.discountValue?.message}</section>
             </ModalBody>
             <ModalFooter>
               <Button variant='light' color='danger' onPress={onClose} tabIndex={-1}>
