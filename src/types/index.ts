@@ -52,8 +52,9 @@ export interface Quote {
   created_at?: string | null
   last_updated?: string | null
   items?: QuoteItem[]
+  total_items?: number | null
   total: number
-  status: QuoteStatus | null
+  status: QuoteStatus
 }
 
 export type QuoteStatus = 'draft' | 'sent' | 'success' | 'rejected' | 'expired' | 'open' | 'archived'
