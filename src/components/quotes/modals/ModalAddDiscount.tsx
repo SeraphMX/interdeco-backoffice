@@ -268,7 +268,7 @@ const ModalAddDiscount = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) =>
               <Button variant='light' color='danger' onPress={onClose} tabIndex={-1}>
                 Cerrar
               </Button>
-              <Button color='primary' isDisabled={!selectedItem} type='submit'>
+              <Button color='primary' isDisabled={!selectedItem || !!errors.discountValue} type='submit'>
                 Aceptar
               </Button>
             </ModalFooter>
