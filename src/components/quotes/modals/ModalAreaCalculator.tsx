@@ -40,8 +40,7 @@ const ModalAreaCalculator = ({ isOpen, onOpenChange }: ModalAddProductProps) => 
     register,
     formState: { errors },
     watch,
-    reset,
-    setValue
+    reset
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     mode: 'onChange',
@@ -82,18 +81,18 @@ const ModalAreaCalculator = ({ isOpen, onOpenChange }: ModalAddProductProps) => 
             <ModalHeader className='flex flex-col gap-1'>Agregar producto</ModalHeader>
             <ModalBody className='grid grid-cols-2 gap-4'>
               <Input
+                {...register('width', { valueAsNumber: true })}
+                label='Ancho'
+                isInvalid={!!errors.width}
+                errorMessage={errors.width?.message}
+                onFocus={(e) => e.target.select()}
+              />
+              <Input
                 {...register('length', { valueAsNumber: true })}
                 label='Largo'
                 isInvalid={!!errors.length}
                 errorMessage={errors.length?.message}
                 autoFocus
-                onFocus={(e) => e.target.select()}
-              />
-              <Input
-                {...register('width', { valueAsNumber: true })}
-                label='Ancho'
-                isInvalid={!!errors.width}
-                errorMessage={errors.width?.message}
                 onFocus={(e) => e.target.select()}
               />
             </ModalBody>
