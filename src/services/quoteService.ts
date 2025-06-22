@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import { Product, Quote, QuoteItem } from '../types'
+import { Product, Quote, QuoteItem, QuoteItemDB } from '../types'
 
 export type DiscountType = 'percentage' | 'fixed'
 
@@ -156,6 +156,21 @@ export const quoteService = {
       if (deleteQuoteError) throw deleteQuoteError
 
       return { success: true }
+    } catch (e) {
+      return { success: false, error: (e as Error).message }
+    }
+  },
+  async getQuoteItems(quoteId: number): Promise<{ success: boolean; items?: QuoteItemDB[]; error?: string }> {
+    try {
+      if (!quoteId) {
+        throw new Error('El ID de la cotización es requerido para obtener los ítems.')
+      }
+
+      const { data: items, error } = await supabase.from('quote_items').select('*').eq('quote_id', quoteId)
+
+      if (error) throw error
+
+      return { success: true, items: items as QuoteItemDB[] }
     } catch (e) {
       return { success: false, error: (e as Error).message }
     }
