@@ -34,7 +34,7 @@ const ProductsTable = ({ wrapperHeight, filterValue = '', selectedCategories = [
       const matchesCategories = selectedCategories.length === 0 || selectedCategories.find((c) => c === item.category.toString())
       const matchesProviders = selectedProviders.length === 0 || selectedProviders.find((p) => p === item.category.toString())
 
-      const matchesWithPrice = item.public_price !== undefined && item.public_price > 0
+      const matchesWithPrice = item.public_price !== undefined && (item.price ?? 0) > 0
 
       return matchesSearch && matchesProviders && matchesCategories && matchesWithPrice
     })
