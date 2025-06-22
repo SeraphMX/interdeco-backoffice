@@ -1,34 +1,16 @@
-import { Card, CardBody, CardHeader } from '@heroui/react'
+import { Card, CardBody, CardHeader, Chip } from '@heroui/react'
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js'
 import { FileText, Package, TrendingUp, Users } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { RootState } from '../store'
+import { quoteStatus, uiColors } from '../types'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
-const statusColorMap = {
-  finalizada: 'success',
-  pendiente: 'warning',
-  rechazada: 'danger',
-  aprobada: 'primary'
-} as const
-
 const Dashboard = () => {
   const clientes = useSelector((state: RootState) => state.clientes.items)
-
-  const cotizaciones = useSelector((state: RootState) => state.cotizaciones.items)
+  const cotizaciones = useSelector((state: RootState) => state.quotes.items)
   const productos = useSelector((state: RootState) => state.productos.items)
-
-  // Calcular materiales más usados
-  const materialesUsados = cotizaciones.reduce((acc, cotizacion) => {
-    cotizacion.items.forEach((item) => {
-      if (!acc[item.materialId]) {
-        acc[item.materialId] = 0
-      }
-      acc[item.materialId] += item.metrosCuadrados
-    })
-    return acc
-  }, {} as Record<string, number>)
 
   // // Ordenar materiales por uso y tomar los top 5
   // const topMateriales = Object.entries(materialesUsados)
@@ -89,8 +71,10 @@ const Dashboard = () => {
     }
   ]
 
-  // Obtener las últimas 3 cotizaciones ordenadas por fecha
-  //const ultimasCotizaciones = [...cotizaciones].sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()).slice(0, 3)
+  //Obtener las últimas 5 cotizaciones ordenadas por fecha
+  const ultimasCotizaciones = [...cotizaciones]
+    .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+    .slice(0, 5)
 
   return (
     <div className='space-y-6'>
@@ -119,35 +103,34 @@ const Dashboard = () => {
           </CardHeader>
           <CardBody>
             <div className='space-y-4'>
-              {/* {ultimasCotizaciones.map(cotizacion => {
-                const cliente = clientes.find(c => c.id === cotizacion.clienteId);
+              {ultimasCotizaciones.map((quote) => {
+                const cliente = clientes.find((c) => c.id === quote.customer_id)
                 return (
-                  <div key={cotizacion.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div key={quote.id} className='flex items-center justify-between p-4 bg-gray-50 rounded-lg'>
                     <div>
-                      <p className="font-medium text-gray-900">{cliente?.nombre}</p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(cotizacion.fecha).toLocaleDateString('es-MX')}
+                      <p className='font-medium text-gray-900'>{cliente?.name}</p>
+                      <p className='text-sm text-gray-500'>
+                        {quote.created_at ? new Date(quote.created_at).toLocaleDateString('es-MX') : 'Fecha no disponible'}
                       </p>
-                    </div>
-                    <div className="flex items-center gap-4">
                       <Chip
-                        className="capitalize"
-                        color={statusColorMap[cotizacion.status]}
-                        size="sm"
-                        variant="flat"
+                        className='capitalize'
+                        variant='bordered'
+                        color={quoteStatus.find((s) => s.key === quote.status)?.color as uiColors}
                       >
-                        {cotizacion.status}
+                        {quoteStatus.find((s) => s.key === quote.status)?.label}
                       </Chip>
-                      <span className="font-semibold">
-                        {cotizacion.total.toLocaleString('es-MX', {
+                    </div>
+                    <div className='flex items-center gap-4'>
+                      <span className='font-semibold'>
+                        {quote.total.toLocaleString('es-MX', {
                           style: 'currency',
                           currency: 'MXN'
                         })}
                       </span>
                     </div>
                   </div>
-                );
-              })} */}
+                )
+              })}
             </div>
           </CardBody>
         </Card>
