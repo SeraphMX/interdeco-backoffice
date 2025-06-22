@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useCategories } from '../hooks/useCategories'
 import { useCustomers } from '../hooks/useCustomers'
 import { useProducts } from '../hooks/useProducts'
+import { useQuotes } from '../hooks/useQuotes'
 import { RootState } from '../store'
 
 interface ProtectedRouteProps {
@@ -14,9 +15,10 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const { currentUser } = useSelector((state: RootState) => state.auth)
   const location = useLocation()
 
-  useCategories() //Carga de categorias desde supabase a redux}
+  useCategories() //Carga de categorias desde supabase a redux
   useCustomers() //Carga de clientes desde supabase a redux
   useProducts() //Carga de productos desde supabase a redux
+  useQuotes()
 
   if (!currentUser) {
     return <Navigate to='/login' state={{ from: location }} replace />
