@@ -1,39 +1,42 @@
-// src/hooks/useCustomers.ts
+import { debounce } from 'lodash'
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { supabase } from '../lib/supabase'
-
 import { setQuotes } from '../store/slices/quotesSlice'
 
 export const useQuotes = () => {
   const dispatch = useDispatch()
 
   useEffect(() => {
-    // Carga inicial
-    const fetchCustomers = async () => {
+    const fetchQuotes = async () => {
+      console.log('[useQuotes] Ejecutando fetchQuotes()...')
       const { data, error } = await supabase.from('quotes_view').select('*')
-      if (data) dispatch(setQuotes(data))
-      if (error) console.error('Error al cargar clientes:', error.message)
+      if (error) {
+        console.error('[useQuotes] Error al cargar cotizaciones:', error.message)
+        return
+      }
+      console.log('[useQuotes] Cotizaciones obtenidas:', data)
+      dispatch(setQuotes(data))
     }
 
-    fetchCustomers()
+    const debouncedFetch = debounce(fetchQuotes, 500)
+    fetchQuotes()
 
-    // Realtime
     const channel = supabase
-      .channel('realtime:Customers')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'quotes'
-        },
-        fetchCustomers
-      )
+      .channel('realtime:quotes-combined')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'quotes' }, () => {
+        //console.log('[Realtime] Evento recibido en quotes:', payload)
+        debouncedFetch()
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'quote_items' }, () => {
+        //console.log('[Realtime] Evento recibido en quote_items:', payload)
+        debouncedFetch()
+      })
       .subscribe()
 
     return () => {
       supabase.removeChannel(channel)
+      debouncedFetch.cancel() // cancela debounce en desmontaje
     }
   }, [dispatch])
 }
