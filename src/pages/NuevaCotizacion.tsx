@@ -36,9 +36,12 @@ import {
   clearQuote,
   clearSelectedCustomer,
   removeItem,
+  setItems,
+  setItemsLoaded,
   setQuoteId,
   setQuoteStatus,
   setQuoteTotal,
+  setSelectedCustomer,
   setSelectedItem,
   updateItem
 } from '../store/slices/quoteSlice'
@@ -49,6 +52,9 @@ const NuevaCotizacion = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const quote = useSelector((state: RootState) => state.quote)
+  const customers = useSelector((state: RootState) => state.clientes.items)
+  const products = useSelector((state: RootState) => state.productos.items)
+
   const [taxes, setTaxes] = useState(0)
   const [subtotal, setSubtotal] = useState(0)
 
@@ -76,7 +82,7 @@ const NuevaCotizacion = () => {
       if (savedQuote.success) {
         dispatch(setQuoteId(savedQuote.quote?.id ?? null))
         addToast({
-          title: 'Guardando cotización',
+          title: 'Cotización guardada',
           description: savedQuote.quote?.created_at ? formatDate(savedQuote.quote.created_at) : 'Fecha no disponible',
           color: 'success'
         })
@@ -110,12 +116,13 @@ const NuevaCotizacion = () => {
       const result = await quoteService.deleteQuote(quote.data.id)
 
       if (result.success) {
+        dispatch(clearQuote())
         addToast({
           title: 'Cotización eliminada',
           description: 'La cotización ha sido eliminada correctamente.',
           color: 'success'
         })
-        dispatch(clearQuote())
+
         navigate('/cotizaciones')
       } else {
         console.error('Error al eliminar la cotización:', result.error)
@@ -174,18 +181,23 @@ const NuevaCotizacion = () => {
   }
 
   const handleUpdateQuantity = (item: QuoteItem, newQuantity: number) => {
-    const findItem = (quote.data.items ?? []).find((i) => i.product.id === item.product.id)
+    const findItem = (quote.data.items ?? []).find((i) => i.product?.id === item.product?.id)
     if (findItem) {
-      const updatedItem: QuoteItem = quoteService.buildQuoteItem({
-        ...findItem,
-        requiredQuantity: newQuantity
-      })
-      dispatch(updateItem(updatedItem))
+      if (findItem.product) {
+        const updatedItem: QuoteItem = quoteService.buildQuoteItem({
+          ...findItem,
+          requiredQuantity: newQuantity,
+          product: findItem.product
+        })
+        dispatch(updateItem(updatedItem))
+      } else {
+        console.error('Product is undefined for the selected item.')
+      }
     }
   }
 
   const handleRemoveItem = () => {
-    console.log('removiendo item', quote.selectedItem?.product.spec)
+    console.log('removiendo item', quote.selectedItem?.product?.spec ?? 'Producto no definido')
     dispatch(removeItem(quote.selectedItem as QuoteItem))
     onOpenChangeConfirmRemoveItem()
   }
@@ -214,6 +226,50 @@ const NuevaCotizacion = () => {
 
     prevItemsLengthRef.current = quote.data.items?.length || 0
   }, [quote.data.items, scrollRef])
+
+  // useEffect modificado
+  useEffect(() => {
+    let isMounted = true
+
+    // Nueva función para cargar los items de la cotización
+    const loadQuoteItems = async (quoteId: number) => {
+      const response = await quoteService.getQuoteItems(quoteId)
+
+      if (response.success && response.items) {
+        return response.items.map((item) => ({
+          product: products.find((p) => p.id === item.product_id) || null,
+          requiredQuantity: item.required_quantity || 0,
+          totalQuantity: item.total_quantity || 0,
+          packagesRequired: item.packages_required || 0,
+          subtotal: item.subtotal || 0,
+          originalSubtotal: item.original_subtotal || 0,
+          discount: item.discount || 0,
+          discountType: item.discount_type || 'percentage',
+          id: item.id
+        }))
+      }
+      return []
+    }
+
+    const fetchData = async () => {
+      if (quote.data.id && !quote.itemsLoaded) {
+        const customer = customers.find((c) => c.id == quote.data.customer_id)
+        if (customer) dispatch(setSelectedCustomer(customer))
+
+        const items = await loadQuoteItems(quote.data.id)
+        if (isMounted && items.length) {
+          dispatch(setItems(items as QuoteItem[]))
+          dispatch(setItemsLoaded(true))
+        }
+      }
+    }
+
+    fetchData()
+
+    return () => {
+      isMounted = false
+    }
+  }, [quote.data.id, dispatch, customers, products, quote.data.items?.length, quote.data.customer_id, quote.data.items, quote.itemsLoaded])
 
   return (
     <div className='container  space-y-4  h-full flex flex-col'>
@@ -288,22 +344,24 @@ const NuevaCotizacion = () => {
                 (quote.data.items ?? []).map((item) => {
                   const surplus = item.totalQuantity - item.requiredQuantity
                   const isExceeding = surplus > 0
-                  const category = rxCategories.find((cat: Category) => cat.description === item.product.category_description)
+                  const category = rxCategories.find(
+                    (cat: Category) => item.product?.category_description && cat.description === item.product.category_description
+                  )
                   const categoryColor = category?.color || 'bg-gray-300'
                   const pricePerPackage = Number(
-                    ((item.product?.price ?? 0) * (1 + (item.product.utility ?? 0) / 100) * (item.product.package_unit ?? 1)).toFixed(2)
+                    ((item.product?.price ?? 0) * (1 + (item.product?.utility ?? 0) / 100) * (item.product?.package_unit ?? 1)).toFixed(2)
                   )
                   return (
-                    <article key={item.product.id} className='border rounded-lg overflow-hidden'>
+                    <article key={item.product?.id} className='border rounded-lg overflow-hidden'>
                       <header className='flex items-center gap-4 p-4 bg-gray-50'>
                         <div className='flex-grow min-w-0'>
                           <h3 className='font-medium text-lg flex gap-4 items-center'>
-                            {item.product.sku} {item.product.spec}
+                            {item.product?.sku} {item.product?.spec}
                             <Chip className={categoryColor} size='sm' variant='flat'>
-                              {item.product.category_description}
+                              {item.product?.category_description}
                             </Chip>
                           </h3>
-                          <p className='text-gray-600'>{item.product.description}</p>
+                          <p className='text-gray-600'>{item.product?.description}</p>
                         </div>
 
                         <Button
@@ -346,12 +404,12 @@ const NuevaCotizacion = () => {
                             <dl className='space-y-3'>
                               {/* Lista de definiciones */}
                               <div className='flex justify-between'>
-                                <dt>{item.product.measurement_unit} Requeridos</dt>
+                                <dt>{item.product?.measurement_unit} Requeridos</dt>
                                 <dd className='text-gray-600'>{item.requiredQuantity} </dd>
                               </div>
                               {isExceeding && (
                                 <div className='flex justify-between'>
-                                  <dt>{item.product.measurement_unit} Cotizados</dt>
+                                  <dt>{item.product?.measurement_unit} Cotizados</dt>
                                   <dd className='text-gray-600'>{item.totalQuantity.toFixed(2)}</dd>
                                 </div>
                               )}
@@ -359,7 +417,7 @@ const NuevaCotizacion = () => {
                                 <div className='flex justify-between'>
                                   <dt>Excedente</dt>
                                   <dd className='text-gray-600'>
-                                    {surplus.toFixed(2)} {item.product.measurement_unit}
+                                    {surplus.toFixed(2)} {item.product?.measurement_unit}
                                   </dd>
                                 </div>
                               )}
@@ -474,12 +532,12 @@ const NuevaCotizacion = () => {
               </Chip>
             )}
             <Chip
-              color={isSaving ? 'primary' : isSaved ? 'success' : isDirty ? 'warning' : 'default'}
+              color={isSaving ? 'primary' : isSaved || quote.data.id ? 'success' : isDirty ? 'warning' : 'default'}
               className='text-sm'
               variant='flat'
               size='lg'
               startContent={
-                isSaved ? (
+                isSaved || quote.data.id ? (
                   <CloudCheck size={24} />
                 ) : isSaving ? (
                   <Spinner size='sm' />
@@ -490,7 +548,7 @@ const NuevaCotizacion = () => {
                 )
               }
             >
-              {isSaved ? 'Guardada' : isSaving ? 'Guardando...' : isDirty ? 'Sin guardar' : 'Sin cambios'}
+              {isSaved || quote.data.id ? 'Guardada' : isSaving ? 'Guardando...' : isDirty ? 'Sin guardar' : 'Sin cambios'}
             </Chip>{' '}
           </section>
         </footer>
