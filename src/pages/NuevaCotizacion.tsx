@@ -223,14 +223,17 @@ const NuevaCotizacion = () => {
             <ArrowLeft size={24} />
           </Button>
           <h1 className='text-3xl font-bold text-gray-900 flex items-center gap-2'>
-            {quote.data.id ? 'Cotización' : 'Nueva Cotización'}{' '}
-            <Chip
-              className='capitalize'
-              variant='bordered'
-              color={(quoteStatus.find((s) => s.key === quote.data.status)?.color as uiColors) || 'default'}
-            >
-              {quoteStatus.find((s) => s.key === quote.data.status)?.label}
-            </Chip>
+            {quote.data.id ? 'Cotización' : 'Nueva Cotización'}
+
+            {quote.data.id && (
+              <Chip
+                className='capitalize'
+                variant='bordered'
+                color={quoteStatus.find((s) => s.key === quote.data.status)?.color as uiColors}
+              >
+                {quoteStatus.find((s) => s.key === quote.data.status)?.label}
+              </Chip>
+            )}
           </h1>
         </div>
         <div className='flex items-center gap-4'>
