@@ -64,8 +64,8 @@ const Clientes = () => {
 
   return (
     <div className='flex flex-col gap-4 h-full '>
-      <div className='flex justify-between items-center'>
-        <div className='flex flex-wrap flex-grow gap-4 '>
+      <header className='flex justify-between items-center'>
+        <section className='flex flex-wrap flex-grow gap-4 '>
           <Input
             type='text'
             placeholder='Buscar clientes...'
@@ -125,13 +125,13 @@ const Clientes = () => {
               Limpiar filtros
             </Button>
           ) : null}
-        </div>
+        </section>
 
         <Button onPress={onOpen} color='primary' variant='ghost'>
           <Plus size={20} />
           Nuevo
         </Button>
-      </div>
+      </header>
 
       <motion.section className='overflow-y-auto h-full p-4 sm:p-0'>
         <AnimatePresence>
