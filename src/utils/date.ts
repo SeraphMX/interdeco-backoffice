@@ -15,7 +15,13 @@ interface FormatDateOptions {
 export function formatDate(input: string | Date, options: FormatDateOptions = {}): string {
   const { style = 'long', locale = DEFAULT_LOCALE, timeZone = DEFAULT_TIMEZONE, customOptions = {} } = options
 
-  const date = typeof input === 'string' ? new Date(input) : input
+  let date: Date
+  if (typeof input === 'string') {
+    const safeISO = input.endsWith('Z') ? input : input + 'Z'
+    date = parseISO(safeISO)
+  } else {
+    date = input
+  }
 
   const baseOptions: Intl.DateTimeFormatOptions =
     style === 'long'
@@ -51,11 +57,19 @@ export function formatDate(input: string | Date, options: FormatDateOptions = {}
 /**
  * Convierte una fecha ISO a formato relativo tipo: "hace 2 horas"
  */
-export function parseISOtoRelative(isoString: string | Date): string {
-  const date = typeof isoString === 'string' ? parseISO(isoString) : isoString
+export function parseISOtoRelative(input: string | Date): string {
+  let date: Date
+
+  if (typeof input === 'string') {
+    // Si no tiene 'Z', lo agregamos para forzar interpretación como UTC
+    const safeISO = input.endsWith('Z') ? input : input + 'Z'
+    date = parseISO(safeISO)
+  } else {
+    date = input
+  }
 
   return formatDistanceToNow(date, {
-    addSuffix: true, // agrega "hace"
+    addSuffix: true,
     locale: es
   })
 }
