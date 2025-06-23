@@ -17,31 +17,29 @@ export interface User {
   role: UserRole
 }
 
-export type MaterialCategoria = 'Pisos' | 'Paredes' | 'Techos' | 'Cocina' | 'Baño' | 'Persianas'
-export type UnidadCompra = 'metro' | 'caja' | 'pieza' | 'rollo'
-export type UnidadVenta = 'metro cuadrado' | 'metro lineal'
-
-export interface Material {
-  id: string
-  nombre: string
-  codigo: string
-  precio: number
-  unidadCompra: UnidadCompra
-  unidadVenta: UnidadVenta
-  categoria: MaterialCategoria
-  metrosPorUnidad?: number
-  proveedor: string
-}
-
 export interface QuoteItem {
-  id?: string
-  product: Product
+  product_id?: number
+  product: Product | undefined
   requiredQuantity: number
   totalQuantity: number
   packagesRequired?: number
   originalSubtotal?: number
   subtotal: number
   discountType?: 'percentage' | 'fixed'
+  discount?: number
+}
+export interface QuoteItemDB {
+  id: number
+  quote_id: number
+  product_id: number
+  description: string
+  required_quantity: number
+  packages_required?: number
+
+  total_quantity: number
+  subtotal: number
+  original_subtotal?: number
+  discount_type?: 'percentage' | 'fixed'
   discount?: number
 }
 

@@ -36,19 +36,25 @@ import {
   clearQuote,
   clearSelectedCustomer,
   removeItem,
+  setItems,
+  setItemsLoaded,
   setQuoteId,
   setQuoteStatus,
   setQuoteTotal,
+  setSelectedCustomer,
   setSelectedItem,
   updateItem
 } from '../store/slices/quoteSlice'
 import { QuoteItem, quoteStatus, uiColors } from '../types'
-import { formatDate } from '../utils/date'
+import { formatDate, parseISOtoRelative } from '../utils/date'
 
 const NuevaCotizacion = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const quote = useSelector((state: RootState) => state.quote)
+  const customers = useSelector((state: RootState) => state.clientes.items)
+  const products = useSelector((state: RootState) => state.productos.items)
+
   const [taxes, setTaxes] = useState(0)
   const [subtotal, setSubtotal] = useState(0)
 
@@ -76,7 +82,7 @@ const NuevaCotizacion = () => {
       if (savedQuote.success) {
         dispatch(setQuoteId(savedQuote.quote?.id ?? null))
         addToast({
-          title: 'Guardando cotización',
+          title: 'Cotización guardada',
           description: savedQuote.quote?.created_at ? formatDate(savedQuote.quote.created_at) : 'Fecha no disponible',
           color: 'success'
         })
@@ -110,12 +116,13 @@ const NuevaCotizacion = () => {
       const result = await quoteService.deleteQuote(quote.data.id)
 
       if (result.success) {
+        dispatch(clearQuote())
         addToast({
           title: 'Cotización eliminada',
           description: 'La cotización ha sido eliminada correctamente.',
           color: 'success'
         })
-        dispatch(clearQuote())
+
         navigate('/cotizaciones')
       } else {
         console.error('Error al eliminar la cotización:', result.error)
@@ -174,18 +181,23 @@ const NuevaCotizacion = () => {
   }
 
   const handleUpdateQuantity = (item: QuoteItem, newQuantity: number) => {
-    const findItem = (quote.data.items ?? []).find((i) => i.product.id === item.product.id)
+    const findItem = (quote.data.items ?? []).find((i) => i.product?.id === item.product?.id)
     if (findItem) {
-      const updatedItem: QuoteItem = quoteService.buildQuoteItem({
-        ...findItem,
-        requiredQuantity: newQuantity
-      })
-      dispatch(updateItem(updatedItem))
+      if (findItem.product) {
+        const updatedItem: QuoteItem = quoteService.buildQuoteItem({
+          ...findItem,
+          requiredQuantity: newQuantity,
+          product: findItem.product
+        })
+        dispatch(updateItem(updatedItem))
+      } else {
+        console.error('Product is undefined for the selected item.')
+      }
     }
   }
 
   const handleRemoveItem = () => {
-    console.log('removiendo item', quote.selectedItem?.product.spec)
+    console.log('removiendo item', quote.selectedItem?.product?.spec ?? 'Producto no definido')
     dispatch(removeItem(quote.selectedItem as QuoteItem))
     onOpenChangeConfirmRemoveItem()
   }
@@ -215,6 +227,50 @@ const NuevaCotizacion = () => {
     prevItemsLengthRef.current = quote.data.items?.length || 0
   }, [quote.data.items, scrollRef])
 
+  // useEffect modificado
+  useEffect(() => {
+    let isMounted = true
+
+    // Nueva función para cargar los items de la cotización
+    const loadQuoteItems = async (quoteId: number) => {
+      const response = await quoteService.getQuoteItems(quoteId)
+
+      if (response.success && response.items) {
+        return response.items.map((item) => ({
+          product: products.find((p) => p.id === item.product_id) || null,
+          requiredQuantity: item.required_quantity || 0,
+          totalQuantity: item.total_quantity || 0,
+          packagesRequired: item.packages_required || 0,
+          subtotal: item.subtotal || 0,
+          originalSubtotal: item.original_subtotal || 0,
+          discount: item.discount || 0,
+          discountType: item.discount_type || 'percentage',
+          id: item.id
+        }))
+      }
+      return []
+    }
+
+    const fetchData = async () => {
+      if (quote.data.id && !quote.itemsLoaded) {
+        const customer = customers.find((c) => c.id == quote.data.customer_id)
+        if (customer) dispatch(setSelectedCustomer(customer))
+
+        const items = await loadQuoteItems(quote.data.id)
+        if (isMounted && items.length) {
+          dispatch(setItems(items as QuoteItem[]))
+          dispatch(setItemsLoaded(true))
+        }
+      }
+    }
+
+    fetchData()
+
+    return () => {
+      isMounted = false
+    }
+  }, [quote.data.id, dispatch, customers, products, quote.data.items?.length, quote.data.customer_id, quote.data.items, quote.itemsLoaded])
+
   return (
     <div className='container  space-y-4  h-full flex flex-col'>
       <section className='flex justify-between items-center gap-4'>
@@ -223,7 +279,11 @@ const NuevaCotizacion = () => {
             <ArrowLeft size={24} />
           </Button>
           <h1 className='text-3xl font-bold text-gray-900 flex items-center gap-2'>
-            {quote.data.id ? 'Cotización' : 'Nueva Cotización'}
+            {quote.data.id
+              ? `Cotización #${quote.data.id}${
+                  quote.data.created_at ? new Date(quote.data.created_at).getFullYear().toString().slice(-2) : '00'
+                }`
+              : 'Nueva Cotización'}
 
             {quote.data.id && (
               <Chip
@@ -288,53 +348,61 @@ const NuevaCotizacion = () => {
                 (quote.data.items ?? []).map((item) => {
                   const surplus = item.totalQuantity - item.requiredQuantity
                   const isExceeding = surplus > 0
-                  const category = rxCategories.find((cat: Category) => cat.description === item.product.category_description)
+                  const category = rxCategories.find(
+                    (cat: Category) => item.product?.category_description && cat.description === item.product.category_description
+                  )
                   const categoryColor = category?.color || 'bg-gray-300'
                   const pricePerPackage = Number(
-                    ((item.product?.price ?? 0) * (1 + (item.product.utility ?? 0) / 100) * (item.product.package_unit ?? 1)).toFixed(2)
+                    ((item.product?.price ?? 0) * (1 + (item.product?.utility ?? 0) / 100) * (item.product?.package_unit ?? 1)).toFixed(2)
                   )
                   return (
-                    <article key={item.product.id} className='border rounded-lg overflow-hidden'>
+                    <article key={item.product?.id} className='border rounded-lg overflow-hidden'>
                       <header className='flex items-center gap-4 p-4 bg-gray-50'>
                         <div className='flex-grow min-w-0'>
                           <h3 className='font-medium text-lg flex gap-4 items-center'>
-                            {item.product.sku} {item.product.spec}
+                            {item.product?.sku} {item.product?.spec}
                             <Chip className={categoryColor} size='sm' variant='flat'>
-                              {item.product.category_description}
+                              {item.product?.category_description}
                             </Chip>
                           </h3>
-                          <p className='text-gray-600'>{item.product.description}</p>
+                          <p className='text-gray-600'>{item.product?.description}</p>
                         </div>
 
-                        <Button
-                          isIconOnly
-                          color='success'
-                          variant='light'
-                          aria-label='Agregar descuento'
-                          onPress={() => handleSetDiscount(item)}
-                        >
-                          <Tag size={18} />
-                        </Button>
+                        {quote.data.status === 'open' && (
+                          <Button
+                            isIconOnly
+                            color='success'
+                            variant='light'
+                            aria-label='Agregar descuento'
+                            onPress={() => handleSetDiscount(item)}
+                          >
+                            <Tag size={18} />
+                          </Button>
+                        )}
 
                         <Input
                           type='number'
-                          className='w-24'
+                          className='w-20'
                           value={item.requiredQuantity.toString()}
                           size='sm'
                           aria-label='Cantidad requerida'
                           onChange={(e) => handleUpdateQuantity(item, Number(e.target.value))}
                           onFocus={(e) => e.target.select()}
+                          isReadOnly={quote.data.status !== 'open'}
+                          classNames={{ input: 'text-right' }}
                         />
 
-                        <Button
-                          isIconOnly
-                          color='danger'
-                          variant='light'
-                          aria-label='Eliminar artículo'
-                          onPress={() => handleConfirmRemoveItem(item)}
-                        >
-                          <Minus size={18} />
-                        </Button>
+                        {quote.data.status === 'open' && (
+                          <Button
+                            isIconOnly
+                            color='danger'
+                            variant='light'
+                            aria-label='Eliminar artículo'
+                            onPress={() => handleConfirmRemoveItem(item)}
+                          >
+                            <Minus size={18} />
+                          </Button>
+                        )}
                       </header>
 
                       <section className='border-t border-gray-200 p-4'>
@@ -346,12 +414,12 @@ const NuevaCotizacion = () => {
                             <dl className='space-y-3'>
                               {/* Lista de definiciones */}
                               <div className='flex justify-between'>
-                                <dt>{item.product.measurement_unit} Requeridos</dt>
+                                <dt>{item.product?.measurement_unit} Requeridos</dt>
                                 <dd className='text-gray-600'>{item.requiredQuantity} </dd>
                               </div>
                               {isExceeding && (
                                 <div className='flex justify-between'>
-                                  <dt>{item.product.measurement_unit} Cotizados</dt>
+                                  <dt>{item.product?.measurement_unit} Cotizados</dt>
                                   <dd className='text-gray-600'>{item.totalQuantity.toFixed(2)}</dd>
                                 </div>
                               )}
@@ -359,7 +427,7 @@ const NuevaCotizacion = () => {
                                 <div className='flex justify-between'>
                                   <dt>Excedente</dt>
                                   <dd className='text-gray-600'>
-                                    {surplus.toFixed(2)} {item.product.measurement_unit}
+                                    {surplus.toFixed(2)} {item.product?.measurement_unit}
                                   </dd>
                                 </div>
                               )}
@@ -455,43 +523,60 @@ const NuevaCotizacion = () => {
           </CardBody>
         </Card>
         <footer className='sticky bottom-0 left-0 right-0  p-2 px-6 shadow-medium bg-white z-10 flex justify-between items-center '>
-          <section className='flex justify-start items-center'>
-            <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={onOpenAddProduct}>
-              Agregar producto
-            </Button>
-            {(quote.data.items ?? []).length > 0 && (
-              <Button size='md' color='danger' variant='light' startContent={<BrushCleaning size={18} />} onPress={onOpenConfirmClear}>
-                Limpiar productos
+          {quote.data.status === 'open' && (
+            <section className='flex justify-start items-center'>
+              <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={onOpenAddProduct}>
+                Agregar producto
               </Button>
-            )}
-            <ModalConfirmClear isOpen={isOpenConfirmClear} onOpenChange={onOpenChangeConfirmClear} onConfirm={handleClearItems} />
-            <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
-          </section>
+              {(quote.data.items ?? []).length > 0 && (
+                <Button size='md' color='danger' variant='light' startContent={<BrushCleaning size={18} />} onPress={onOpenConfirmClear}>
+                  Limpiar productos
+                </Button>
+              )}
+              <ModalConfirmClear isOpen={isOpenConfirmClear} onOpenChange={onOpenChangeConfirmClear} onConfirm={handleClearItems} />
+              <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
+            </section>
+          )}
           <section className='flex justify-end items-center gap-2'>
             {(quote.data.items?.length ?? 0) > 0 && (
-              <Chip color='primary' className='text-sm' variant='flat' size='lg'>
-                {quote.data.items?.length ?? 0} {(quote.data.items?.length ?? 0) > 1 ? 'items' : 'item'}
-              </Chip>
+              <>
+                <Chip color='primary' className='text-sm' variant='flat' size='lg'>
+                  {quote.data.items?.length ?? 0} {(quote.data.items?.length ?? 0) > 1 ? 'items' : 'item'}
+                </Chip>
+
+                {quote.data.status === 'open' && (
+                  <Chip
+                    color={isSaving ? 'primary' : isSaved ? 'success' : isDirty ? 'warning' : 'default'}
+                    className='text-sm'
+                    variant='flat'
+                    size='lg'
+                    startContent={
+                      isSaved ? (
+                        <CloudCheck size={24} />
+                      ) : isSaving ? (
+                        <Spinner size='sm' />
+                      ) : isDirty ? (
+                        <CloudAlert size={24} />
+                      ) : (
+                        <CloudCheck size={24} /> // opcional: ícono neutro o "guardado por default"
+                      )
+                    }
+                  >
+                    {isSaved ? 'Guardada' : isSaving ? 'Guardando...' : isDirty ? 'Sin guardar' : 'Sin cambios'}
+                  </Chip>
+                )}
+              </>
             )}
-            <Chip
-              color={isSaving ? 'primary' : isSaved ? 'success' : isDirty ? 'warning' : 'default'}
-              className='text-sm'
-              variant='flat'
-              size='lg'
-              startContent={
-                isSaved ? (
-                  <CloudCheck size={24} />
-                ) : isSaving ? (
-                  <Spinner size='sm' />
-                ) : isDirty ? (
-                  <CloudAlert size={24} />
-                ) : (
-                  <CloudCheck size={24} /> // opcional: ícono neutro o "guardado por default"
-                )
-              }
-            >
-              {isSaved ? 'Guardada' : isSaving ? 'Guardando...' : isDirty ? 'Sin guardar' : 'Sin cambios'}
-            </Chip>{' '}
+            {quote.data.status === 'sent' && (
+              <Tooltip
+                content={`Fecha: 
+              ${formatDate(quote.data.last_updated ?? '')}`}
+              >
+                <Chip className='text-sm' variant='flat' size='lg'>
+                  Enviada: {quote.data.last_updated ? parseISOtoRelative(quote.data.last_updated) : 'Fecha no disponible'}
+                </Chip>
+              </Tooltip>
+            )}
           </section>
         </footer>
       </div>

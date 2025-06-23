@@ -10,6 +10,7 @@
       "preview": "vite preview"
    },
    "dependencies": {
+      "@date-fns/tz": "^1.2.0",
       "@heroui/react": "2.7.8",
       "@heroui/use-infinite-scroll": "^2.2.9",
       "@hookform/resolvers": "^5.0.1",

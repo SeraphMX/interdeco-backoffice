@@ -4,17 +4,18 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { quoteService } from '../services/quoteService'
 import { Quote } from '../types'
 
-export function useDebouncedAutoSave(quote: Quote, delay = 3000) {
+export function useDebouncedAutoSave(quote: Quote, delay = 1000) {
   const previousQuoteRef = useRef<Quote | undefined>()
   const [isSaving, setIsSaving] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
+  const isFirstRun = useRef(true)
 
   const save = debounce(async (quoteToSave: Quote) => {
     if (!quoteToSave?.id) return
 
     if (isEqual(quoteToSave, previousQuoteRef.current)) return
 
-    console.log('Autoguardando cotización:', quoteToSave)
+    console.log('Autoguardando cotización: ', quoteToSave)
 
     setIsSaving(true)
     setIsSaved(false)
@@ -34,6 +35,23 @@ export function useDebouncedAutoSave(quote: Quote, delay = 3000) {
   }, delay)
 
   useEffect(() => {
+    if (quote?.id && !previousQuoteRef.current) {
+      previousQuoteRef.current = quote
+    }
+  }, [quote])
+
+  useEffect(() => {
+    if (!quote || !quote.id) return
+
+    // Espera hasta que el quote tenga items cargados y ref inicializado
+    if (isFirstRun.current) {
+      if (quote.items && quote.items.length > 0) {
+        previousQuoteRef.current = quote
+        isFirstRun.current = false
+      }
+      return
+    }
+
     save(quote)
   }, [quote, save])
 
