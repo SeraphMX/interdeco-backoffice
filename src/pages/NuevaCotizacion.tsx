@@ -46,7 +46,7 @@ import {
   updateItem
 } from '../store/slices/quoteSlice'
 import { QuoteItem, quoteStatus, uiColors } from '../types'
-import { formatDate } from '../utils/date'
+import { formatDate, parseISOtoRelative } from '../utils/date'
 
 const NuevaCotizacion = () => {
   const navigate = useNavigate()
@@ -364,35 +364,41 @@ const NuevaCotizacion = () => {
                           <p className='text-gray-600'>{item.product?.description}</p>
                         </div>
 
-                        <Button
-                          isIconOnly
-                          color='success'
-                          variant='light'
-                          aria-label='Agregar descuento'
-                          onPress={() => handleSetDiscount(item)}
-                        >
-                          <Tag size={18} />
-                        </Button>
+                        {quote.data.status === 'open' && (
+                          <Button
+                            isIconOnly
+                            color='success'
+                            variant='light'
+                            aria-label='Agregar descuento'
+                            onPress={() => handleSetDiscount(item)}
+                          >
+                            <Tag size={18} />
+                          </Button>
+                        )}
 
                         <Input
                           type='number'
-                          className='w-24'
+                          className='w-20'
                           value={item.requiredQuantity.toString()}
                           size='sm'
                           aria-label='Cantidad requerida'
                           onChange={(e) => handleUpdateQuantity(item, Number(e.target.value))}
                           onFocus={(e) => e.target.select()}
+                          isReadOnly={quote.data.status !== 'open'}
+                          classNames={{ input: 'text-right' }}
                         />
 
-                        <Button
-                          isIconOnly
-                          color='danger'
-                          variant='light'
-                          aria-label='Eliminar artículo'
-                          onPress={() => handleConfirmRemoveItem(item)}
-                        >
-                          <Minus size={18} />
-                        </Button>
+                        {quote.data.status === 'open' && (
+                          <Button
+                            isIconOnly
+                            color='danger'
+                            variant='light'
+                            aria-label='Eliminar artículo'
+                            onPress={() => handleConfirmRemoveItem(item)}
+                          >
+                            <Minus size={18} />
+                          </Button>
+                        )}
                       </header>
 
                       <section className='border-t border-gray-200 p-4'>
@@ -513,43 +519,60 @@ const NuevaCotizacion = () => {
           </CardBody>
         </Card>
         <footer className='sticky bottom-0 left-0 right-0  p-2 px-6 shadow-medium bg-white z-10 flex justify-between items-center '>
-          <section className='flex justify-start items-center'>
-            <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={onOpenAddProduct}>
-              Agregar producto
-            </Button>
-            {(quote.data.items ?? []).length > 0 && (
-              <Button size='md' color='danger' variant='light' startContent={<BrushCleaning size={18} />} onPress={onOpenConfirmClear}>
-                Limpiar productos
+          {quote.data.status === 'open' && (
+            <section className='flex justify-start items-center'>
+              <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={onOpenAddProduct}>
+                Agregar producto
               </Button>
-            )}
-            <ModalConfirmClear isOpen={isOpenConfirmClear} onOpenChange={onOpenChangeConfirmClear} onConfirm={handleClearItems} />
-            <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
-          </section>
+              {(quote.data.items ?? []).length > 0 && (
+                <Button size='md' color='danger' variant='light' startContent={<BrushCleaning size={18} />} onPress={onOpenConfirmClear}>
+                  Limpiar productos
+                </Button>
+              )}
+              <ModalConfirmClear isOpen={isOpenConfirmClear} onOpenChange={onOpenChangeConfirmClear} onConfirm={handleClearItems} />
+              <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
+            </section>
+          )}
           <section className='flex justify-end items-center gap-2'>
             {(quote.data.items?.length ?? 0) > 0 && (
-              <Chip color='primary' className='text-sm' variant='flat' size='lg'>
-                {quote.data.items?.length ?? 0} {(quote.data.items?.length ?? 0) > 1 ? 'items' : 'item'}
-              </Chip>
+              <>
+                <Chip color='primary' className='text-sm' variant='flat' size='lg'>
+                  {quote.data.items?.length ?? 0} {(quote.data.items?.length ?? 0) > 1 ? 'items' : 'item'}
+                </Chip>
+
+                {quote.data.status === 'open' && (
+                  <Chip
+                    color={isSaving ? 'primary' : isSaved ? 'success' : isDirty ? 'warning' : 'default'}
+                    className='text-sm'
+                    variant='flat'
+                    size='lg'
+                    startContent={
+                      isSaved ? (
+                        <CloudCheck size={24} />
+                      ) : isSaving ? (
+                        <Spinner size='sm' />
+                      ) : isDirty ? (
+                        <CloudAlert size={24} />
+                      ) : (
+                        <CloudCheck size={24} /> // opcional: ícono neutro o "guardado por default"
+                      )
+                    }
+                  >
+                    {isSaved ? 'Guardada' : isSaving ? 'Guardando...' : isDirty ? 'Sin guardar' : 'Sin cambios'}
+                  </Chip>
+                )}
+              </>
             )}
-            <Chip
-              color={isSaving ? 'primary' : isSaved || quote.data.id ? 'success' : isDirty ? 'warning' : 'default'}
-              className='text-sm'
-              variant='flat'
-              size='lg'
-              startContent={
-                isSaved || quote.data.id ? (
-                  <CloudCheck size={24} />
-                ) : isSaving ? (
-                  <Spinner size='sm' />
-                ) : isDirty ? (
-                  <CloudAlert size={24} />
-                ) : (
-                  <CloudCheck size={24} /> // opcional: ícono neutro o "guardado por default"
-                )
-              }
-            >
-              {isSaved || quote.data.id ? 'Guardada' : isSaving ? 'Guardando...' : isDirty ? 'Sin guardar' : 'Sin cambios'}
-            </Chip>{' '}
+            {quote.data.status === 'sent' && (
+              <Tooltip
+                content={`Fecha: 
+              ${formatDate(quote.data.last_updated ?? '')}`}
+              >
+                <Chip className='text-sm' variant='flat' size='lg'>
+                  Enviada: {quote.data.last_updated ? parseISOtoRelative(quote.data.last_updated) : 'Fecha no disponible'}
+                </Chip>
+              </Tooltip>
+            )}
           </section>
         </footer>
       </div>
