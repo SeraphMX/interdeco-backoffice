@@ -279,7 +279,11 @@ const NuevaCotizacion = () => {
             <ArrowLeft size={24} />
           </Button>
           <h1 className='text-3xl font-bold text-gray-900 flex items-center gap-2'>
-            {quote.data.id ? 'Cotización' : 'Nueva Cotización'}
+            {quote.data.id
+              ? `Cotización #${quote.data.id}${
+                  quote.data.created_at ? new Date(quote.data.created_at).getFullYear().toString().slice(-2) : '00'
+                }`
+              : 'Nueva Cotización'}
 
             {quote.data.id && (
               <Chip

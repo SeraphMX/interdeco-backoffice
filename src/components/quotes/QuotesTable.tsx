@@ -61,6 +61,7 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
   })
 
   const headerColumns = [
+    { name: 'ID', uid: 'quote_id', sortable: false },
     { name: 'FECHA', uid: 'created_at', sortable: true },
     { name: 'CLIENTE', uid: 'customer_name', sortable: true },
     { name: 'ITEMS', uid: 'items', sortable: true, align: 'center' },
@@ -130,6 +131,9 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
             //const categoryColor = category?.color || 'bg-gray-300'
             return (
               <TableRow key={item.id}>
+                <TableCell className='w-16'>
+                  {item.created_at && `${item.id}${new Date(item.created_at).getFullYear().toString().slice(-2)}`}
+                </TableCell>
                 <TableCell className='w-32 whitespace-nowrap text-ellipsis overflow-hidden'>
                   {formatDate(item.created_at ?? '', { style: 'short' })}
                 </TableCell>
