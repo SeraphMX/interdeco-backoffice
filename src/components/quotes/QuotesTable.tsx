@@ -139,23 +139,35 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
                 <TableCell>{item.total_items}</TableCell>
                 <TableCell>{formatCurrency(item.total)}</TableCell>
                 <TableCell>
-                  <Dropdown>
-                    <DropdownTrigger>
-                      <Chip
-                        className='capitalize'
-                        variant='bordered'
-                        color={quoteStatus.find((s) => s.key === item.status)?.color as uiColors}
-                      >
-                        {quoteStatus.find((s) => s.key === item.status)?.label}
-                      </Chip>
-                    </DropdownTrigger>
-                    <DropdownMenu aria-label='Static Actions'>
-                      <DropdownItem key='copy'>Aceptada</DropdownItem>
-                      <DropdownItem key='delete' className='text-danger' color='danger'>
-                        Rechazada
-                      </DropdownItem>
-                    </DropdownMenu>
-                  </Dropdown>
+                  {item.status === 'sent' ? (
+                    <Dropdown>
+                      <DropdownTrigger>
+                        <Chip
+                          className='capitalize'
+                          variant='bordered'
+                          color={quoteStatus.find((s) => s.key === item.status)?.color as uiColors}
+                        >
+                          {quoteStatus.find((s) => s.key === item.status)?.label}
+                        </Chip>
+                      </DropdownTrigger>
+                      <DropdownMenu aria-label='Static Actions'>
+                        <DropdownItem key='copy' color='success'>
+                          Aceptada
+                        </DropdownItem>
+                        <DropdownItem key='delete' className='text-danger' color='danger'>
+                          Rechazada
+                        </DropdownItem>
+                      </DropdownMenu>
+                    </Dropdown>
+                  ) : (
+                    <Chip
+                      className='capitalize'
+                      variant='bordered'
+                      color={quoteStatus.find((s) => s.key === item.status)?.color as uiColors}
+                    >
+                      {quoteStatus.find((s) => s.key === item.status)?.label}
+                    </Chip>
+                  )}
                 </TableCell>
                 <TableCell>
                   <Dropdown>
