@@ -1,4 +1,4 @@
-import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Tab, Tabs, useDisclosure } from '@heroui/react'
+import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Tab, Tabs, Tooltip, useDisclosure } from '@heroui/react'
 import { Building2, Edit, SquareUserRound, Trash2 } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
@@ -55,7 +55,7 @@ const ModalCustomerDetails = ({ isOpen, onOpenChange, onClose }: ModalSelectCust
                   <h3 className='text-xl font-semibold  truncate whitespace-nowrap overflow-hidden'>{customer.name}</h3>
                 </ModalHeader>
                 <ModalBody key={customer.id}>
-                  <Tabs aria-label='Options' disableAnimation>
+                  <Tabs aria-label='Options' disableAnimation color='primary'>
                     <Tab key='data' title='Datos del cliente'>
                       <CustomerDetails />
                     </Tab>
@@ -67,14 +67,18 @@ const ModalCustomerDetails = ({ isOpen, onOpenChange, onClose }: ModalSelectCust
                 </ModalBody>
                 <ModalFooter className='flex items-center justify-between'>
                   <section className='flex items-center gap-2'>
-                    <Button color='primary' isIconOnly variant='ghost' onPress={onOpenEditAdd}>
-                      <Edit size={20} />
-                    </Button>
-                    <Button color='danger' isIconOnly variant='ghost' onPress={onOpenDelete}>
-                      <Trash2 size={20} />
-                    </Button>
+                    <Tooltip content='Editar datos' placement='top'>
+                      <Button color='primary' isIconOnly variant='ghost' onPress={onOpenEditAdd}>
+                        <Edit size={20} />
+                      </Button>
+                    </Tooltip>
+                    <Tooltip content='Eliminar ' placement='top'>
+                      <Button color='danger' isIconOnly variant='ghost' onPress={onOpenDelete}>
+                        <Trash2 size={20} />
+                      </Button>
+                    </Tooltip>
                   </section>
-                  <section>
+                  <section className='flex items-center gap-2'>
                     <Button color='danger' variant='light' onPress={onClose}>
                       Cerrar
                     </Button>
