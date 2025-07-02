@@ -18,9 +18,9 @@ export const customerService = {
       return []
     }
   },
-  async addCustomer(newCustomer: Customer) {
+  async addCustomer(newCustomer: Customer): Promise<Customer | null> {
     try {
-      const { error } = await supabase.from('customers').insert([newCustomer]).select().single()
+      const { data, error } = await supabase.from('customers').insert([newCustomer]).select().single()
       if (error) throw error
 
       addToast({
@@ -28,6 +28,7 @@ export const customerService = {
         description: 'Los datos del cliente se han guardado.',
         color: 'success'
       })
+      return data
     } catch (error) {
       console.error('Error al agregar cliente:', error)
       addToast({
@@ -35,6 +36,7 @@ export const customerService = {
         description: 'Los datos no se pudieron guardar. Inténtalo de nuevo.',
         color: 'danger'
       })
+      return null
     }
   },
   async updateCustomer(updatedCustomer: Customer) {

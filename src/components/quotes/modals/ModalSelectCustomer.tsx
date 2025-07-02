@@ -1,8 +1,20 @@
-import { Autocomplete, AutocompleteItem, Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react'
+import {
+  Autocomplete,
+  AutocompleteItem,
+  Button,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  useDisclosure
+} from '@heroui/react'
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../../store'
 import { clearSelectedCustomer, setSelectedCustomer } from '../../../store/slices/quoteSlice'
+import { Customer } from '../../../types'
+import ModalCustomerEditAdd from '../../customers/modals/ModalCustomerEditAdd'
 import CustomerIcon from '../../shared/CustomerIcon'
 
 interface ModalSelectCustomerProps {
@@ -15,6 +27,7 @@ const ModalSelectCustomer = ({ isOpen, onOpenChange }: ModalSelectCustomerProps)
   const selectedCustomer = useSelector((state: RootState) => state.quote.selectedCustomer)
   const dispatch = useDispatch()
   const [defaultSelectedKey, setDefaultSelectedKey] = useState<string | null>(null)
+  const { isOpen: isOpenEditAdd, onOpen: onOpenEditAdd, onOpenChange: onOpenChangeEditAdd } = useDisclosure()
 
   const handleSelectCustomer = (key: React.Key | null) => {
     if (key) {
@@ -29,7 +42,7 @@ const ModalSelectCustomer = ({ isOpen, onOpenChange }: ModalSelectCustomerProps)
 
   useEffect(() => {
     if (isOpen && selectedCustomer) {
-      setDefaultSelectedKey(selectedCustomer.id.toString())
+      setDefaultSelectedKey(selectedCustomer?.id?.toString() || null)
     } else {
       setDefaultSelectedKey(null)
     }
@@ -60,16 +73,33 @@ const ModalSelectCustomer = ({ isOpen, onOpenChange }: ModalSelectCustomerProps)
                 )}
               </Autocomplete>
             </ModalBody>
-            <ModalFooter>
-              {!selectedCustomer ? (
-                <Button variant='light' color='danger' onPress={onClose}>
-                  Cerrar
-                </Button>
-              ) : (
-                <Button color='primary' isDisabled={!selectedCustomer} onPress={onClose}>
-                  Aceptar
-                </Button>
-              )}
+            <ModalFooter className='flex justify-between gap-2'>
+              <Button variant='bordered' color='primary' onPress={onOpenEditAdd}>
+                Agregar nuevo
+              </Button>
+              <ModalCustomerEditAdd
+                isOpen={isOpenEditAdd}
+                onOpenChange={onOpenChangeEditAdd}
+                onSuccess={(newCustomer: Customer | null) => {
+                  if (newCustomer) {
+                    dispatch(setSelectedCustomer(newCustomer))
+                    onClose()
+                  } else {
+                    dispatch(clearSelectedCustomer())
+                  }
+                }}
+              />
+              <section>
+                {!selectedCustomer ? (
+                  <Button variant='light' color='danger' onPress={onClose}>
+                    Cerrar
+                  </Button>
+                ) : (
+                  <Button color='primary' isDisabled={!selectedCustomer} onPress={onClose}>
+                    Aceptar
+                  </Button>
+                )}
+              </section>
             </ModalFooter>
           </>
         )}

@@ -7,10 +7,10 @@ import { CustomerFormData, customerSchema } from '../../schemas/customer.shema'
 import { customerService } from '../../services/customerService'
 import { RootState } from '../../store'
 import { setSelectedCustomer } from '../../store/slices/customersSlice'
-import { estadosMexico } from '../../types'
+import { Customer, estadosMexico } from '../../types'
 
 type AddCustomerProps = {
-  onSuccess: () => void
+  onSuccess: (customer: Customer | null) => void
 }
 
 const AddCustomer = ({ onSuccess }: AddCustomerProps) => {
@@ -46,14 +46,17 @@ const AddCustomer = ({ onSuccess }: AddCustomerProps) => {
     async (data) => {
       // Si el cliente ya existe, actualizamos sus datos, de lo contrario, lo agregamos como nuevo
       if (!customer) {
-        await customerService.addCustomer(data)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, ...newData } = data
+        const newCustomer = await customerService.addCustomer(newData)
+        onSuccess(newCustomer)
       } else {
-        const updatedUser = await customerService.updateCustomer(data)
-        if (updatedUser) {
-          dispatch(setSelectedCustomer(updatedUser))
+        const updatedCustomer = await customerService.updateCustomer(data)
+        if (updatedCustomer) {
+          dispatch(setSelectedCustomer(updatedCustomer))
+          onSuccess(updatedCustomer)
         }
       }
-      onSuccess()
     },
     (errors) => {
       console.warn('❌ Errores de validación:', errors)

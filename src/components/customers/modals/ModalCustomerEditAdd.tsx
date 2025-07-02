@@ -1,14 +1,16 @@
 import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../../store'
+import { Customer } from '../../../types'
 import AddCustomer from '../../forms/AddCustomer'
 
 interface ModalSelectCustomerProps {
   isOpen: boolean
   onOpenChange: (isOpen: boolean) => void
+  onSuccess?: (customer: Customer | null) => void
 }
 
-const ModalCustomerEditAdd = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) => {
+const ModalCustomerEditAdd = ({ isOpen, onOpenChange, onSuccess }: ModalSelectCustomerProps) => {
   const customer = useSelector((state: RootState) => state.clientes.selectedCustomer)
 
   return (
@@ -19,8 +21,9 @@ const ModalCustomerEditAdd = ({ isOpen, onOpenChange }: ModalSelectCustomerProps
             <ModalHeader className='flex flex-col gap-1'>Nuevo Cliente</ModalHeader>
             <ModalBody>
               <AddCustomer
-                onSuccess={() => {
+                onSuccess={(customer) => {
                   onClose()
+                  onSuccess?.(customer)
                 }}
               />
             </ModalBody>
