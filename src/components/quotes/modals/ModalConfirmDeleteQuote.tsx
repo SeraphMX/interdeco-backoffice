@@ -19,7 +19,8 @@ const ModalConfirmDeleteQuote = ({ isOpen, onOpenChange, onConfirm }: ModalSelec
             <ModalHeader className='flex flex-col gap-1'>{quote.status === 'open' ? 'Eliminar' : 'Archivar'} cotización</ModalHeader>
             <ModalBody>
               <p>
-                ¿Estás seguro que deseas <strong>{quote.status === 'open' ? 'eliminar' : 'archivar'}</strong> esta cotización?
+                ¿Estás seguro que deseas <strong>{quote.status === 'open' ? 'eliminar' : 'archivar'}</strong> la cotización{' '}
+                <strong>{quote.created_at && `${quote.id}${new Date(quote.created_at).getFullYear().toString().slice(-2)}`}</strong>?
               </p>
 
               {quote.status === 'open' ? (
