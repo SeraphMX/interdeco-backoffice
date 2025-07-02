@@ -7,7 +7,7 @@ import CustomerFilters from '../components/customers/CustomerFilters'
 import ModalCustomerDetails from '../components/customers/modals/ModalCustomerDetails'
 import ModalCustomerEditAdd from '../components/customers/modals/ModalCustomerEditAdd'
 import { RootState } from '../store'
-import { setSelectedCustomer } from '../store/slices/customersSlice'
+import { clearSelectedCustomer, setSelectedCustomer } from '../store/slices/customersSlice'
 import { Customer, customerStatus } from '../types'
 
 const Clientes = () => {
@@ -20,12 +20,12 @@ const Clientes = () => {
   const [selectedStatus, setSelectedStatus] = useState<string[]>([])
 
   const filteredClientes = useMemo(() => {
-    return clientes.filter((cliente) => {
+    return clientes.filter((customer) => {
       const matchesSearch =
-        cliente.name.toLowerCase().includes(filterValue.toLowerCase()) ||
-        cliente.phone?.toLowerCase().includes(filterValue.toLowerCase()) ||
-        cliente.email?.toLowerCase().includes(filterValue.toLowerCase())
-      const matchesStatus = selectedStatus.length === 0 || selectedStatus.includes(cliente.status)
+        customer.name.toLowerCase().includes(filterValue.toLowerCase()) ||
+        customer.phone?.toLowerCase().includes(filterValue.toLowerCase()) ||
+        customer.email?.toLowerCase().includes(filterValue.toLowerCase())
+      const matchesStatus = selectedStatus.length === 0 || (customer.status && selectedStatus.includes(customer.status))
 
       return matchesSearch && matchesStatus
     })
@@ -34,6 +34,10 @@ const Clientes = () => {
   const handleViewCustomer = (customer: Customer) => {
     dispatch(setSelectedCustomer(customer))
     onOpenDetails()
+  }
+
+  const handleCloseDetails = () => {
+    dispatch(clearSelectedCustomer())
   }
 
   return (
@@ -118,7 +122,7 @@ const Clientes = () => {
       </motion.section>
 
       <ModalCustomerEditAdd isOpen={isOpenEditAdd} onOpenChange={onOpenChangeEditAdd} />
-      <ModalCustomerDetails isOpen={isOpenDetails} onOpenChange={onOpenChangeDetails} />
+      <ModalCustomerDetails isOpen={isOpenDetails} onOpenChange={onOpenChangeDetails} onClose={handleCloseDetails} />
     </div>
   )
 }
