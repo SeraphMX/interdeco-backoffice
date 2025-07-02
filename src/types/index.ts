@@ -18,8 +18,8 @@ export interface User {
 }
 
 export interface QuoteItem {
-  product_id?: number
-  product: Product | undefined
+  product_id?: number // Para relación con DB
+  product?: Product // Para datos completos (undefined cuando no está cargado)
   requiredQuantity: number
   totalQuantity: number
   packagesRequired?: number
