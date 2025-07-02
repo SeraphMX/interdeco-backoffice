@@ -1,6 +1,6 @@
 import { addToast } from '@heroui/react'
 import { supabase } from '../lib/supabase'
-import { Customer } from '../types'
+import { Customer, Quote } from '../types'
 
 export const customerService = {
   async getCustomers() {
@@ -75,6 +75,27 @@ export const customerService = {
         description: 'No se pudo eliminar el cliente. Inténtalo de nuevo.',
         color: 'danger'
       })
+    }
+  },
+  async getCustomerQuotes(customer: Customer): Promise<Quote[]> {
+    try {
+      const { data, error } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('customer_id', customer.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      return data || []
+    } catch (error) {
+      console.error('Error al obtener cotizaciones del cliente:', error)
+      addToast({
+        title: 'Error al cargar cotizaciones',
+        description: 'No se pudieron cargar las cotizaciones del cliente. Inténtalo de nuevo.',
+        color: 'danger'
+      })
+      return []
     }
   }
 }

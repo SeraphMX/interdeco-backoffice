@@ -1,28 +1,44 @@
-import { Button, Chip, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react'
-import { EllipsisVertical } from 'lucide-react'
-
-const quoteHistory = [
-  {
-    id: 1,
-    date: '22/01/2025',
-    amount: 1500,
-    status: 'enviada'
-  },
-  {
-    id: 2,
-    date: '23/01/2025',
-    amount: 2000,
-    status: 'enviada'
-  },
-  {
-    id: 3,
-    date: '24/01/2025',
-    amount: 2500,
-    status: 'enviada'
-  }
-]
+import { Button, Chip, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tooltip } from '@heroui/react'
+import { Eye } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+import { customerService } from '../../services/customerService'
+import { RootState } from '../../store'
+import { clearQuote, setQuote } from '../../store/slices/quoteSlice'
+import { Quote, quoteStatus, uiColors } from '../../types'
+import { formatDate } from '../../utils/date'
 
 const CustomerHistory = () => {
+  const customer = useSelector((state: RootState) => state.clientes.selectedCustomer)
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const [quoteHistory, setQuoteHistory] = useState<Quote[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+
+  useEffect(() => {
+    const getQuoteHistory = async () => {
+      setLoading(true)
+      if (customer) {
+        const quotes = await customerService.getCustomerQuotes(customer)
+        if (quotes) {
+          setQuoteHistory(quotes)
+        } else {
+          setQuoteHistory([])
+        }
+        setLoading(false)
+      }
+    }
+    getQuoteHistory()
+  }, [customer])
+
+  const handleViewQuote = (quote: Quote) => {
+    if (!quote) return
+    dispatch(clearQuote())
+    dispatch(setQuote(quote))
+    navigate('/cotizaciones/nueva')
+  }
+
   return (
     <Table
       aria-label='Categorias de productos'
@@ -47,34 +63,39 @@ const CustomerHistory = () => {
           </TableColumn>
         )}
       </TableHeader>
-      <TableBody items={quoteHistory}>
-        {(item) => (
-          <TableRow key={item.id}>
-            <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>{item.date}</TableCell>
+      <TableBody
+        items={quoteHistory}
+        isLoading={loading}
+        loadingContent={<Spinner label='Cargando historial de cotizaciones...' />}
+        emptyContent='No hay cotizaciones disponibles'
+      >
+        {(quote) => (
+          <TableRow key={quote.id}>
             <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>
-              {item.amount.toLocaleString('es-MX', {
+              {quote.created_at ? formatDate(quote.created_at, { style: 'short' }) : 'Fecha no disponible'}
+            </TableCell>
+            <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>
+              {quote.total.toLocaleString('es-MX', {
                 style: 'currency',
                 currency: 'MXN'
               })}
             </TableCell>
             <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>
-              <Chip variant='solid' color={item.status === 'enviada' ? 'primary' : 'default'} className='text-xs font-medium'>
-                {item.status}
+              <Chip
+                variant='solid'
+                color={quoteStatus.find((s) => s.key === quote.status)?.color as uiColors}
+                className='text-xs font-medium capitalize'
+              >
+                {quoteStatus.find((s) => s.key === quote.status)?.label}
               </Chip>
             </TableCell>
 
             <TableCell>
-              <Button
-                isIconOnly
-                variant='light'
-                color='secondary'
-                onPress={() => {
-                  console.log('Editar categoría:', item)
-                  // Aquí puedes abrir un modal o formulario para editar la categoría
-                }}
-              >
-                <EllipsisVertical size={20} />
-              </Button>
+              <Tooltip content='Ver cotización' placement='left'>
+                <Button isIconOnly variant='light' color='secondary' onPress={() => handleViewQuote(quote)}>
+                  <Eye size={20} />
+                </Button>
+              </Tooltip>
             </TableCell>
           </TableRow>
         )}
