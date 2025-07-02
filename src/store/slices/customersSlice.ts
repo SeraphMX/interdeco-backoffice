@@ -3,10 +3,12 @@ import { Customer } from '../../types'
 
 interface CustomerState {
   items: Customer[]
+  selectedCustomer?: Customer | null
 }
 
 const initialState: CustomerState = {
-  items: []
+  items: [],
+  selectedCustomer: null
 }
 
 const clientsSlice = createSlice({
@@ -15,6 +17,9 @@ const clientsSlice = createSlice({
   reducers: {
     setCustomers(state, action: PayloadAction<Customer[]>) {
       state.items = action.payload
+    },
+    setSelectedCustomer(state, action: PayloadAction<Customer | null>) {
+      state.selectedCustomer = action.payload
     },
     addCustomer(state, action: PayloadAction<Customer>) {
       state.items.push(action.payload)
@@ -29,5 +34,5 @@ const clientsSlice = createSlice({
   }
 })
 
-export const { setCustomers, addCustomer, updateCustomer, removeCustomer } = clientsSlice.actions
+export const { setCustomers, setSelectedCustomer, addCustomer, updateCustomer, removeCustomer } = clientsSlice.actions
 export default clientsSlice.reducer
