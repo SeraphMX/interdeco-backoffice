@@ -1,6 +1,7 @@
 import { addToast, Avatar, Badge, Button, Card, CardBody, Chip, Input, Spinner, Tooltip, useDisclosure } from '@heroui/react'
 import {
   Archive,
+  ArchiveRestore,
   ArrowLeft,
   ArrowRightLeft,
   BrushCleaning,
@@ -27,6 +28,7 @@ import ModalConfirmClear from '../components/quotes/modals/ModalConfirmClear'
 import ModalConfirmDeleteQuote from '../components/quotes/modals/ModalConfirmDeleteQuote'
 import ModalConfirmRemoveItem from '../components/quotes/modals/ModalConfirmRemoveItem'
 import CustomerIcon from '../components/shared/CustomerIcon'
+import QuoteStatus from '../components/shared/QuoteStatus'
 import { useDebouncedAutoSave } from '../hooks/useDebounceAutosave'
 import { quoteService } from '../services/quoteService'
 import { RootState } from '../store'
@@ -38,14 +40,14 @@ import {
   removeItem,
   setItems,
   setItemsLoaded,
-  setQuoteId,
+  setQuote,
   setQuoteStatus,
   setQuoteTotal,
   setSelectedCustomer,
   setSelectedItem,
   updateItem
 } from '../store/slices/quoteSlice'
-import { QuoteItem, quoteStatus, uiColors } from '../types'
+import { Quote, QuoteItem } from '../types'
 import { formatDate, parseISOtoRelative } from '../utils/date'
 
 const NuevaCotizacion = () => {
@@ -80,7 +82,8 @@ const NuevaCotizacion = () => {
       const savedQuote = await quoteService.saveQuote(quote.data)
 
       if (savedQuote.success) {
-        dispatch(setQuoteId(savedQuote.quote?.id ?? null))
+        if (!savedQuote) return
+        dispatch(setQuote(savedQuote.quote))
         addToast({
           title: 'Cotización guardada',
           description: savedQuote.quote?.created_at ? formatDate(savedQuote.quote.created_at) : 'Fecha no disponible',
@@ -95,6 +98,10 @@ const NuevaCotizacion = () => {
         })
       }
     }
+  }
+
+  const onSuccessSetStatus = async (quote: Quote) => {
+    dispatch(setQuoteStatus(quote.status))
   }
 
   const handlePreviewQuote = () => {
@@ -113,7 +120,7 @@ const NuevaCotizacion = () => {
     }
 
     if (quote.data.status === 'open') {
-      const result = await quoteService.deleteQuote(quote.data.id)
+      const result = await quoteService.deleteQuote(quote.data)
 
       if (result.success) {
         dispatch(clearQuote())
@@ -140,7 +147,22 @@ const NuevaCotizacion = () => {
         color: 'success'
       })
       navigate('/cotizaciones')
+      dispatch(setQuote(updateResult.quote))
     }
+  }
+
+  const handleRestoreQuote = async () => {
+    console.log('Restaurando cotización', quote.data.id)
+
+    const updatedQuote = await quoteService.setQuoteStatus(quote.data.id ?? 0, 'open')
+
+    dispatch(setQuote(updatedQuote.quote))
+
+    addToast({
+      title: 'Cotización restaurada',
+      description: 'La cotización ha sido restaurada correctamente.',
+      color: 'success'
+    })
   }
 
   const handleCloseQuote = () => {
@@ -274,15 +296,7 @@ const NuevaCotizacion = () => {
                 }`
               : 'Nueva Cotización'}
 
-            {quote.data.id && (
-              <Chip
-                className='capitalize'
-                variant='bordered'
-                color={quoteStatus.find((s) => s.key === quote.data.status)?.color as uiColors}
-              >
-                {quoteStatus.find((s) => s.key === quote.data.status)?.label}
-              </Chip>
-            )}
+            {quote.data.id && <QuoteStatus quote={quote.data} onSuccess={onSuccessSetStatus} />}
           </h1>
         </div>
         <div className='flex items-center gap-4'>
@@ -600,6 +614,11 @@ const NuevaCotizacion = () => {
                       >
                         <Trash2 />
                         Eliminar
+                      </Button>
+                    ) : quote.data.status === 'archived' ? (
+                      <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost' onPress={handleRestoreQuote}>
+                        <ArchiveRestore />
+                        Restaurar
                       </Button>
                     ) : (
                       quote.data.status !== 'sent' && (

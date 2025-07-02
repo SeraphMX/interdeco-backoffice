@@ -25,6 +25,7 @@ import { clearQuote, setQuote } from '../../store/slices/quoteSlice'
 import { Quote, quoteStatus, uiColors } from '../../types'
 import { formatCurrency } from '../../utils/currency'
 import { formatDate } from '../../utils/date'
+import QuoteStatus from '../shared/QuoteStatus'
 import ModalConfirmDeleteQuote from './modals/ModalConfirmDeleteQuote'
 import ModalConfirmOpenQuote from './modals/ModalConfirmOpenQuote'
 
@@ -52,8 +53,16 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
 
   const filteredItems = useMemo(() => {
     return rxQuotes.filter((item) => {
+      const status = item.status?.toString()
+      const isArchived = status === 'archived'
+
+      // Si el usuario no está filtrando por "archived", lo excluimos
+      const shouldExcludeArchived = selectedStatus.length === 0 && isArchived
+
+      if (shouldExcludeArchived) return false
+
       const matchesSearch = (item.customer_name?.toLowerCase() ?? '').includes(filterValue.toLowerCase())
-      const matchesStatus = selectedStatus.length === 0 || selectedStatus.find((c) => c === item.status.toString())
+      const matchesStatus = selectedStatus.length === 0 || selectedStatus.includes(status)
 
       return matchesSearch && matchesStatus
     })
@@ -83,8 +92,6 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
     if (!quote) return
 
     if (!rxQuote.data.id && (rxQuote.data.items ?? []).length > 0) {
-      console.log('hay una cotizacion sin guardar abierta')
-
       onOpenConfirmOpenQuote()
       return
     }
@@ -94,7 +101,6 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
 
   const handleSetQuote = (quote: Quote | undefined) => {
     if (!quote) return
-    console.log('Setting quote:', quote)
     dispatch(clearQuote())
     dispatch(setQuote(quote))
 
@@ -102,9 +108,10 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
   }
 
   const handleDeleteQuote = async () => {
-    if (selectedQuote?.id) {
-      console.log('firstly deleting quote with id:', selectedQuote.id)
-      const result = await quoteService.deleteQuote(selectedQuote.id)
+    if (!rxQuote.data) return
+
+    if (rxQuote.data.status === 'open') {
+      const result = await quoteService.deleteQuote(rxQuote.data)
 
       if (result.success) {
         dispatch(clearQuote())
@@ -112,7 +119,16 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
       } else {
         console.error('Error al eliminar la cotización:', result.error)
       }
+    } else {
+      if (rxQuote.data.id != null) {
+        await quoteService.setQuoteStatus(rxQuote.data.id, 'archived')
+        onOpenChangeConfirmDeleteQuote()
+      }
     }
+  }
+
+  const onSuccessSetStatus = async () => {
+    dispatch(clearQuote())
   }
 
   return (
@@ -165,25 +181,7 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
                 <TableCell>{formatCurrency(quote.total)}</TableCell>
                 <TableCell>
                   {quote.status === 'sent' ? (
-                    <Dropdown>
-                      <DropdownTrigger>
-                        <Chip
-                          className='capitalize'
-                          variant='bordered'
-                          color={quoteStatus.find((s) => s.key === quote.status)?.color as uiColors}
-                        >
-                          {quoteStatus.find((s) => s.key === quote.status)?.label}
-                        </Chip>
-                      </DropdownTrigger>
-                      <DropdownMenu aria-label='Static Actions'>
-                        <DropdownItem key='copy' color='success'>
-                          Aceptada
-                        </DropdownItem>
-                        <DropdownItem key='delete' className='text-danger' color='danger'>
-                          Rechazada
-                        </DropdownItem>
-                      </DropdownMenu>
-                    </Dropdown>
+                    <QuoteStatus quote={quote} onSuccess={onSuccessSetStatus} />
                   ) : (
                     <Chip
                       className='capitalize'
@@ -207,7 +205,7 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
                           className='text-danger'
                           color='danger'
                           onPress={() => {
-                            setSelectedQuote(quote)
+                            dispatch(setQuote(quote))
                             onOpenConfirmDeleteQuote()
                           }}
                         >
@@ -215,7 +213,15 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
                         </DropdownItem>
                       ) : null}
                       {['success', 'rejected'].includes(quote.status) ? (
-                        <DropdownItem key='archive' className='text-danger' color='danger'>
+                        <DropdownItem
+                          key='archive'
+                          className='text-danger'
+                          color='danger'
+                          onPress={() => {
+                            dispatch(setQuote(quote))
+                            onOpenConfirmDeleteQuote()
+                          }}
+                        >
                           Archivar
                         </DropdownItem>
                       ) : null}

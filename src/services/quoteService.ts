@@ -83,7 +83,13 @@ export const quoteService = {
       if (insertQuoteItemsError) throw insertQuoteItemsError
       return {
         success: true,
-        quote: { id: quoteId, created_at: quoteResult.created_at, status: quoteResult.status, total: quoteResult.total }
+        quote: {
+          id: quoteId,
+          created_at: quoteResult.created_at,
+          last_updated: quoteResult.last_updated,
+          status: quoteResult.status,
+          total: quoteResult.total
+        }
       }
     } catch (e) {
       return { success: false, error: (e as Error).message }
@@ -138,6 +144,7 @@ export const quoteService = {
         quote: {
           id: quote.id,
           created_at: updatedQuote.created_at,
+          last_updated: updatedQuote.last_updated,
           total: updatedQuote.total,
           status: updatedQuote.status
         }
@@ -146,13 +153,13 @@ export const quoteService = {
       return { success: false, error: (e as Error).message }
     }
   },
-  async deleteQuote(quoteId: number): Promise<{ success: boolean; error?: string }> {
+  async deleteQuote(quote: Quote): Promise<{ success: boolean; error?: string }> {
     try {
-      if (!quoteId) {
-        throw new Error('El ID de la cotización es requerido para eliminarla.')
+      if (!quote) {
+        throw new Error('La cotización es requerida para eliminarla.')
       }
       // 1. Eliminar los ítems de la cotización, supabase eliminara los ítems relacionados automáticamente
-      const { error: deleteQuoteError } = await supabase.from('quotes').delete().eq('id', quoteId)
+      const { error: deleteQuoteError } = await supabase.from('quotes').delete().eq('id', quote.id)
 
       if (deleteQuoteError) throw deleteQuoteError
 
@@ -183,6 +190,30 @@ export const quoteService = {
       if (error) throw error
 
       return { success: true, items: items as QuoteItemDB[] }
+    } catch (e) {
+      return { success: false, error: (e as Error).message }
+    }
+  },
+  async setQuoteStatus(quoteId: number, status: string): Promise<{ success: boolean; quote?: Quote; error?: string }> {
+    try {
+      if (!quoteId) {
+        throw new Error('El ID de la cotización es requerido para actualizar el estado.')
+      }
+
+      const { data: updatedQuote, error } = await supabase.from('quotes').update({ status }).eq('id', quoteId).select().single()
+
+      if (error) throw error
+
+      return {
+        success: true,
+        quote: {
+          id: updatedQuote.id,
+          created_at: updatedQuote.created_at,
+          last_updated: updatedQuote.last_updated,
+          total: updatedQuote.total,
+          status: updatedQuote.status
+        }
+      }
     } catch (e) {
       return { success: false, error: (e as Error).message }
     }
