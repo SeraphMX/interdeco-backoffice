@@ -54,10 +54,11 @@ export const QuotePDF = ({ quote }: { quote: Quote }) => {
         </View>
 
         {(quote.items ?? []).map((item, index) => {
+          if (!item.product) return null // Asegurarse de que el producto exista
           const unitPrice = (item.product.price ?? 0) * (1 + (item.product.utility ?? 0) / 100)
           return (
             <View key={index} style={[styles.tableRow, styles.row]}>
-              <Text style={[styles.cell, styles.leftAlign]}>{item.totalQuantity}</Text>
+              <Text style={[styles.cell, styles.leftAlign]}>{item.totalQuantity.toFixed(2)}</Text>
               <Text style={styles.cellDescription}>
                 <Text style={{ fontWeight: 'bold' }}>{item.product.sku} </Text>
                 {item.product.description}{' '}
