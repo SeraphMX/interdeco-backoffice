@@ -55,7 +55,7 @@ export interface Quote {
   status: QuoteStatus
 }
 
-export type QuoteStatus = 'draft' | 'sent' | 'success' | 'rejected' | 'expired' | 'open' | 'archived'
+export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'open' | 'archived'
 
 export type CotizacionStatus = 'pendiente' | 'aprobada' | 'rechazada' | 'finalizada'
 
@@ -161,7 +161,8 @@ export const measureUnits = [
 export const quoteStatus = [
   { key: 'open', label: 'abierta', color: 'primary' },
   { key: 'sent', label: 'enviada', color: 'secondary' },
-  { key: 'success', label: 'aceptada', plural: 'success' },
-  { key: 'rejected', label: 'rechazada', plural: 'danger' },
-  { key: 'expired', label: 'expirada', plural: 'default' }
+  { key: 'accepted', label: 'aceptada', color: 'success' },
+  { key: 'rejected', label: 'rechazada', color: 'danger' },
+  { key: 'expired', label: 'expirada', color: 'default' },
+  { key: 'archived', label: 'archivada', color: 'danger' }
 ]
