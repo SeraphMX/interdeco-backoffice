@@ -21,9 +21,11 @@ const CustomerDetails = () => {
               {customerStatus.find((status) => status.key === customer.status)?.label || 'Desconocido'}
             </Chip>
           </div>
-          <div>
-            <strong>Email:</strong> {customer.email}
-          </div>
+          {customer.email && (
+            <div>
+              <strong>Email:</strong> {customer.email}
+            </div>
+          )}
           <div>
             <strong>Teléfono:</strong> {customer.phone}
           </div>
