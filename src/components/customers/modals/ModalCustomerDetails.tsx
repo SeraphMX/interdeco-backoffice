@@ -1,9 +1,11 @@
 import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Tab, Tabs, useDisclosure } from '@heroui/react'
 import { Building2, Edit, SquareUserRound, Trash2 } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { customerService } from '../../../services/customerService'
 import { RootState } from '../../../store'
 import { clearSelectedCustomer } from '../../../store/slices/customersSlice'
+import { setSelectedCustomer } from '../../../store/slices/quoteSlice'
 import CustomerDetails from '../CustomerDetails'
 import CustomerHistory from '../CustomerHistory'
 import ModalCustomerConfirmDelete from './ModalCustomerConfirmDelete'
@@ -17,14 +19,23 @@ interface ModalSelectCustomerProps {
 
 const ModalCustomerDetails = ({ isOpen, onOpenChange, onClose }: ModalSelectCustomerProps) => {
   const customer = useSelector((state: RootState) => state.clientes.selectedCustomer)
+
   const dispatch = useDispatch()
   const { isOpen: isOpenDelete, onOpen: onOpenDelete, onOpenChange: onOpenChangeDelete } = useDisclosure()
   const { isOpen: isOpenEditAdd, onOpen: onOpenEditAdd, onOpenChange: onOpenChangeEditAdd } = useDisclosure()
+  const navigate = useNavigate()
 
   const deleteCustomer = async () => {
     if (customer) {
       await customerService.deleteCustomer(customer)
       dispatch(clearSelectedCustomer())
+    }
+  }
+
+  const handleNewQuote = () => {
+    if (customer) {
+      dispatch(setSelectedCustomer(customer))
+      navigate('/cotizaciones/nueva')
     }
   }
 
@@ -67,7 +78,9 @@ const ModalCustomerDetails = ({ isOpen, onOpenChange, onClose }: ModalSelectCust
                     <Button color='danger' variant='light' onPress={onClose}>
                       Cerrar
                     </Button>
-                    <Button color='primary'>Nueva cotización</Button>
+                    <Button color='primary' onPress={handleNewQuote}>
+                      Nueva cotización
+                    </Button>
                   </section>
                 </ModalFooter>
               </>
