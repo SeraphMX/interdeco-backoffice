@@ -1,72 +1,75 @@
-import { addToast, Autocomplete, AutocompleteItem, Input, Select, SelectItem, Switch, Textarea } from '@heroui/react'
+import { Autocomplete, AutocompleteItem, Input, Select, SelectItem, Switch, Textarea } from '@heroui/react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { supabase } from '../../lib/supabase'
-import { customerSchema } from '../../schemas/customer.shema'
-import { Customer, estadosMexico } from '../../types'
+import { useDispatch, useSelector } from 'react-redux'
+import { CustomerFormData, customerSchema } from '../../schemas/customer.shema'
+import { customerService } from '../../services/customerService'
+import { RootState } from '../../store'
+import { setSelectedCustomer } from '../../store/slices/customersSlice'
+import { estadosMexico } from '../../types'
 
 type AddCustomerProps = {
-  onSuccess: (newCustomer: Customer) => void
+  onSuccess: () => void
 }
 
 const AddCustomer = ({ onSuccess }: AddCustomerProps) => {
   const [invoiceData, setInvoiceData] = useState(false)
-  const form = useForm({
+  const customer = useSelector((state: RootState) => state.clientes.selectedCustomer)
+  const dispatch = useDispatch()
+
+  const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerSchema),
     mode: 'onSubmit',
     defaultValues: {
+      id: customer?.id ? Number(customer.id) : undefined,
       customer_type: 'individual',
-      name: '',
-      rfc: '',
-      phone: '',
-      email: '',
-      address: '',
-      state: '',
-      city: '',
-      postalcode: '',
-      notes: ''
+      name: customer?.name || '',
+      rfc: customer?.rfc || '',
+      phone: customer?.phone || '',
+      email: customer?.email || '',
+      address: customer?.address || '',
+      state: customer?.state || '',
+      city: customer?.city || '',
+      postalcode: customer?.postalcode || '',
+      notes: customer?.notes || ''
     }
   })
 
   const {
     register,
     handleSubmit,
-    //watch,
     formState: { errors }
   } = form
 
   const handleSave = handleSubmit(
     async (data) => {
-      try {
-        const { data: newCustomer, error } = await supabase.from('customers').insert([data]).select().single()
-        if (error) throw error
-
-        console.log('✅ Formulario válido:', data)
-
-        addToast({
-          title: 'Cliente agregado',
-          description: 'Los datos del cliente se han guardado.',
-          color: 'success'
-        })
-        onSuccess(newCustomer)
-      } catch (error) {
-        console.error('Error al agregar cliente:', error)
-        addToast({
-          title: 'Error al agregar cliente',
-          description: 'Los datos no se pudieron guardar. Inténtalo de nuevo.',
-          color: 'danger'
-        })
+      // Si el cliente ya existe, actualizamos sus datos, de lo contrario, lo agregamos como nuevo
+      if (!customer) {
+        await customerService.addCustomer(data)
+      } else {
+        const updatedUser = await customerService.updateCustomer(data)
+        if (updatedUser) {
+          dispatch(setSelectedCustomer(updatedUser))
+        }
       }
+      onSuccess()
     },
     (errors) => {
       console.warn('❌ Errores de validación:', errors)
-      // Aquí puedes mostrar alertas, toast, etc.
     }
   )
 
+  useEffect(() => {
+    // Si el cliente tiene datos de facturación, mostramos los campos adicionales
+    if (customer && (customer.rfc || customer.postalcode || customer.address || customer.state || customer.city)) {
+      setInvoiceData(true)
+    }
+  }, [customer])
   return (
     <form id='add-customer-form' onSubmit={handleSave} className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+      <Input size='sm' label='ID del cliente' value={customer?.id ? String(customer.id) : ''} readOnly {...register('id')} isDisabled />
+
       <Select
         className='max-w-xs'
         label='Tipo de cliente'
@@ -119,13 +122,10 @@ const AddCustomer = ({ onSuccess }: AddCustomerProps) => {
         <>
           <Input size='sm' label='RFC' maxLength={13} {...register('rfc')} isInvalid={!!errors.rfc} isClearable />
           <Input size='sm' label='Código postal' maxLength={5} {...register('postalcode')} isInvalid={!!errors.postalcode} isClearable />
-
           <Input size='sm' className='col-span-2' label='Dirección' {...register('address')} isInvalid={!!errors.address} isClearable />
-
           <Autocomplete className='max-w-xs' {...register('state')} defaultItems={estadosMexico} label='Estado' isClearable size='sm'>
             {(state) => <AutocompleteItem key={state.key}>{state.label}</AutocompleteItem>}
           </Autocomplete>
-
           <Input size='sm' label='Ciudad o municipio' {...register('city')} isInvalid={!!errors.city} isClearable />
         </>
       )}

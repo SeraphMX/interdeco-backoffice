@@ -90,19 +90,19 @@ export interface Product {
 }
 
 export interface Customer {
-  id: number
-  created_at: string
+  id?: number
+  created_at?: string
   customer_type: 'individual' | 'business'
   name: string
   rfc?: string
-  phone?: string
+  phone: string
   email?: string
   address?: string
   state?: string
   city?: string
   postalcode?: string
   notes?: string
-  status: string
+  status?: string
 }
 
 export const estadosMexico = [
