@@ -10,6 +10,7 @@ interface ModalSelectCustomerProps {
 
 const ModalCustomerEditAdd = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) => {
   const customer = useSelector((state: RootState) => state.clientes.selectedCustomer)
+
   return (
     <Modal size='xl' isOpen={isOpen} onOpenChange={onOpenChange} backdrop='blur'>
       <ModalContent>
@@ -18,7 +19,6 @@ const ModalCustomerEditAdd = ({ isOpen, onOpenChange }: ModalSelectCustomerProps
             <ModalHeader className='flex flex-col gap-1'>Nuevo Cliente</ModalHeader>
             <ModalBody>
               <AddCustomer
-                customer={customer}
                 onSuccess={() => {
                   onClose()
                 }}
@@ -29,7 +29,7 @@ const ModalCustomerEditAdd = ({ isOpen, onOpenChange }: ModalSelectCustomerProps
                 Cancelar
               </Button>
               <Button color='primary' type='submit' form='add-customer-form'>
-                Guardar
+                {!customer ? 'Guardar' : 'Actualizar'}
               </Button>
             </ModalFooter>
           </>
