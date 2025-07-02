@@ -21,6 +21,9 @@ const clientsSlice = createSlice({
     setSelectedCustomer(state, action: PayloadAction<Customer | null>) {
       state.selectedCustomer = action.payload
     },
+    clearSelectedCustomer(state) {
+      state.selectedCustomer = null
+    },
     addCustomer(state, action: PayloadAction<Customer>) {
       state.items.push(action.payload)
     },
@@ -34,5 +37,6 @@ const clientsSlice = createSlice({
   }
 })
 
-export const { setCustomers, setSelectedCustomer, addCustomer, updateCustomer, removeCustomer } = clientsSlice.actions
+export const { setCustomers, setSelectedCustomer, clearSelectedCustomer, addCustomer, updateCustomer, removeCustomer } =
+  clientsSlice.actions
 export default clientsSlice.reducer
