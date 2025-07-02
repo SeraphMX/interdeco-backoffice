@@ -7,25 +7,29 @@ import { customerSchema } from '../../schemas/customer.shema'
 import { Customer, estadosMexico } from '../../types'
 
 type AddCustomerProps = {
+  customer?: Customer | undefined | null
   onSuccess: (newCustomer: Customer) => void
 }
 
-const AddCustomer = ({ onSuccess }: AddCustomerProps) => {
+const AddCustomer = ({ onSuccess, customer }: AddCustomerProps) => {
   const [invoiceData, setInvoiceData] = useState(false)
+  // Si se pasa un cliente, se puede usar para editar
+  const [customerData] = useState<Customer | null>(customer || null)
+
   const form = useForm({
     resolver: zodResolver(customerSchema),
     mode: 'onSubmit',
     defaultValues: {
       customer_type: 'individual',
-      name: '',
-      rfc: '',
-      phone: '',
-      email: '',
-      address: '',
-      state: '',
-      city: '',
-      postalcode: '',
-      notes: ''
+      name: customerData?.name || '',
+      rfc: customerData?.rfc || '',
+      phone: customerData?.phone || '',
+      email: customerData?.email || '',
+      address: customerData?.address || '',
+      state: customerData?.state || '',
+      city: customerData?.city || '',
+      postalcode: customerData?.postalcode || '',
+      notes: customerData?.notes || ''
     }
   })
 
