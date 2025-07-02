@@ -1,11 +1,14 @@
 import { z } from 'zod'
 
 export const customerSchema = z.object({
-  customer_type: z.string().min(1, 'Selecciona un tipo de cliente'),
+  id: z.coerce.number().nonnegative().optional(),
+  customer_type: z.enum(['individual', 'business'], {
+    errorMap: () => ({ message: 'Selecciona un tipo de cliente' })
+  }),
   name: z.string().min(1, 'El nombre del cliente es obligatorio'),
   rfc: z.string().optional(),
-  phone: z.string().min(10, '10 dígitos, sin espacios ni guiones'),
-  email: z.string().email('Correo electrónico inválido').optional(),
+  phone: z.string().min(1, '10 dígitos, sin espacios ni guiones').regex(/^\d+$/, 'El teléfono solo debe contener dígitos'),
+  email: z.string().email('Correo electrónico inválido').optional().or(z.literal('')),
   address: z.string().optional(),
   state: z.string().optional(),
   city: z.string().optional(),
