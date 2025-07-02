@@ -117,20 +117,9 @@ const NuevaCotizacion = () => {
 
       if (result.success) {
         dispatch(clearQuote())
-        addToast({
-          title: 'Cotización eliminada',
-          description: 'La cotización ha sido eliminada correctamente.',
-          color: 'success'
-        })
-
         navigate('/cotizaciones')
       } else {
         console.error('Error al eliminar la cotización:', result.error)
-        addToast({
-          title: 'Error al eliminar',
-          description: 'Hubo un error al eliminar la cotización. Inténtalo de nuevo.',
-          color: 'danger'
-        })
       }
     } else {
       const updateResult = await quoteService.updateQuote({ ...quote.data, status: 'archived' })

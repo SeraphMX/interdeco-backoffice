@@ -1,3 +1,4 @@
+import { addToast } from '@heroui/react'
 import { supabase } from '../lib/supabase'
 import { Product, Quote, QuoteItem, QuoteItemDB } from '../types'
 
@@ -155,8 +156,19 @@ export const quoteService = {
 
       if (deleteQuoteError) throw deleteQuoteError
 
+      addToast({
+        title: 'Cotización eliminada',
+        description: 'La cotización ha sido eliminada correctamente.',
+        color: 'success'
+      })
+
       return { success: true }
     } catch (e) {
+      addToast({
+        title: 'Error al eliminar',
+        description: 'Hubo un error al eliminar la cotización. Inténtalo de nuevo.',
+        color: 'danger'
+      })
       return { success: false, error: (e as Error).message }
     }
   },
