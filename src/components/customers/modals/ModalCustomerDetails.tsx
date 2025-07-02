@@ -1,7 +1,9 @@
 import { Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Tab, Tabs, useDisclosure } from '@heroui/react'
 import { Building2, Edit, SquareUserRound, Trash2 } from 'lucide-react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { customerService } from '../../../services/customerService'
 import { RootState } from '../../../store'
+import { clearSelectedCustomer } from '../../../store/slices/customersSlice'
 import CustomerDetails from '../CustomerDetails'
 import CustomerHistory from '../CustomerHistory'
 import ModalCustomerConfirmDelete from './ModalCustomerConfirmDelete'
@@ -9,22 +11,31 @@ import ModalCustomerEditAdd from './ModalCustomerEditAdd'
 
 interface ModalSelectCustomerProps {
   isOpen: boolean
-  onOpenChange: (isOpen: boolean) => void
+  onOpenChange: () => void
+  onClose?: () => void
 }
 
-const ModalCustomerDetails = ({ isOpen, onOpenChange }: ModalSelectCustomerProps) => {
+const ModalCustomerDetails = ({ isOpen, onOpenChange, onClose }: ModalSelectCustomerProps) => {
   const customer = useSelector((state: RootState) => state.clientes.selectedCustomer)
+  const dispatch = useDispatch()
   const { isOpen: isOpenDelete, onOpen: onOpenDelete, onOpenChange: onOpenChangeDelete } = useDisclosure()
   const { isOpen: isOpenEditAdd, onOpen: onOpenEditAdd, onOpenChange: onOpenChangeEditAdd } = useDisclosure()
 
+  const deleteCustomer = async () => {
+    if (customer) {
+      await customerService.deleteCustomer(customer)
+      dispatch(clearSelectedCustomer())
+    }
+  }
+
   return (
     <>
-      <Modal size='xl' isOpen={isOpen} onOpenChange={onOpenChange} backdrop='blur'>
+      <Modal size='xl' isOpen={isOpen} onOpenChange={onOpenChange} onClose={onClose} backdrop='blur'>
         {customer && (
           <ModalContent>
             {(onClose) => (
               <>
-                <ModalHeader className='flex items-center gap-1 ' key={customer.id}>
+                <ModalHeader className='flex items-center gap-1 '>
                   {customer.customer_type === 'individual' ? (
                     <SquareUserRound className='text-gray-500' size={24} />
                   ) : (
@@ -69,9 +80,9 @@ const ModalCustomerDetails = ({ isOpen, onOpenChange }: ModalSelectCustomerProps
         isOpen={isOpenDelete}
         onOpenChange={onOpenChangeDelete}
         onConfirm={() => {
-          // Aquí puedes manejar la lógica de eliminación del cliente
-          console.log('Cliente eliminado')
-          // onOpenChangeDelete(false)
+          onOpenChangeDelete()
+          onOpenChange()
+          deleteCustomer()
         }}
       />
 
