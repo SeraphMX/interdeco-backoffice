@@ -19,11 +19,13 @@ import { EllipsisVertical } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import { quoteService } from '../../services/quoteService'
 import { RootState } from '../../store'
 import { clearQuote, setQuote } from '../../store/slices/quoteSlice'
 import { Quote, quoteStatus, uiColors } from '../../types'
 import { formatCurrency } from '../../utils/currency'
 import { formatDate } from '../../utils/date'
+import ModalConfirmDeleteQuote from './modals/ModalConfirmDeleteQuote'
 import ModalConfirmOpenQuote from './modals/ModalConfirmOpenQuote'
 
 interface QuotesTableProps {
@@ -40,6 +42,11 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
   const dispatch = useDispatch()
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'created_at', direction: 'descending' })
   const { isOpen: isOpenConfirmOpenQuote, onOpen: onOpenConfirmOpenQuote, onOpenChange: onOpenChangeConfirmOpenQuote } = useDisclosure()
+  const {
+    isOpen: isOpenConfirmDeleteQuote,
+    onOpen: onOpenConfirmDeleteQuote,
+    onOpenChange: onOpenChangeConfirmDeleteQuote
+  } = useDisclosure()
 
   const [selectedQuote, setSelectedQuote] = useState<Quote | undefined>(undefined)
 
@@ -94,6 +101,20 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
     navigate('/cotizaciones/nueva')
   }
 
+  const handleDeleteQuote = async () => {
+    if (selectedQuote?.id) {
+      console.log('firstly deleting quote with id:', selectedQuote.id)
+      const result = await quoteService.deleteQuote(selectedQuote.id)
+
+      if (result.success) {
+        dispatch(clearQuote())
+        onOpenChangeConfirmDeleteQuote()
+      } else {
+        console.error('Error al eliminar la cotización:', result.error)
+      }
+    }
+  }
+
   return (
     <>
       <Table
@@ -126,32 +147,32 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
           )}
         </TableHeader>
         <TableBody items={sortedItems} isLoading={loading} loadingContent={<Spinner label='Cargando datos...' />}>
-          {(item) => {
+          {(quote) => {
             //const category = rxCategories.find((cat: Category) => cat.description === item.category_description)
             //const categoryColor = category?.color || 'bg-gray-300'
             return (
-              <TableRow key={item.id}>
+              <TableRow key={quote.id}>
                 <TableCell className='w-16'>
-                  {item.created_at && `${item.id}${new Date(item.created_at).getFullYear().toString().slice(-2)}`}
+                  {quote.created_at && `${quote.id}${new Date(quote.created_at).getFullYear().toString().slice(-2)}`}
                 </TableCell>
                 <TableCell className='w-32 whitespace-nowrap text-ellipsis overflow-hidden'>
-                  {formatDate(item.created_at ?? '', { style: 'short' })}
+                  {formatDate(quote.created_at ?? '', { style: 'short' })}
                 </TableCell>
                 <TableCell>
-                  {item.customer_name ? item.customer_name : <span className='text-gray-500'>Sin cliente asociado</span>}
+                  {quote.customer_name ? quote.customer_name : <span className='text-gray-500'>Sin cliente asociado</span>}
                 </TableCell>
-                <TableCell>{item.total_items}</TableCell>
-                <TableCell>{formatCurrency(item.total)}</TableCell>
+                <TableCell>{quote.total_items}</TableCell>
+                <TableCell>{formatCurrency(quote.total)}</TableCell>
                 <TableCell>
-                  {item.status === 'sent' ? (
+                  {quote.status === 'sent' ? (
                     <Dropdown>
                       <DropdownTrigger>
                         <Chip
                           className='capitalize'
                           variant='bordered'
-                          color={quoteStatus.find((s) => s.key === item.status)?.color as uiColors}
+                          color={quoteStatus.find((s) => s.key === quote.status)?.color as uiColors}
                         >
-                          {quoteStatus.find((s) => s.key === item.status)?.label}
+                          {quoteStatus.find((s) => s.key === quote.status)?.label}
                         </Chip>
                       </DropdownTrigger>
                       <DropdownMenu aria-label='Static Actions'>
@@ -167,9 +188,9 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
                     <Chip
                       className='capitalize'
                       variant='bordered'
-                      color={quoteStatus.find((s) => s.key === item.status)?.color as uiColors}
+                      color={quoteStatus.find((s) => s.key === quote.status)?.color as uiColors}
                     >
-                      {quoteStatus.find((s) => s.key === item.status)?.label}
+                      {quoteStatus.find((s) => s.key === quote.status)?.label}
                     </Chip>
                   )}
                 </TableCell>
@@ -180,12 +201,20 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
                     </DropdownTrigger>
                     <DropdownMenu aria-label='Static Actions'>
                       <DropdownItem key='copy'>Duplicar</DropdownItem>
-                      {item.status === 'open' ? (
-                        <DropdownItem key='delete' className='text-danger' color='danger'>
+                      {quote.status === 'open' ? (
+                        <DropdownItem
+                          key='delete'
+                          className='text-danger'
+                          color='danger'
+                          onPress={() => {
+                            setSelectedQuote(quote)
+                            onOpenConfirmDeleteQuote()
+                          }}
+                        >
                           Eliminar
                         </DropdownItem>
                       ) : null}
-                      {['success', 'rejected'].includes(item.status) ? (
+                      {['success', 'rejected'].includes(quote.status) ? (
                         <DropdownItem key='archive' className='text-danger' color='danger'>
                           Archivar
                         </DropdownItem>
@@ -202,6 +231,11 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
         onConfirm={() => handleSetQuote(selectedQuote)}
         onOpenChange={onOpenChangeConfirmOpenQuote}
         isOpen={isOpenConfirmOpenQuote}
+      />
+      <ModalConfirmDeleteQuote
+        onConfirm={handleDeleteQuote}
+        onOpenChange={onOpenChangeConfirmDeleteQuote}
+        isOpen={isOpenConfirmDeleteQuote}
       />
     </>
   )
