@@ -88,13 +88,13 @@ export const productService = {
         addToast({
           title: 'Producto activado',
           description: `El producto ${product.spec} se ha activado correctamente.`,
-          color: 'success'
+          color: 'primary'
         })
       } else {
         addToast({
           title: 'Producto desactivado',
           description: `El producto ${product.spec} se ha desactivado correctamente.`,
-          color: 'warning'
+          color: 'primary'
         })
       }
     } catch (err) {
