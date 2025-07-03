@@ -11,7 +11,6 @@ export const productSchema = z.object({
   provider: z.coerce.number().nonnegative(),
   package_unit: z.preprocess((val) => (val === '' ? undefined : val), z.coerce.number().nonnegative()).default(1),
   measurement_unit: z.string().min(1, 'La unidad de medida es requerida'),
-  wholesale_price: z.preprocess((val) => (val === '' ? undefined : val), z.coerce.number().nonnegative()).optional(),
 
   price: z.coerce.number().nonnegative().positive(),
   utility: z.coerce.number().nonnegative().positive(),
