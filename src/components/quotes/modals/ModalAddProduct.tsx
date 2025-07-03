@@ -32,13 +32,9 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
   const quantityInputRef = useRef<HTMLInputElement | null>(null)
 
   const schema = z.object({
-    quantity: z
-      .number({ invalid_type_error: 'Debe ser un número' })
-      .transform((val) => (isNaN(val) ? undefined : val))
-      .optional()
-      .refine((val) => typeof val === 'number' && val > 0, {
-        message: 'Debe ser mayor a 0'
-      })
+    quantity: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: 'Debe ser un número mayor a 0'
+    })
   })
 
   type FormData = z.infer<typeof schema>
@@ -65,7 +61,7 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
       console.log('Producto agregado:', data)
       // Aquí puedes manejar la lógica para agregar el producto seleccionado
       if (selectedProduct) {
-        const requestedQuantity = data.quantity ?? 0
+        const requestedQuantity = Number(data.quantity)
         const packageSize = selectedProduct.package_unit ?? 0
         const packagesRequired = packageSize > 1 ? Math.ceil(requestedQuantity / packageSize) : requestedQuantity
         const roundToTwo = (num: number) => Math.round(num * 100) / 100
@@ -123,9 +119,9 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
 
   useEffect(() => {
     if (calculatedArea !== undefined && calculatedArea > 0) {
-      setValue('quantity', calculatedArea, { shouldValidate: true })
+      setValue('quantity', calculatedArea.toString(), { shouldValidate: true })
     } else {
-      setValue('quantity', undefined, { shouldValidate: true })
+      setValue('quantity', '', { shouldValidate: true })
     }
   }, [calculatedArea, setValue])
 
@@ -181,22 +177,17 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
                     render={({ field }) => (
                       <Input
                         className='w-36'
+                        inputMode='decimal'
                         size='sm'
                         label={measureUnits.find((i) => i.key === selectedProduct?.measurement_unit)?.plural}
                         isInvalid={!!errors.quantity}
-                        value={field.value !== undefined ? String(field.value) : ''}
-                        onChange={(e) => {
-                          const value = e.target.value
-                          const parsed = parseFloat(value)
-                          field.onChange(isNaN(parsed) ? undefined : parsed)
-                        }}
+                        value={field.value ?? ''}
+                        onChange={(e) => field.onChange(e.target.value)}
                         onBlur={field.onBlur}
                         ref={(el) => {
+                          field.ref(el)
                           quantityInputRef.current = el
                         }}
-                        // onFocus={(e) => {
-                        //   setTimeout(() => e.target.select(), 100)
-                        // }}
                       />
                     )}
                   />

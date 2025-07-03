@@ -57,11 +57,20 @@ const ModalAreaCalculator = ({ isOpen, onOpenChange }: ModalAddProductProps) => 
     const isValid = (n: unknown): n is number => typeof n === 'number' && !isNaN(n) && n > 0
 
     if (isValid(length) && isValid(width)) {
-      setTotalCalculated(Math.ceil(length * width))
+      //Si el producto es de las categorias que no se redondean, se calcula el area exacto
+      if (
+        selectedProduct?.category_description?.toLowerCase().includes('cortinas') ||
+        selectedProduct?.category_description?.toLowerCase().includes('persianas')
+      ) {
+        setTotalCalculated(parseFloat((length * width).toFixed(2)))
+      } else {
+        //Si el producto es de las categorias que se redondean, se calcula el area
+        setTotalCalculated(Math.ceil(length * width))
+      }
     } else {
       setTotalCalculated(0)
     }
-  }, [length, width])
+  }, [length, width, selectedProduct])
 
   useEffect(() => {
     reset({ length: undefined, width: undefined })
@@ -83,6 +92,7 @@ const ModalAreaCalculator = ({ isOpen, onOpenChange }: ModalAddProductProps) => 
               <Input
                 {...register('width', { valueAsNumber: true })}
                 label='Ancho'
+                autoFocus
                 isInvalid={!!errors.width}
                 errorMessage={errors.width?.message}
                 onFocus={(e) => e.target.select()}
@@ -92,7 +102,6 @@ const ModalAreaCalculator = ({ isOpen, onOpenChange }: ModalAddProductProps) => 
                 label='Largo'
                 isInvalid={!!errors.length}
                 errorMessage={errors.length?.message}
-                autoFocus
                 onFocus={(e) => e.target.select()}
               />
             </ModalBody>
