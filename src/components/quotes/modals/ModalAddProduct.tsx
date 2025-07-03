@@ -157,6 +157,7 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
                 filterValue={filterValue}
                 selectedCategories={selectedCategories}
                 selectedProviders={selectedProviders}
+                variant='minimal'
               />
             </ModalBody>
             <ModalFooter className='flex justify-between items-center'>
