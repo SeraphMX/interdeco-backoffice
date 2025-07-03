@@ -1,9 +1,9 @@
-import { Input, Select, SelectItem, Textarea, addToast } from '@heroui/react'
+import { Input, Select, SelectItem, Textarea } from '@heroui/react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useSelector } from 'react-redux'
-import { supabase } from '../../lib/supabase'
 import { ProductFormData, productSchemaAdd } from '../../schemas/product.schema'
+import { productService } from '../../services/productService'
 import { RootState } from '../../store'
 import { Product } from '../../types'
 
@@ -17,7 +17,15 @@ const AddProduct = ({ onSuccess }: AddProductProps) => {
     resolver: zodResolver(productSchemaAdd),
     mode: 'all',
     defaultValues: {
-      measurement_unit: 'M2'
+      measurement_unit: 'M2',
+      package_unit: 1,
+      price: undefined,
+      utility: undefined,
+      sku: '',
+      spec: '',
+      category: undefined,
+      provider: undefined,
+      description: ''
     }
   })
 
@@ -39,60 +47,37 @@ const AddProduct = ({ onSuccess }: AddProductProps) => {
   const publicPrice = livePrice * (1 + liveUtility / 100)
   const pricePerPackage = publicPrice * watchPackageUnit
 
-  //TODO: Remover despues con el uso de Redux
-  const measureUnits = [
-    { key: 'M2', label: 'Metro cuadrado', short: 'm²' },
-    { key: 'ML', label: 'Metro lineal', short: 'm' },
-    { key: 'KG', label: 'Kilogramo', short: 'kg' },
-    { key: 'L', label: 'Litro', short: 'L' },
-    { key: 'PZ', label: 'Pieza', short: 'pz' },
-    { key: 'CJ', label: 'Caja', short: 'caja' },
-    { key: 'BG', label: 'Bolsa', short: 'bolsa' }
-  ]
-
-  //TODO: Remover despues con el uso de Redux
-  const rxProviders = [
-    { key: 1, name: 'Teknostep' },
-    { key: 2, name: 'Shades' },
-    { key: 3, name: 'Vertilux' }
-  ]
-
   // Get unique categories and providers
-  const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
+  const rxCategories = useSelector((state: RootState) => state.catalog.categories)
+  const rxProviders = useSelector((state: RootState) => state.catalog.providers)
+  const measureUnits = useSelector((state: RootState) => state.catalog.measureUnits)
 
   const handleSave = handleSubmit(
     async (data) => {
       console.log('✅ Formulario válido:', data)
       // Aquí va la lógica para guardar el producto, mostrar toast, etc.
 
-      try {
-        //const { provider_name, category_description } = selectedProduct //Guarda los campos adicionales que no estan en la tabla
+      const createProduct: Product = {
+        ...data,
+        price: parseFloat(data.price.toString()),
+        utility: parseFloat(data.utility.toString()),
+        package_unit: parseFloat(data.package_unit.toString()),
+        measurement_unit: data.measurement_unit,
+        sku: data.sku.trim(),
+        spec: data.spec?.trim() || '',
+        description: data.description?.trim() || '',
+        provider: parseInt(data.provider.toString(), 10),
+        category: parseInt(data.category.toString(), 10)
+      }
 
-        const { data: inserted, error } = await supabase.from('products').insert(data).select()
-        if (error) throw error
+      console.log(createProduct)
 
-        console.log('Guardado en la base...')
-
-        const newProduct = {
-          ...inserted[0],
-          provider_name: rxProviders.find((p) => p.key === data.provider)?.name || '',
-          category_description: rxCategories.find((c) => c.id === data.category)?.description || ''
-        }
-
-        onSuccess?.(newProduct)
-
-        addToast({
-          title: 'Producto agregado',
-          description: 'El producto se ha guardado correctamente.',
-          color: 'success'
-          //shouldShowTimeoutProgress: true
-        })
-
-        //setProducts((prev) => [...prev, newProduct])
-        //setSelectedProduct(updatedWithExtras)
-      } catch (err) {
-        //setError('Error al guardar los cambios')
-        console.error('Error:', err)
+      const newProduct = await productService.createProduct(createProduct)
+      if (newProduct) {
+        console.log('Producto creado exitosamente:', newProduct)
+        onSuccess(newProduct) //
+      } else {
+        console.error('Error al crear el producto')
       }
     },
     (errors) => {
@@ -113,7 +98,7 @@ const AddProduct = ({ onSuccess }: AddProductProps) => {
       </Select>
       <Select className='max-w-xs' label='Proveedor' size='sm' isInvalid={!!errors.provider} {...register('provider')}>
         {rxProviders.map((provider) => (
-          <SelectItem key={String(provider.key)}>{provider.name}</SelectItem>
+          <SelectItem key={String(provider.id)}>{provider.name}</SelectItem>
         ))}
       </Select>
 
@@ -133,7 +118,7 @@ const AddProduct = ({ onSuccess }: AddProductProps) => {
         isInvalid={!!errors.measurement_unit}
       >
         {measureUnits.map((measure) => (
-          <SelectItem key={measure.key}>{measure.label}</SelectItem>
+          <SelectItem key={measure.key}>{measure.name}</SelectItem>
         ))}
       </Select>
       <Input size='sm' label='Precio' type='number' {...register('price')} isInvalid={!!errors.price} isClearable />
@@ -145,7 +130,7 @@ const AddProduct = ({ onSuccess }: AddProductProps) => {
             style: 'currency',
             currency: 'MXN'
           })}
-          /{measureUnits.find((u) => u.key === watchMeasurementUnit)?.short} |{' '}
+          /{measureUnits.find((u) => u.key === watchMeasurementUnit)?.key} |{' '}
           {pricePerPackage.toLocaleString('es-MX', {
             style: 'currency',
             currency: 'MXN'
