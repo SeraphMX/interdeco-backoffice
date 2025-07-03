@@ -127,6 +127,11 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
     }
   }
 
+  const handleCloneQuote = (quote: Quote) => {
+    quoteService.cloneQuote(quote)
+    //navigate('/cotizaciones/nueva')
+  }
+
   const onSuccessSetStatus = async () => {
     dispatch(clearQuote())
   }
@@ -198,7 +203,9 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
                       <Button variant='light' startContent={<EllipsisVertical />} isIconOnly size='sm'></Button>
                     </DropdownTrigger>
                     <DropdownMenu aria-label='Static Actions'>
-                      <DropdownItem key='copy'>Duplicar</DropdownItem>
+                      <DropdownItem key='copy' onPress={() => handleCloneQuote(quote)}>
+                        Duplicar
+                      </DropdownItem>
                       {quote.status === 'open' ? (
                         <DropdownItem
                           key='delete'

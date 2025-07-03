@@ -1,4 +1,5 @@
 import { addToast } from '@heroui/react'
+import { clone } from 'lodash'
 import { supabase } from '../lib/supabase'
 import { Product, Quote, QuoteItem, QuoteItemDB } from '../types'
 
@@ -45,52 +46,106 @@ export const quoteService = {
   },
   async saveQuote(quote: Quote): Promise<{ success: boolean; quote?: Quote; error?: string }> {
     try {
-      console.log('Guardando cotización:', quote)
-
-      // 1. Insertar la cotización
+      // 1. Insertar la cotización principal
       const { data: quoteResult, error: insertQuoteError } = await supabase
         .from('quotes')
         .insert({
-          customer_id: quote.customer_id || null, // Asegurarse de que customer_id sea null si no está definido
-          total: quote.total
+          customer_id: quote.customer_id || null,
+          total: quote.total,
+          status: quote.status || 'open'
         })
         .select()
-        .single() // Usar .single() para obtener un solo registro
+        .single()
 
       if (insertQuoteError) throw insertQuoteError
-
       const quoteId = quoteResult?.id
-      if (!quoteId) throw new Error('No se pudo obtener el ID de la cotización insertada')
+      if (!quoteId) throw new Error('No se obtuvo ID de cotización')
 
-      console.log('ID de cotización insertada:', quoteId)
-      // 2. Insertar todos los ítems relacionados a la cotización
-      const quoteItems = (quote.items ?? []).map((item: QuoteItem) => ({
-        quote_id: quoteId,
-        product_id: item.product?.id ?? null,
-        description: ` ${item.product?.sku ?? ''} ${item.product?.description ?? ''}`,
-        unit_price: item.product?.price ?? 0,
-        required_quantity: item.requiredQuantity,
-        total_quantity: item.totalQuantity,
-        packages_required: item.packagesRequired,
-        subtotal: item.subtotal,
-        discount_type: item.discountType,
-        original_subtotal: item.originalSubtotal,
-        discount: item.discount
-      }))
+      // 2. Mapeo de items compatible con ambos flujos
+      const quoteItems = (quote.items ?? []).map((item) => {
+        // Determinar product_id según el caso
+        const product_id = item.product_id || item.product?.id || null
 
-      const { error: insertQuoteItemsError } = await supabase.from('quote_items').insert(quoteItems)
+        // Crear descripción basada en lo disponible
+        const description = item.product ? `${item.product.sku ?? ''} ${item.product.description ?? ''}`.trim() : ''
 
-      if (insertQuoteItemsError) throw insertQuoteItemsError
+        // Calcular unit_price inteligentemente
+        const unit_price = item.product?.price ?? 0
+
+        return {
+          quote_id: quoteId,
+          product_id,
+          description,
+          unit_price,
+          required_quantity: item.requiredQuantity,
+          total_quantity: item.totalQuantity,
+          packages_required: item.packagesRequired ?? 1,
+          subtotal: item.subtotal,
+          discount_type: item.discountType ?? 'percentage',
+          original_subtotal: item.originalSubtotal ?? item.subtotal,
+          discount: item.discount ?? 0
+        }
+      })
+
+      // 3. Insertar items
+      const { error: insertItemsError } = await supabase.from('quote_items').insert(quoteItems)
+
+      if (insertItemsError) throw insertItemsError
+
       return {
         success: true,
         quote: {
           id: quoteId,
-          created_at: quoteResult.created_at,
-          last_updated: quoteResult.last_updated,
-          status: quoteResult.status,
-          total: quoteResult.total
+          ...quoteResult
         }
       }
+    } catch (e) {
+      return { success: false, error: (e as Error).message }
+    }
+  },
+  async cloneQuote(quote: Quote): Promise<{ success: boolean; quote?: Quote; error?: string }> {
+    try {
+      if (!quote.id) {
+        throw new Error('La cotización debe tener un ID para ser clonada.')
+      }
+
+      // Obtener los ítems actuales de la cotización
+      const itemsResult = await this.getQuoteItems(quote.id)
+      if (!itemsResult.success) {
+        throw new Error(itemsResult.error || 'Error al obtener los ítems de la cotización')
+      }
+
+      // Mapear los items al formato QuoteItem
+      const mappedItems: QuoteItem[] =
+        itemsResult.items?.map((item) => ({
+          product_id: item.product_id || undefined,
+          product: undefined, // Dejamos product como undefined intencionalmente
+          requiredQuantity: item.required_quantity,
+          totalQuantity: item.total_quantity,
+          packagesRequired: item.packages_required,
+          originalSubtotal: item.original_subtotal,
+          subtotal: item.subtotal,
+          discountType: item.discount_type as 'percentage' | 'fixed',
+          discount: item.discount
+        })) || []
+
+      // Crear la cotización clonada
+      const clonedQuote: Quote = {
+        ...clone(quote),
+        id: undefined,
+        status: 'open',
+        created_at: undefined,
+        last_updated: undefined,
+        items: mappedItems
+      }
+
+      // Guardar la cotización clonada
+      const result = await this.saveQuote(clonedQuote)
+      if (!result.success) {
+        throw new Error(result.error || 'Error al guardar la cotización clonada.')
+      }
+
+      return { success: true, quote: result.quote }
     } catch (e) {
       return { success: false, error: (e as Error).message }
     }
