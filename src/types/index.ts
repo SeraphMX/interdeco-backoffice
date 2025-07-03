@@ -1,10 +1,27 @@
 export type uiColors = 'primary' | 'secondary' | 'success' | 'danger' | 'default' | 'warning'
+
+export interface Category {
+  id: number
+  description: string
+  color: string
+}
+export interface Provider {
+  id: number
+  name: string
+}
+
 export interface Cliente {
   id: string
   nombre: string
   contacto: string
   direccion: string
   notas?: string
+}
+
+export interface MeasureUnit {
+  key: string
+  name: string
+  plural: string
 }
 
 export type UserRole = 'admin' | 'staff'
@@ -72,21 +89,21 @@ export interface Cotizacion {
 }
 
 export interface Product {
-  id: number
-  created_at: string
-  sku?: string
+  sku: string
   description: string
   provider: number
-  package_unit?: number
-  measurement_unit: string
-  wholesale_price?: number
-  public_price?: number
   category: number
-  spec?: string
-  price?: number
-  utility?: number
-  provider_name: string
-  category_description: string
+  measurement_unit: string
+  package_unit: number
+  price: number // Cambiado a requerido
+  utility: number // Cambiado a requerido
+  spec: string
+  // Opcionales
+  id?: number
+  created_at?: string
+  public_price?: number
+  provider_name?: string
+  category_description?: string
 }
 
 export interface Customer {
@@ -158,6 +175,7 @@ export const measureUnits = [
   { key: 'CJ', label: 'Caja', plural: 'Cajas' },
   { key: 'BG', label: 'Bolsa', plural: 'Bolsas' }
 ]
+
 export const quoteStatus = [
   { key: 'open', label: 'abierta', color: 'primary' },
   { key: 'sent', label: 'enviada', color: 'secondary' },
