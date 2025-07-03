@@ -1,5 +1,4 @@
-import { Chip, SortDescriptor, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tooltip } from '@heroui/react'
-import { CircleHelp } from 'lucide-react'
+import { Chip, SortDescriptor, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react'
 import { useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../store'
@@ -41,21 +40,34 @@ const ProductsTable = ({ wrapperHeight, filterValue = '', selectedCategories = [
   }, [rxProducts, filterValue, selectedCategories, selectedProviders])
 
   const sortedItems = [...filteredItems].sort((a, b) => {
-    const first = a[sortDescriptor.column as keyof typeof a]
-    const second = b[sortDescriptor.column as keyof typeof b]
-    const cmp = (first ?? '').toString() < (second ?? '').toString() ? -1 : (first ?? '').toString() > (second ?? '').toString() ? 1 : 0
+    const column = sortDescriptor.column
+    const direction = sortDescriptor.direction
 
-    return sortDescriptor.direction === 'descending' ? -cmp : cmp
+    let first = a[column as keyof typeof a]
+    let second = b[column as keyof typeof b]
+
+    // Ordenar por precio calculado manualmente
+    if (column === 'public_price') {
+      first = (a.price ?? 0) * (1 + (a.utility ?? 0) / 100)
+      second = (b.price ?? 0) * (1 + (b.utility ?? 0) / 100)
+    }
+
+    let cmp = 0
+    if (typeof first === 'number' && typeof second === 'number') {
+      cmp = first - second
+    } else {
+      cmp = (first ?? '').toString().localeCompare((second ?? '').toString(), 'es', { sensitivity: 'base' })
+    }
+
+    return direction === 'descending' ? -cmp : cmp
   })
-
   const headerColumns = [
     { name: 'ESPECIFICACIÓN', uid: 'spec', sortable: true },
     { name: 'SKU', uid: 'sku', sortable: true, hidden: true },
     { name: 'CATEGORÍA', uid: 'category_description', hidden: true },
     { name: 'PROVEEDOR', uid: 'provider_name', hidden: true },
     { name: 'DESCRIPCIÓN', uid: 'description', hidden: true },
-    { name: 'PRECIO PÚBLICO', uid: 'public_price', sortable: true, align: 'end' },
-    { name: 'INFO', uid: 'info' }
+    { name: 'PRECIO PÚBLICO', uid: 'public_price', sortable: true, align: 'end' }
   ]
 
   return (
@@ -112,7 +124,21 @@ const ProductsTable = ({ wrapperHeight, filterValue = '', selectedCategories = [
               <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden' hidden>
                 {item.provider_name}
               </TableCell>
-              <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>{item.spec}</TableCell>
+              <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>
+                <div className='px-1 py-2 min-w-xs '>
+                  <div className='text-small'>
+                    <span className='font-bold'>{item.sku}</span> {item.provider_name}
+                  </div>
+                  <div className='text-tiny text-wrap'>
+                    <span className='font-semibold'>{item.spec}</span> {item.description}
+                  </div>
+                  <div className='flex justify-between items-center mt-2'>
+                    <Chip className={categoryColor} size='sm' variant='flat'>
+                      {item.category_description}
+                    </Chip>
+                  </div>
+                </div>
+              </TableCell>
               <TableCell className='w-1/2 max-w-md whitespace-nowrap text-ellipsis overflow-hidden' hidden>
                 {item.description}
               </TableCell>
@@ -121,26 +147,6 @@ const ProductsTable = ({ wrapperHeight, filterValue = '', selectedCategories = [
                   style: 'currency',
                   currency: 'MXN'
                 })}
-              </TableCell>
-              <TableCell>
-                <Tooltip
-                  className='max-w-xs'
-                  placement='left'
-                  content={
-                    <div className='px-1 py-2 min-w-xs '>
-                      <div className='text-small font-bold'>{item.sku}</div>
-                      <div className='text-tiny'>{item.description}</div>
-                      <div className='flex justify-between items-center mt-2'>
-                        <Chip className={categoryColor} size='sm' variant='flat'>
-                          {item.category_description}
-                        </Chip>
-                        {item.provider_name}
-                      </div>
-                    </div>
-                  }
-                >
-                  <CircleHelp size={24} className='text-gray-500 cursor-help focus:outline-none focus:ring-0' tabIndex={-1} />
-                </Tooltip>
               </TableCell>
             </TableRow>
           )
