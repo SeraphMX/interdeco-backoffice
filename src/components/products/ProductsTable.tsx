@@ -42,10 +42,11 @@ const ProductsTable = ({
       const matchesProviders = selectedProviders.length === 0 || selectedProviders.find((p) => p === item.provider.toString())
 
       const matchesWithPrice = item.public_price !== undefined && (item.price ?? 0) > 0
+      const matchesActive = variant !== 'minimal' || item.is_active
 
-      return matchesSearch && matchesProviders && matchesCategories && matchesWithPrice
+      return matchesSearch && matchesProviders && matchesCategories && matchesWithPrice && matchesActive
     })
-  }, [rxProducts, filterValue, selectedCategories, selectedProviders])
+  }, [rxProducts, filterValue, selectedCategories, selectedProviders, variant])
 
   const sortedItems = [...filteredItems].sort((a, b) => {
     const column = sortDescriptor.column
