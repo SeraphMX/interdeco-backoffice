@@ -17,7 +17,7 @@ const ProductsTable = ({ wrapperHeight, filterValue = '', selectedCategories = [
   const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
   const loading = useSelector((state: RootState) => state.productos.loading)
   const dispatch = useDispatch()
-  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'category_description', direction: 'ascending' })
+  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'public_price', direction: 'descending' })
 
   const filteredItems = useMemo(() => {
     console.log('Filtros activos:', { selectedCategories, selectedProviders, filterValue })
