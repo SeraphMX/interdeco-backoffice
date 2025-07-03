@@ -2,7 +2,8 @@
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { supabase } from '../lib/supabase'
-import { addCategory, Category, removeCategory, setCategories, updateCategory } from '../store/slices/catalogSlice'
+import { addCategory, removeCategory, setCategories, updateCategory } from '../store/slices/catalogSlice'
+import { Category } from '../types'
 
 export const useCategories = () => {
   const dispatch = useDispatch()
@@ -20,7 +21,7 @@ export const useCategories = () => {
     // Realtime
     const channel = supabase
       .channel('realtime:Categories')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'Categories' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, (payload) => {
         const { eventType, new: newData, old: oldData } = payload
         if (eventType === 'INSERT') dispatch(addCategory(newData as Category))
         if (eventType === 'UPDATE') dispatch(updateCategory(newData as Category))

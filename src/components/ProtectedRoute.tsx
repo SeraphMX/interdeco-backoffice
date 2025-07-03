@@ -2,7 +2,9 @@ import { useSelector } from 'react-redux'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useCategories } from '../hooks/useCategories'
 import { useCustomers } from '../hooks/useCustomers'
+import { useMeasureUnits } from '../hooks/useMeasureUnits'
 import { useProducts } from '../hooks/useProducts'
+import { useProviders } from '../hooks/useProviders'
 import { useQuotes } from '../hooks/useQuotes'
 import { RootState } from '../store'
 
@@ -16,6 +18,8 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   const location = useLocation()
 
   useCategories() //Carga de categorias desde supabase a redux
+  useProviders() //Carga de proveedores desde supabase a redux
+  useMeasureUnits() //Carga de unidades de medida desde supabase a redux
   useCustomers() //Carga de clientes desde supabase a redux
   useProducts() //Carga de productos desde supabase a redux
   useQuotes()
