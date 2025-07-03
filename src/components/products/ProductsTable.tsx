@@ -1,20 +1,27 @@
-import { Chip, SortDescriptor, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react'
+import { Chip, SortDescriptor, Spinner, Switch, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react'
 import { useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../store'
-import { Category } from '../../store/slices/catalogSlice'
 import { setSelectedProduct } from '../../store/slices/productsSlice'
+import { Category } from '../../types'
 
 interface ProductsTableProps {
   wrapperHeight?: number
   filterValue?: string
   selectedCategories?: string[]
   selectedProviders?: string[]
+  variant?: 'default' | 'minimal'
 }
 
-const ProductsTable = ({ wrapperHeight, filterValue = '', selectedCategories = [], selectedProviders = [] }: ProductsTableProps) => {
+const ProductsTable = ({
+  wrapperHeight,
+  filterValue = '',
+  selectedCategories = [],
+  selectedProviders = [],
+  variant = 'default'
+}: ProductsTableProps) => {
   const rxProducts = useSelector((state: RootState) => state.productos.items)
-  const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
+  const rxCategories = useSelector((state: RootState) => state.catalog.categories)
   const loading = useSelector((state: RootState) => state.productos.loading)
   const dispatch = useDispatch()
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'public_price', direction: 'descending' })
@@ -27,11 +34,11 @@ const ProductsTable = ({ wrapperHeight, filterValue = '', selectedCategories = [
         item.description.toLowerCase().includes(filterValue.toLowerCase()) ||
         (item.sku ?? '').toLowerCase().includes(filterValue.toLowerCase()) ||
         //item.category_description.toLowerCase().includes(filterValue.toLowerCase()) ||
-        item.provider_name.toLowerCase().includes(filterValue.toLowerCase()) ||
+        item.provider_name?.toLowerCase().includes(filterValue.toLowerCase()) ||
         item.spec?.toLowerCase().includes(filterValue.toLowerCase())
 
       const matchesCategories = selectedCategories.length === 0 || selectedCategories.find((c) => c === item.category.toString())
-      const matchesProviders = selectedProviders.length === 0 || selectedProviders.find((p) => p === item.category.toString())
+      const matchesProviders = selectedProviders.length === 0 || selectedProviders.find((p) => p === item.provider.toString())
 
       const matchesWithPrice = item.public_price !== undefined && (item.price ?? 0) > 0
 
@@ -62,97 +69,120 @@ const ProductsTable = ({ wrapperHeight, filterValue = '', selectedCategories = [
     return direction === 'descending' ? -cmp : cmp
   })
   const headerColumns = [
-    { name: 'ESPECIFICACIÓN', uid: 'spec', sortable: true },
-    { name: 'SKU', uid: 'sku', sortable: true, hidden: true },
-    { name: 'CATEGORÍA', uid: 'category_description', hidden: true },
-    { name: 'PROVEEDOR', uid: 'provider_name', hidden: true },
-    { name: 'DESCRIPCIÓN', uid: 'description', hidden: true },
-    { name: 'PRECIO PÚBLICO', uid: 'public_price', sortable: true, align: 'end' }
+    { name: 'PRODUCTO', uid: 'spec', sortable: true },
+    { name: 'PRECIO PÚBLICO', uid: 'public_price', sortable: true, align: 'end' },
+    { name: 'ACTIVO', uid: 'is_active', sortable: true, hidden: variant === 'minimal' ? true : false, align: 'center' },
+    { uid: 'facade' }
   ]
 
   return (
-    <Table
-      isVirtualized
-      color='primary'
-      maxTableHeight={wrapperHeight}
-      //isStriped
-      aria-label='Tabla de catálogo'
-      isHeaderSticky
-      sortDescriptor={sortDescriptor}
-      onSortChange={setSortDescriptor}
-      selectionMode='single'
-      selectionBehavior='toggle'
-      //selectedKeys={selectedKeys}
-      className='overflow-auto'
-      classNames={{
-        th: 'bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600'
-      }}
-      onSelectionChange={(key) => {
-        const selectedId = Array.from(key)[0]
-        const product = rxProducts.find((p) => p.id == selectedId)
-        //setSelectedKeys(key)
-        dispatch(setSelectedProduct(product || null))
-      }}
-      shadow='none'
-    >
-      <TableHeader columns={headerColumns}>
-        {(column) => (
-          <TableColumn
-            key={column.uid}
-            allowsSorting={column.sortable}
-            hidden={column.hidden}
-            align={(column.align as 'center' | 'start' | 'end' | undefined) || 'start'}
-          >
-            {column.name}
-          </TableColumn>
-        )}
-      </TableHeader>
-      <TableBody items={sortedItems} isLoading={loading} loadingContent={<Spinner label='Cargando datos...' />}>
-        {(item) => {
-          const category = rxCategories.find((cat: Category) => cat.description === item.category_description)
-          const categoryColor = category?.color || 'bg-gray-300'
-          return (
-            <TableRow key={item.id}>
-              <TableCell className='max-w-32 whitespace-nowrap text-ellipsis overflow-hidden' hidden>
-                {item.sku}
-              </TableCell>
-              <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden' hidden>
-                <Chip className={categoryColor} size='sm' variant='flat'>
-                  {item.category_description}
-                </Chip>
-              </TableCell>
-              <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden' hidden>
-                {item.provider_name}
-              </TableCell>
-              <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>
-                <div className='px-1 py-2 min-w-xs '>
-                  <div className='text-small'>
-                    <span className='font-bold'>{item.sku}</span> {item.provider_name}
-                  </div>
-                  <div className='text-tiny text-wrap'>
-                    <span className='font-semibold'>{item.spec}</span> {item.description}
-                  </div>
-                  <div className='flex justify-between items-center mt-2'>
-                    <Chip className={categoryColor} size='sm' variant='flat'>
-                      {item.category_description}
-                    </Chip>
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell className='w-1/2 max-w-md whitespace-nowrap text-ellipsis overflow-hidden' hidden>
-                {item.description}
-              </TableCell>
-              <TableCell>
-                {((item.price ?? 0) * (1 + (item.utility ?? 0) / 100)).toLocaleString('es-MX', {
-                  style: 'currency',
-                  currency: 'MXN'
-                })}
-              </TableCell>
-            </TableRow>
-          )
+    <>
+      <Table
+        isVirtualized
+        color='primary'
+        maxTableHeight={wrapperHeight}
+        //isStriped
+        aria-label='Tabla de catálogo'
+        isHeaderSticky
+        sortDescriptor={sortDescriptor}
+        onSortChange={setSortDescriptor}
+        selectionMode='single'
+        selectionBehavior='toggle'
+        bottomContent={
+          <footer className='text-sm  text-gray-700 z-0  fixed bottom-0 left-0 right-0 flex justify-center items-center p-1'>
+            <section className='container mx-auto px-6  flex justify-between items-center'>
+              <div>{filteredItems.length} resultados encontrados</div>
+              <div>
+                {selectedCategories.length > 0
+                  ? selectedCategories
+                      .map((categoryId) => {
+                        const category = rxCategories.find((c) => c.id === Number(categoryId))
+                        return category ? category.description : ''
+                      })
+                      .join(', ')
+                  : ''}
+                {selectedCategories.length > 0 && selectedProviders.length > 0 ? ' de ' : ''}
+                {selectedProviders.length > 0
+                  ? selectedProviders
+                      .map((providerId) => {
+                        const provider = rxProducts.find((p) => p.provider === Number(providerId))
+                        return provider ? provider.provider_name : ''
+                      })
+                      .join(', ')
+                  : ''}
+              </div>
+            </section>
+          </footer>
+        }
+        //selectedKeys={selectedKeys}
+        className='overflow-auto z-10'
+        classNames={{
+          th: 'bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600'
         }}
-      </TableBody>
-    </Table>
+        onSelectionChange={(key) => {
+          const selectedId = Array.from(key)[0]
+          const product = rxProducts.find((p) => p.id == selectedId)
+          //setSelectedKeys(key)
+          dispatch(setSelectedProduct(product || null))
+        }}
+        shadow='none'
+      >
+        <TableHeader columns={headerColumns}>
+          {(column) => (
+            <TableColumn
+              key={column.uid}
+              allowsSorting={column.sortable}
+              hidden={column.hidden}
+              align={(column.align as 'center' | 'start' | 'end' | undefined) || 'start'}
+            >
+              {column.name}
+            </TableColumn>
+          )}
+        </TableHeader>
+        <TableBody items={sortedItems} isLoading={loading} loadingContent={<Spinner label='Cargando datos...' />}>
+          {(item) => {
+            const category = rxCategories.find((cat: Category) => cat.description === item.category_description)
+            const categoryColor = category?.color || 'bg-gray-300'
+            return (
+              <TableRow key={item.id}>
+                <TableCell className='w-full'>
+                  <div className='min-w-xs '>
+                    <div className={`${variant === 'default' ? ' text-large' : 'text-small'}`}>
+                      <span className='font-bold'>{item.sku}</span> - <span className='text-gray-600'>{item.provider_name}</span>
+                    </div>
+                    <div className={`text-wrap ${variant === 'default' ? ' text-small' : 'text-tiny '}`}>
+                      <span className='font-semibold'>{item.spec}</span> {item.description}
+                    </div>
+                    <div className='flex justify-between items-center mt-2'>
+                      <Chip className={categoryColor} size='sm' variant='flat'>
+                        {item.category_description}
+                      </Chip>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className={`pr-10 ${variant === 'default' ? ' text-lg' : ''}`}>
+                  {item.package_unit && item.package_unit > 1
+                    ? ((item.price ?? 0) * (1 + (item.utility ?? 0) / 100) * item.package_unit).toLocaleString('es-MX', {
+                        style: 'currency',
+                        currency: 'MXN'
+                      })
+                    : ((item.price ?? 0) * (1 + (item.utility ?? 0) / 100)).toLocaleString('es-MX', {
+                        style: 'currency',
+                        currency: 'MXN'
+                      })}
+                </TableCell>
+                <TableCell hidden={variant === 'minimal' ? true : false} className='text-center'>
+                  <Switch defaultSelected aria-label='Status del producto' />
+                </TableCell>
+                <TableCell>
+                  <i />
+                </TableCell>
+              </TableRow>
+            )
+          }}
+        </TableBody>
+      </Table>
+    </>
   )
 }
 
