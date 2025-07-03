@@ -77,5 +77,34 @@ export const productService = {
 
       console.error('Error:', err)
     }
+  },
+  async setActiveProduct(product: Product, status: boolean): Promise<void> {
+    try {
+      const { error } = await supabase.from('products').update({ is_active: status }).eq('id', product.id)
+
+      if (error) throw error
+
+      if (status) {
+        addToast({
+          title: 'Producto activado',
+          description: `El producto ${product.spec} se ha activado correctamente.`,
+          color: 'success'
+        })
+      } else {
+        addToast({
+          title: 'Producto desactivado',
+          description: `El producto ${product.spec} se ha desactivado correctamente.`,
+          color: 'warning'
+        })
+      }
+    } catch (err) {
+      addToast({
+        title: 'Error al actualizar',
+        description: 'Hubo un error al actualizar el producto. Inténtalo de nuevo.',
+        color: 'danger'
+      })
+
+      console.error('Error:', err)
+    }
   }
 }
