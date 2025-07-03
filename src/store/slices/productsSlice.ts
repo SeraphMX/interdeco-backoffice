@@ -5,13 +5,16 @@ interface ProductsState {
   items: Product[]
   selectedProduct?: Product | null
   loading: boolean
+  isEditing?: boolean
   error: string | null
 }
 
 const initialState: ProductsState = {
   items: [],
   loading: false,
-  error: null
+  error: null,
+  isEditing: false,
+  selectedProduct: null
 }
 
 const productoSlice = createSlice({
@@ -44,10 +47,22 @@ const productoSlice = createSlice({
     },
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload
+    },
+    setIsEditing(state, action: PayloadAction<boolean>) {
+      state.isEditing = action.payload
     }
   }
 })
 
-export const { setProducts, addProduct, updateProduct, removeProduct, setLoading, setError, setSelectedProduct, clearSelectedProduct } =
-  productoSlice.actions
+export const {
+  setProducts,
+  addProduct,
+  updateProduct,
+  removeProduct,
+  setLoading,
+  setError,
+  setSelectedProduct,
+  clearSelectedProduct,
+  setIsEditing
+} = productoSlice.actions
 export default productoSlice.reducer
