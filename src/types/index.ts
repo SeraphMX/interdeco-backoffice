@@ -104,6 +104,7 @@ export interface Product {
   public_price?: number
   provider_name?: string
   category_description?: string
+  is_active?: boolean
 }
 
 export interface Customer {

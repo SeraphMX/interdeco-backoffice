@@ -1,9 +1,10 @@
 import { Chip, SortDescriptor, Spinner, Switch, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react'
 import { useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { productService } from '../../services/productService'
 import { RootState } from '../../store'
-import { setSelectedProduct } from '../../store/slices/productsSlice'
-import { Category } from '../../types'
+import { setSelectedProduct, updateProduct } from '../../store/slices/productsSlice'
+import { Category, Product } from '../../types'
 
 interface ProductsTableProps {
   wrapperHeight?: number
@@ -74,6 +75,22 @@ const ProductsTable = ({
     { name: 'ACTIVO', uid: 'is_active', sortable: true, hidden: variant === 'minimal' ? true : false, align: 'center' },
     { uid: 'facade' }
   ]
+
+  const handleProductStatus = async (product: Product, status: boolean) => {
+    const previous = product.is_active // Guardamos valor previo por si hay que revertir
+
+    // 1. Optimistic update
+    dispatch(updateProduct({ ...product, is_active: status }))
+
+    try {
+      // 2. Actualiza en backend
+      await productService.setActiveProduct(product, status)
+    } catch (error) {
+      // 3. Revertir si falla
+      dispatch(updateProduct({ ...product, is_active: previous }))
+      console.error('Error al actualizar el estado del producto:', error)
+    }
+  }
 
   return (
     <>
@@ -172,7 +189,11 @@ const ProductsTable = ({
                       })}
                 </TableCell>
                 <TableCell hidden={variant === 'minimal' ? true : false} className='text-center'>
-                  <Switch defaultSelected aria-label='Status del producto' />
+                  <Switch
+                    aria-label='Status del producto'
+                    isSelected={item.is_active}
+                    onValueChange={(val) => handleProductStatus(item, val)}
+                  />
                 </TableCell>
                 <TableCell>
                   <i />
