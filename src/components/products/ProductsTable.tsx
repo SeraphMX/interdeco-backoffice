@@ -107,7 +107,7 @@ const ProductsTable = ({
         selectionMode='single'
         selectionBehavior='toggle'
         bottomContent={
-          <footer className='text-sm  text-gray-700 z-0  fixed bottom-0 left-0 right-0 flex justify-center items-center p-1'>
+          <footer className='text-sm bg-gray-50  text-gray-700 z-0  fixed bottom-0 left-0 right-0 flex justify-center items-center p-1'>
             <section className='container mx-auto px-6  flex justify-between items-center'>
               <div>{filteredItems.length} resultados encontrados</div>
               <div>
@@ -133,7 +133,7 @@ const ProductsTable = ({
           </footer>
         }
         //selectedKeys={selectedKeys}
-        className='overflow-auto z-10'
+        className='overflow-auto'
         classNames={{
           th: 'bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600'
         }}
