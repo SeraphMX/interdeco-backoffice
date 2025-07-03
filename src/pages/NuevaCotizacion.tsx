@@ -60,7 +60,7 @@ const NuevaCotizacion = () => {
   const [taxes, setTaxes] = useState(0)
   const [subtotal, setSubtotal] = useState(0)
 
-  const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
+  const rxCategories = useSelector((state: RootState) => state.catalog.categories)
   const scrollRef = useRef<HTMLDivElement>(null)
   const prevItemsLengthRef = useRef((quote.data.items ?? []).length)
 
