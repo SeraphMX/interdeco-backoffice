@@ -3,13 +3,13 @@ import { TriangleAlert } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../../store'
 
-interface ModalSelectCustomerProps {
+interface ModalCustomerConfirmDeleteProps {
   isOpen: boolean
   onOpenChange: (isOpen: boolean) => void
   onConfirm: () => void
 }
 
-const ModalCustomerConfirmDelete = ({ isOpen, onOpenChange, onConfirm }: ModalSelectCustomerProps) => {
+const ModalCustomerConfirmDelete = ({ isOpen, onOpenChange, onConfirm }: ModalCustomerConfirmDeleteProps) => {
   const customer = useSelector((state: RootState) => state.clientes.selectedCustomer)
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='sm' backdrop='opaque'>
