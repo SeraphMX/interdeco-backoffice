@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react'
-import { Book, FileText, LogOut, Menu, Users, X } from 'lucide-react'
+import { Book, ContactRound, FileText, LogOut, Menu, UsersRound, X } from 'lucide-react'
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -21,9 +21,10 @@ const Navbar = () => {
   }
 
   const navItems = [
-    { path: '/clientes', icon: Users, label: 'Clientes' },
+    { path: '/clientes', icon: ContactRound, label: 'Clientes' },
     { path: '/catalogo', icon: Book, label: 'Catálogo' },
-    { path: '/cotizaciones', icon: FileText, label: 'Cotizaciones' }
+    { path: '/cotizaciones', icon: FileText, label: 'Cotizaciones' },
+    { path: '/usuarios', icon: UsersRound, label: 'Usuarios' }
   ]
 
   return (

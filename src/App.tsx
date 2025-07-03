@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import NuevaCotizacion from './pages/NuevaCotizacion'
 import { QuotePreviewPage } from './pages/PreviewPDF'
+import Users from './pages/Users'
 import { store } from './store'
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
               <Route path='/catalogo' element={<Catalogo />} />
               <Route path='/cotizaciones' element={<Cotizaciones />} />
               <Route path='/cotizaciones/nueva' element={<NuevaCotizacion />} />
+              <Route path='/usuarios' element={<Users />} />
             </Route>
             <Route path='/cotizaciones/preview' element={<QuotePreviewPage />} />
           </Routes>
