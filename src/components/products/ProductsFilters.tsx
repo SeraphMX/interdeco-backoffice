@@ -18,13 +18,8 @@ interface ProductsFiltersProps {
 }
 
 const ProductsFilters = ({ filters }: ProductsFiltersProps) => {
-  const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
-
-  const rxProviders = [
-    { key: 1, name: 'Teknostep' },
-    { key: 2, name: 'Shades' },
-    { key: 3, name: 'Vertilux' }
-  ]
+  const rxCategories = useSelector((state: RootState) => state.catalog.categories)
+  const rxProviders = useSelector((state: RootState) => state.catalog.providers)
 
   const search = filters?.search
   const categories = filters?.categories
@@ -46,10 +41,10 @@ const ProductsFilters = ({ filters }: ProductsFiltersProps) => {
 
   return (
     <section className='flex flex-wrap flex-grow gap-4 '>
-      <div className='flex-grow min-w-0'>
+      <div className='flex-grow min-w-0 sm:max-w-[300px]'>
         <Input
           isClearable
-          className='w-full'
+          className='w-full '
           placeholder='Buscar en catálogo...'
           startContent={<Search className='text-gray-400' size={20} />}
           value={search?.value || ''}
@@ -104,7 +99,7 @@ const ProductsFilters = ({ filters }: ProductsFiltersProps) => {
           onSelectionChange={(keys) => providers?.setValue(Array.from(keys).map((key) => key.toString()))}
         >
           {rxProviders.map((provider) => (
-            <DropdownItem key={provider.key}>{provider.name}</DropdownItem>
+            <DropdownItem key={provider.id}>{provider.name}</DropdownItem>
           ))}
         </DropdownMenu>
       </Dropdown>
