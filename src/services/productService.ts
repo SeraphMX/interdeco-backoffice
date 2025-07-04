@@ -142,7 +142,7 @@ export const productService = {
       addToast({
         title: `${itemName} ${itemName === 'Proveedor' ? 'agregado' : 'agregada'}`,
         description: `${itemName === 'Proveedor' ? 'El' : 'La'} ${itemName.toLowerCase()}  se ha guardado correctamente.`,
-        color: 'success'
+        color: 'primary'
       })
 
       return newItem
@@ -194,7 +194,7 @@ export const productService = {
       addToast({
         title: `${itemName} ${itemName === 'Proveedor' ? 'eliminado' : 'eliminada'}`,
         description: `${itemName === 'Proveedor' ? 'El' : 'La'} ${itemName.toLowerCase()} se ha eliminado correctamente.`,
-        color: 'success'
+        color: 'primary'
       })
     } catch (err) {
       addToast({
@@ -215,6 +215,8 @@ export const productService = {
       let data: Provider | Category | MeasureUnit
       let itemId: number | string | undefined
       let itemName: string
+
+      console.log('tipo:', type, 'item:', item)
 
       switch (type) {
         case 'provider':
@@ -248,7 +250,7 @@ export const productService = {
       if (error) throw error
 
       addToast({
-        title: `${itemName} ${itemName === 'Proveedor' ? 'eliminado' : 'eliminada'} `,
+        title: `${itemName} ${itemName === 'Proveedor' ? 'actualizado' : 'actualizada'} `,
         description: `${itemName === 'Proveedor' ? 'El' : 'La'} ${itemName.toLowerCase()} se ha actualizado correctamente.`,
         color: 'primary'
       })
