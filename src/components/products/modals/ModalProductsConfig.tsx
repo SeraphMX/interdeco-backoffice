@@ -1,9 +1,8 @@
-import { addToast, Button, Modal, ModalBody, ModalContent, ModalHeader, Tab, Tabs } from '@heroui/react'
-import { Plus } from 'lucide-react'
-import { useState } from 'react'
-import { useSelector } from 'react-redux'
+import { Modal, ModalBody, ModalContent, ModalHeader, Tab, Tabs } from '@heroui/react'
+import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../../store'
-import AddCategory from '../../forms/AddCategory'
+import { setShowForm } from '../../../store/slices/catalogSlice'
+import ConfigCatalogHandler from '../ConfigCatalogHandler'
 import ConfigTable from '../ConfigTable'
 
 interface ModalProductsConfigProps {
@@ -11,90 +10,28 @@ interface ModalProductsConfigProps {
   onOpenChange: (isOpen: boolean) => void
 }
 const ModalProductsConfig = ({ isOpen, onOpenChange }: ModalProductsConfigProps) => {
+  const dispatch = useDispatch()
   const rxCategories = useSelector((state: RootState) => state.catalog.categories)
   const rxProviders = useSelector((state: RootState) => state.catalog.providers)
   const rxMeasureUnits = useSelector((state: RootState) => state.catalog.measureUnits)
 
-  const [addCategory, setAddCategory] = useState<boolean>(false)
-
   return (
-    <Modal size='xl' isOpen={isOpen} onOpenChange={onOpenChange}>
+    <Modal size='xl' isOpen={isOpen} onOpenChange={onOpenChange} backdrop='blur'>
       <ModalContent>
-        <ModalHeader className='flex flex-col gap-1'>Configuración de opciones</ModalHeader>
+        <ModalHeader className='flex flex-col gap-1'>Configuración de catálogos</ModalHeader>
         <ModalBody>
-          <Tabs aria-label='Configuración' disableAnimation color='primary'>
+          <Tabs aria-label='Configuración' disableAnimation color='primary' onSelectionChange={() => dispatch(setShowForm(false))}>
             <Tab key='categories' title='Categorías'>
-              {!addCategory && (
-                <div className='flex justify-between items-center mx-4 mb-2'>
-                  <span>{rxCategories.length} categorías registradas</span>
-
-                  <Button
-                    variant='flat'
-                    color='primary'
-                    className='mb-2'
-                    onPress={() => {
-                      console.log('Agregar nueva categoría')
-                      setAddCategory(true)
-                      // Aquí puedes abrir un modal o formulario para agregar una nueva categoría
-                    }}
-                  >
-                    <Plus size={20} />
-                    Agregar categoría
-                  </Button>
-                </div>
-              )}
-              {addCategory && (
-                <AddCategory
-                  onSuccess={(category) => {
-                    console.log('Categoría agregada:', category)
-                    //setSelectedCategories((prev) => new Set([...prev, category.description]))
-                    addToast({
-                      title: 'Categoría agregada',
-                      description: `La categoría ${category.name} se ha guardado correctamente.`,
-                      color: 'success'
-                    })
-                  }}
-                  onCancel={() => setAddCategory(false)}
-                />
-              )}
-
-              <ConfigTable items={rxCategories} />
+              <ConfigCatalogHandler type='category' />
+              <ConfigTable type='category' items={rxCategories} />
             </Tab>
             <Tab key='providers' title='Proveedores'>
-              <div className='flex justify-between items-center mx-4 mb-2'>
-                <span className=''>{rxProviders.length} proveedores registrados</span>
-                <Button
-                  variant='flat'
-                  color='primary'
-                  className='mb-2'
-                  onPress={() => {
-                    console.log('Agregar nuevo proveedor')
-                    // Aquí puedes abrir un modal o formulario para agregar una nueva categoría
-                  }}
-                >
-                  <Plus size={20} />
-                  Agregar proveedor
-                </Button>
-              </div>
-              <ConfigTable items={rxProviders} />
+              <ConfigCatalogHandler type='provider' />
+              <ConfigTable type='provider' items={rxProviders} />
             </Tab>
             <Tab key='measure-units' title='Unidades de medida'>
-              <div className='flex justify-between items-center mx-4 mb-2'>
-                <span className=''>{rxMeasureUnits.length} Unidades registradas</span>
-                <Button
-                  variant='flat'
-                  color='primary'
-                  className='mb-2'
-                  onPress={() => {
-                    console.log('Agregar nueva unidad')
-                    // Aquí puedes abrir un modal o formulario para agregar una nueva categoría
-                  }}
-                >
-                  <Plus size={20} />
-                  Agregar unidad
-                </Button>
-              </div>
-              <ConfigTable items={rxMeasureUnits} />
+              <ConfigCatalogHandler type='measureUnit' />
+              <ConfigTable type='measureUnit' items={rxMeasureUnits} />
             </Tab>
           </Tabs>
         </ModalBody>
