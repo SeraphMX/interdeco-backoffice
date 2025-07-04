@@ -25,7 +25,7 @@ export const useMeasureUnits = () => {
         const { eventType, new: newData, old: oldData } = payload
         if (eventType === 'INSERT') dispatch(addMeasureUnit(newData as MeasureUnit))
         if (eventType === 'UPDATE') dispatch(updateMeasureUnit(newData as MeasureUnit))
-        if (eventType === 'DELETE') dispatch(removeMeasureUnit(oldData.id))
+        if (eventType === 'DELETE') dispatch(removeMeasureUnit(oldData.key))
       })
       .subscribe()
 
