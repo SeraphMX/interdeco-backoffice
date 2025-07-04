@@ -1,11 +1,13 @@
 import { z } from 'zod'
 
 export const categorySchema = z.object({
+  id: z.number().optional(),
   description: z.string().min(1, 'Obligatorio'),
   color: z.string().min(1, 'El color es obligatorio')
 })
 
 export const providerSchema = z.object({
+  id: z.number().optional(),
   name: z.string().min(1, 'El nombre es obligatorio')
 })
 
