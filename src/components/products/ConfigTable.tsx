@@ -1,10 +1,28 @@
-import { Button, Chip, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react'
+import {
+  Button,
+  Chip,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
+  useDisclosure
+} from '@heroui/react'
 import { EllipsisVertical } from 'lucide-react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { productService } from '../../services/productService'
 import { RootState } from '../../store'
+import { setSelectedItem, setShowForm } from '../../store/slices/catalogSlice'
 import { Category, MeasureUnit, Provider } from '../../types'
+import ModalConfigConfirmCatalogDelete from './modals/ModalConfigConfirmCatalogDelete'
 
 interface ConfigTableProps {
+  type: 'category' | 'provider' | 'measureUnit'
   items: (Provider | Category | MeasureUnit)[]
 }
 
@@ -18,8 +36,12 @@ const getColor = (item: Provider | Category | MeasureUnit) => {
   return 'color' in item && item.color ? item.color : ''
 }
 
-const ConfigTable = ({ items }: ConfigTableProps) => {
+const ConfigTable = ({ type, items }: ConfigTableProps) => {
+  const dispatch = useDispatch()
   const products = useSelector((state: RootState) => state.productos.items)
+  const selectedItem = useSelector((state: RootState) => state.catalog.selectedItem)
+
+  const { isOpen, onOpenChange, onOpen } = useDisclosure()
 
   // Función para contar productos según el tipo de item
   const getProductsCount = (item: Provider | Category | MeasureUnit) => {
@@ -38,59 +60,84 @@ const ConfigTable = ({ items }: ConfigTableProps) => {
     return 0
   }
 
+  const handleConfirmDelete = async (item: Provider | Category | MeasureUnit) => {
+    dispatch(setSelectedItem(item))
+    onOpen()
+  }
+
+  const handleEdit = (item: Provider | Category | MeasureUnit) => {
+    dispatch(setSelectedItem(item))
+    dispatch(setShowForm(true))
+  }
+
   return (
-    <Table
-      aria-label='Configuración'
-      selectionMode='single'
-      isHeaderSticky
-      classNames={{
-        th: 'bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600',
-        base: 'max-h-[400px] overflow-auto shadow-small rounded-xl'
-      }}
-    >
-      <TableHeader
-        columns={[
-          { key: 'label', label: 'Nombre', sortable: true },
-          { key: 'products', label: 'Productos', align: 'center', sortable: true },
-          { key: 'actions', label: 'Acciones', align: 'center' }
-        ]}
+    <>
+      <Table
+        aria-label='Configuración'
+        selectionMode='single'
+        isHeaderSticky
+        classNames={{
+          th: 'bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600',
+          base: 'max-h-[400px] overflow-auto shadow-small rounded-xl'
+        }}
       >
-        {(column) => (
-          <TableColumn key={column.key} align={(column.align as 'center' | 'start' | 'end' | undefined) || 'start'}>
-            {column.label}
-          </TableColumn>
-        )}
-      </TableHeader>
-      <TableBody items={items}>
-        {(item) => (
-          <TableRow key={'id' in item ? item.id : item.key}>
-            <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>
-              {'description' in item ? (
-                <Chip className={getColor(item)} size='sm' variant='flat'>
-                  {getLabel(item)}
-                </Chip>
-              ) : (
-                getLabel(item)
-              )}
-            </TableCell>
-            <TableCell align='center'>{getProductsCount(item)}</TableCell>
-            <TableCell>
-              <Button
-                isIconOnly
-                variant='light'
-                color='secondary'
-                onPress={() => {
-                  console.log('Editar:', item)
-                  // Aquí puedes abrir un modal o formulario para editar el item
-                }}
-              >
-                <EllipsisVertical size={20} />
-              </Button>
-            </TableCell>
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+        <TableHeader
+          columns={[
+            { key: 'label', label: 'Nombre', sortable: true },
+            { key: 'products', label: 'Productos', align: 'center', sortable: true },
+            { key: 'actions', label: 'Acciones', align: 'center' }
+          ]}
+        >
+          {(column) => (
+            <TableColumn key={column.key} align={(column.align as 'center' | 'start' | 'end' | undefined) || 'start'}>
+              {column.label}
+            </TableColumn>
+          )}
+        </TableHeader>
+        <TableBody items={items}>
+          {(item) => (
+            <TableRow key={'key' in item ? item.key : item.id}>
+              <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>
+                {'description' in item ? (
+                  <Chip className={getColor(item)} size='sm' variant='flat'>
+                    {getLabel(item)}
+                  </Chip>
+                ) : (
+                  getLabel(item)
+                )}
+              </TableCell>
+              <TableCell align='center'>{getProductsCount(item)}</TableCell>
+              <TableCell>
+                <Dropdown placement='left'>
+                  <DropdownTrigger>
+                    <Button isIconOnly variant='light' color='secondary'>
+                      <EllipsisVertical size={20} />
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu aria-label='Static Actions'>
+                    <DropdownItem key='edit' onPress={() => handleEdit(item)}>
+                      Editar
+                    </DropdownItem>
+                    <DropdownItem key='delete' className='text-danger' color='danger' onPress={() => handleConfirmDelete(item)}>
+                      Eliminar
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+      <ModalConfigConfirmCatalogDelete
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        deleteType={type}
+        onConfirm={async () => {
+          await productService.deleteCatalogItem(type, selectedItem as Provider | Category | MeasureUnit)
+          onOpenChange()
+        }}
+      />
+    </>
   )
 }
 
