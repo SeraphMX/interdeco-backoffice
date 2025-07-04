@@ -1,12 +1,13 @@
 import { Button, cn, Input, Select, SelectItem } from '@heroui/react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Circle, Plus, Save, X } from 'lucide-react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { Category, categorySchema, MeasureUnit, measureUnitSchema, Provider, providerSchema } from '../../schemas/catalog.schema'
 import { productService } from '../../services/productService'
 import { RootState } from '../../store'
-import { setShowForm } from '../../store/slices/catalogSlice'
+import { setSelectedItem, setShowForm } from '../../store/slices/catalogSlice'
 
 type AddCatalogItemProps = {
   type: 'category' | 'provider' | 'measureUnit'
@@ -18,6 +19,7 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
   const rxProviders = useSelector((state: RootState) => state.catalog.providers)
   const rxMeasureUnits = useSelector((state: RootState) => state.catalog.measureUnits)
   const showForm = useSelector((state: RootState) => state.catalog.showForm)
+  const selectedItem = useSelector((state: RootState) => state.catalog.selectedItem)
 
   const colors = [
     { key: 'rojo', label: 'Rojo', value: 'bg-red-300' },
@@ -41,17 +43,20 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
     category: {
       items: rxCategories.length,
       label: 'Categorías registradas',
-      placeholder: 'Agregar categoría'
+      placeholder: 'Agregar categoría',
+      single: 'categoría'
     },
     provider: {
       items: rxProviders.length,
       label: 'Proveedores registrados',
-      placeholder: 'Agregar proveedor'
+      placeholder: 'Agregar proveedor',
+      single: 'proveedor'
     },
     measureUnit: {
       items: rxMeasureUnits.length,
       label: 'Unidades registradas',
-      placeholder: 'Agregar unidad'
+      placeholder: 'Agregar unidad',
+      single: 'unidad de medida'
     }
   }
 
@@ -74,23 +79,16 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
     mode: 'onSubmit'
   })
 
-  const addCatalogItem = async (item: Category | Provider | MeasureUnit) => {
+  const setCatalogItem = async (item: Category | Provider | MeasureUnit) => {
     try {
-      await productService.addCatalogItem(type, item)
-
-      switch (type) {
-        case 'category':
-          categoryForm.reset()
-          break
-        case 'provider':
-          providerForm.reset()
-          break
-        case 'measureUnit':
-          measureUnitForm.reset()
-          break
+      if (selectedItem) {
+        // Actualizar
+        await productService.updateCatalogItem(type, item)
+      } else {
+        // Agregar nuevo
+        await productService.addCatalogItem(type, item)
       }
-
-      dispatch(setShowForm(false))
+      resetForms()
     } catch (error) {
       console.error('Error al agregar elemento', error)
     }
@@ -98,25 +96,40 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
 
   // Handlers según formulario
   const onSubmitCategory = categoryForm.handleSubmit(async (data) => {
-    addCatalogItem(data)
+    setCatalogItem(data)
   })
 
   const onSubmitProvider = providerForm.handleSubmit(async (data) => {
-    addCatalogItem(data)
+    setCatalogItem(data)
   })
 
   const onSubmitMeasureUnit = measureUnitForm.handleSubmit(async (data) => {
-    addCatalogItem(data)
+    setCatalogItem(data)
   })
+
+  const resetForms = () => {
+    dispatch(setSelectedItem(null))
+    dispatch(setShowForm(false))
+    categoryForm.reset()
+    providerForm.reset()
+    measureUnitForm.reset()
+  }
 
   const ItemButtons = () => {
     return (
       <section className='flex items-center gap-2'>
-        <Button isIconOnly variant='ghost' onPress={() => dispatch(setShowForm(false))} color='danger'>
+        <Button
+          isIconOnly
+          variant='ghost'
+          onPress={() => {
+            resetForms()
+          }}
+          color='danger'
+        >
           <X />
         </Button>
         <Button isIconOnly variant='ghost' type='submit' color='primary'>
-          <Save />
+          {selectedItem ? <Save /> : <Plus />}
         </Button>
       </section>
     )
@@ -126,7 +139,7 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
     switch (type) {
       case 'category':
         return (
-          <form className='flex items-center gap-2 m-4' onSubmit={onSubmitCategory}>
+          <form className='flex items-center gap-2 my-4' onSubmit={onSubmitCategory}>
             <Input
               label='Nombre de la categoría'
               isClearable
@@ -157,7 +170,7 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
         )
       case 'provider':
         return (
-          <form className='flex items-center gap-2 m-4' onSubmit={onSubmitProvider}>
+          <form className='flex items-center gap-2 my-4' onSubmit={onSubmitProvider}>
             <Input
               label='Nombre del proveedor'
               isClearable
@@ -172,7 +185,7 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
         )
       case 'measureUnit':
         return (
-          <form className='flex items-center gap-2 m-4' onSubmit={onSubmitMeasureUnit}>
+          <form className='flex items-center gap-2 my-4' onSubmit={onSubmitMeasureUnit}>
             <Input
               label='Clave'
               className='max-w-20'
@@ -208,6 +221,22 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
     }
   }
 
+  useEffect(() => {
+    if (!selectedItem) return
+
+    switch (type) {
+      case 'category':
+        categoryForm.reset(selectedItem as Category)
+        break
+      case 'provider':
+        providerForm.reset(selectedItem as Provider)
+        break
+      case 'measureUnit':
+        measureUnitForm.reset(selectedItem as MeasureUnit)
+        break
+    }
+  }, [type, selectedItem])
+
   return (
     <>
       {!showForm ? (
@@ -216,13 +245,23 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
             {typesMap[type].items} {typesMap[type].label}
           </span>
 
-          <Button variant='ghost' color='primary' className='mb-2' onPress={() => dispatch(setShowForm(true))}>
+          <Button
+            variant='ghost'
+            color='primary'
+            className='mb-2'
+            onPress={() => {
+              dispatch(setShowForm(true))
+            }}
+          >
             <Plus size={20} />
             {typesMap[type].placeholder}
           </Button>
         </section>
       ) : (
-        renderForm()
+        <>
+          <h4 className='text-sm text-gray-600  '>{selectedItem ? 'Editar elemento' : 'Agregar elemento'}</h4>
+          {renderForm()}
+        </>
       )}
     </>
   )
