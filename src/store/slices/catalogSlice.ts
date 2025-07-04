@@ -6,12 +6,16 @@ interface CatalogState {
   categories: Category[]
   providers: Provider[]
   measureUnits: MeasureUnit[]
+  selectedItem?: Category | Provider | MeasureUnit | null
+  showForm: boolean
 }
 
 const initialState: CatalogState = {
   categories: [],
   providers: [],
-  measureUnits: []
+  measureUnits: [],
+  selectedItem: null,
+  showForm: false
 }
 
 const catalogSlice = createSlice({
@@ -61,6 +65,13 @@ const catalogSlice = createSlice({
     },
     removeMeasureUnit(state, action: PayloadAction<string>) {
       state.measureUnits = state.measureUnits.filter((mu) => mu.key !== action.payload)
+    },
+    // Catalog
+    setSelectedItem(state, action: PayloadAction<Category | Provider | MeasureUnit | null>) {
+      state.selectedItem = action.payload
+    },
+    setShowForm(state, action: PayloadAction<boolean>) {
+      state.showForm = action.payload
     }
   }
 })
@@ -77,6 +88,8 @@ export const {
   setMeasureUnits,
   addMeasureUnit,
   updateMeasureUnit,
-  removeMeasureUnit
+  removeMeasureUnit,
+  setSelectedItem,
+  setShowForm
 } = catalogSlice.actions
 export default catalogSlice.reducer
