@@ -110,9 +110,10 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
   const resetForms = () => {
     dispatch(setSelectedItem(null))
     dispatch(setShowForm(false))
-    categoryForm.reset()
-    providerForm.reset()
-    measureUnitForm.reset()
+
+    if (type === 'category') categoryForm.reset({ description: '', color: undefined })
+    if (type === 'provider') providerForm.reset({ name: '' })
+    if (type === 'measureUnit') measureUnitForm.reset({ key: '', name: '', plural: '' })
   }
 
   const ItemButtons = () => {
@@ -235,7 +236,7 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
         measureUnitForm.reset(selectedItem as MeasureUnit)
         break
     }
-  }, [type, selectedItem])
+  }, [type, selectedItem, categoryForm, providerForm, measureUnitForm])
 
   return (
     <>
@@ -250,7 +251,9 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
             color='primary'
             className='mb-2'
             onPress={() => {
-              dispatch(setShowForm(true))
+              dispatch(setSelectedItem(null)) // Limpia cualquier elemento seleccionado
+              resetForms() // Limpia los formularios
+              dispatch(setShowForm(true)) // Muestra el formulario
             }}
           >
             <Plus size={20} />
