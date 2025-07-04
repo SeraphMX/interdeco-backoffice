@@ -157,7 +157,15 @@ const ProductsTable = ({
             </TableColumn>
           )}
         </TableHeader>
-        <TableBody items={sortedItems} isLoading={loading} loadingContent={<Spinner label='Cargando datos...' />}>
+        <TableBody
+          items={sortedItems}
+          isLoading={loading}
+          loadingContent={
+            <div className='bg-white/20 backdrop-blur-md w-full h-full flex justify-center items-center'>
+              <Spinner label='Cargando datos...' />
+            </div>
+          }
+        >
           {(item) => {
             const category = rxCategories.find((cat: Category) => cat.description === item.category_description)
             const categoryColor = category?.color || 'bg-gray-300'
