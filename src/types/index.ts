@@ -1,12 +1,12 @@
 export type uiColors = 'primary' | 'secondary' | 'success' | 'danger' | 'default' | 'warning'
 
 export interface Category {
-  id: number
+  id?: number
   description: string
-  color: string
+  color: string | undefined
 }
 export interface Provider {
-  id: number
+  id?: number
   name: string
 }
 
