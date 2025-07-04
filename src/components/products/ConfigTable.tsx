@@ -66,8 +66,10 @@ const ConfigTable = ({ type, items }: ConfigTableProps) => {
   }
 
   const handleEdit = (item: Provider | Category | MeasureUnit) => {
-    dispatch(setSelectedItem(item))
-    dispatch(setShowForm(true))
+    dispatch(setSelectedItem({ ...item }))
+    setTimeout(() => {
+      dispatch(setShowForm(true))
+    }, 200)
   }
 
   return (
