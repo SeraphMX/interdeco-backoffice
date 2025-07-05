@@ -32,7 +32,7 @@ const Catalogo = () => {
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         setwrapperHeight(entry.contentRect.height)
-        console.log('Altura del div actualizada:', entry.contentRect.height)
+        //console.log('Altura del div actualizada:', entry.contentRect.height)
       }
     })
 
@@ -77,7 +77,7 @@ const Catalogo = () => {
   }, [selectedProduct])
 
   return (
-    <div className='flex flex-col gap-4 h-full'>
+    <div className='flex flex-col gap-4 h-full pb-4'>
       <div className='flex justify-between items-center '>
         <ProductsFilters
           filters={{
