@@ -1,11 +1,13 @@
 import { Chip, SortDescriptor, Spinner, Switch, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react'
 import { useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { Category } from '../../schemas/catalog.schema'
 import { productService } from '../../services/productService'
 import { RootState } from '../../store'
+import { selectProductsWithCategoryName } from '../../store/selectors/catalogSelectors'
 import { setSelectedProduct, updateProduct } from '../../store/slices/productsSlice'
 import { Product } from '../../types'
+import { calculateSellingPrice, calculateTotalPrice } from '../../utils/pricing'
+import ProductsTableFooter from './ProductsTableFooter'
 
 interface ProductsTableProps {
   wrapperHeight?: number
@@ -22,9 +24,9 @@ const ProductsTable = ({
   selectedProviders = [],
   variant = 'default'
 }: ProductsTableProps) => {
-  const rxProducts = useSelector((state: RootState) => state.productos.items)
-  const rxCategories = useSelector((state: RootState) => state.catalog.categories)
+  const rxProducts = useSelector(selectProductsWithCategoryName)
   const loading = useSelector((state: RootState) => state.productos.loading)
+  const isEditing = useSelector((state: RootState) => state.productos.isEditing)
   const dispatch = useDispatch()
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'public_price', direction: 'descending' })
 
@@ -105,43 +107,23 @@ const ProductsTable = ({
         isHeaderSticky
         sortDescriptor={sortDescriptor}
         onSortChange={setSortDescriptor}
-        selectionMode='single'
-        selectionBehavior='toggle'
+        selectionMode={isEditing ? 'none' : 'single'}
+        selectionBehavior='replace'
+        disallowEmptySelection
         bottomContent={
-          <footer className='text-sm bg-gray-50  text-gray-700 z-0  fixed bottom-0 left-0 right-0 flex justify-center items-center p-1'>
-            <section className='container mx-auto px-6  flex justify-between items-center'>
-              <div>{filteredItems.length} resultados encontrados</div>
-              <div>
-                {selectedCategories.length > 0
-                  ? selectedCategories
-                      .map((categoryId) => {
-                        const category = rxCategories.find((c) => c.id === Number(categoryId))
-                        return category ? category.description : ''
-                      })
-                      .join(', ')
-                  : ''}
-                {selectedCategories.length > 0 && selectedProviders.length > 0 ? ' de ' : ''}
-                {selectedProviders.length > 0
-                  ? selectedProviders
-                      .map((providerId) => {
-                        const provider = rxProducts.find((p) => p.provider === Number(providerId))
-                        return provider ? provider.provider_name : ''
-                      })
-                      .join(', ')
-                  : ''}
-              </div>
-            </section>
-          </footer>
+          <ProductsTableFooter
+            filteredItemsCount={filteredItems.length}
+            selectedCategories={selectedCategories}
+            selectedProviders={selectedProviders}
+          />
         }
-        //selectedKeys={selectedKeys}
-        className='overflow-auto'
+        className='overflow-auto z-10'
         classNames={{
           th: 'bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600'
         }}
         onSelectionChange={(key) => {
           const selectedId = Array.from(key)[0]
           const product = rxProducts.find((p) => p.id == selectedId)
-          //setSelectedKeys(key)
           dispatch(setSelectedProduct(product || null))
         }}
         shadow='none'
@@ -168,35 +150,27 @@ const ProductsTable = ({
           }
         >
           {(item) => {
-            const category = rxCategories.find((cat: Category) => cat.description === item.category_description)
-            const categoryColor = category?.color || 'bg-gray-300'
             return (
               <TableRow key={item.id}>
                 <TableCell className='w-full'>
                   <div className='min-w-xs '>
                     <div className={`${variant === 'default' ? ' text-large' : 'text-small'}`}>
-                      <span className='font-bold'>{item.sku}</span> - <span className='text-gray-600'>{item.provider_name}</span>
+                      <span className='font-bold'>{item.sku}</span> - <span className='text-gray-600'>{item.providerName}</span>
                     </div>
                     <div className={`text-wrap ${variant === 'default' ? ' text-small' : 'text-tiny '}`}>
                       <span className='font-semibold'>{item.spec}</span> {item.description}
                     </div>
                     <div className='flex justify-between items-center mt-2'>
-                      <Chip className={categoryColor} size='sm' variant='flat'>
-                        {item.category_description}
+                      <Chip className={item.categoryColor} size='sm' variant='flat'>
+                        {item.categoryName}
                       </Chip>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell className={`pr-10 ${variant === 'default' ? ' text-lg' : ''}`}>
                   {item.package_unit && item.package_unit > 1
-                    ? ((item.price ?? 0) * (1 + (item.utility ?? 0) / 100) * item.package_unit).toLocaleString('es-MX', {
-                        style: 'currency',
-                        currency: 'MXN'
-                      })
-                    : ((item.price ?? 0) * (1 + (item.utility ?? 0) / 100)).toLocaleString('es-MX', {
-                        style: 'currency',
-                        currency: 'MXN'
-                      })}
+                    ? calculateTotalPrice(item.price, item.utility, item.package_unit)
+                    : calculateSellingPrice(item.price, item.utility)}
                 </TableCell>
                 <TableCell hidden={variant === 'minimal' ? true : false} className='text-center'>
                   <Switch
