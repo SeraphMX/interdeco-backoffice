@@ -4,6 +4,7 @@ import { FileText, Package, TrendingUp, Users } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { RootState } from '../store'
 import { quoteStatus, uiColors } from '../types'
+import { formatCurrency } from '../utils/currency'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
@@ -60,12 +61,7 @@ const Dashboard = () => {
     { title: 'Cotizaciones', value: cotizaciones.length, icon: FileText, color: 'bg-purple-500' },
     {
       title: 'Total Ventas',
-      value: cotizaciones
-        .reduce((acc, curr) => acc + curr.total, 0)
-        .toLocaleString('es-MX', {
-          style: 'currency',
-          currency: 'MXN'
-        }),
+      value: formatCurrency(cotizaciones.reduce((acc, curr) => acc + curr.total, 0)),
       icon: TrendingUp,
       color: 'bg-orange-500'
     }
@@ -121,12 +117,7 @@ const Dashboard = () => {
                       </Chip>
                     </div>
                     <div className='flex items-center gap-4'>
-                      <span className='font-semibold'>
-                        {quote.total.toLocaleString('es-MX', {
-                          style: 'currency',
-                          currency: 'MXN'
-                        })}
-                      </span>
+                      <span className='font-semibold'>{formatCurrency(quote.total)}</span>
                     </div>
                   </div>
                 )
