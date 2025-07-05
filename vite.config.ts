@@ -35,9 +35,8 @@ export default defineConfig({
             if (id.includes('chart.js') || id.includes('react-chartjs-2')) return 'vendor-charts'
             if (id.includes('@supabase')) return 'vendor-supabase'
             if (id.includes('@heroui')) return 'vendor-heroui'
-            if (id.includes('pako')) return 'vendor-pako'
-            if (id.includes('brotli') || id.includes('inflate') || id.includes('deflate') || id.includes('stream'))
-              return 'vendor-compression'
+            const compressionLibs = ['pako', 'base64-js', 'fflate', 'brotli', 'inflate', 'deflate', 'stream']
+            if (compressionLibs.some((lib) => id.includes(lib))) return 'vendor-compression'
             return 'vendor'
           }
         }
