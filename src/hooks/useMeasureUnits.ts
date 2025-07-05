@@ -2,8 +2,8 @@
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { supabase } from '../lib/supabase'
+import { MeasureUnit } from '../schemas/catalog.schema'
 import { addMeasureUnit, removeMeasureUnit, setMeasureUnits, updateMeasureUnit } from '../store/slices/catalogSlice'
-import { MeasureUnit } from '../types'
 
 export const useMeasureUnits = () => {
   const dispatch = useDispatch()

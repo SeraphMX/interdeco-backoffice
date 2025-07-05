@@ -20,7 +20,7 @@ import { productService } from '../../services/productService'
 import { RootState } from '../../store'
 import { setSelectedItem, setShowForm } from '../../store/slices/catalogSlice'
 //TODO:Usar mejor los tipos de zod
-import { Category, MeasureUnit, Provider } from '../../types'
+import { Category, MeasureUnit, Provider } from '../../schemas/catalog.schema'
 import ModalConfigConfirmCatalogDelete from './modals/ModalConfigConfirmCatalogDelete'
 
 interface ConfigTableProps {

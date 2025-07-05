@@ -1,6 +1,7 @@
 import { addToast } from '@heroui/react'
 import { supabase } from '../lib/supabase'
-import { Category, MeasureUnit, Product, Provider } from '../types'
+import { Category, MeasureUnit, Provider } from '../schemas/catalog.schema'
+import { Product } from '../types'
 
 export const productService = {
   async getProducts(): Promise<Product[]> {

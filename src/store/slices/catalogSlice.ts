@@ -1,6 +1,6 @@
 // src/store/catalogSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { Category, MeasureUnit, Provider } from '../../types'
+import { Category, MeasureUnit, Provider } from '../../schemas/catalog.schema'
 
 interface CatalogState {
   categories: Category[]

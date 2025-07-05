@@ -1,8 +1,9 @@
 import { Alert, Button, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react'
 import { TriangleAlert } from 'lucide-react'
 import { useSelector } from 'react-redux'
+import { Category, MeasureUnit, Provider } from '../../../schemas/catalog.schema'
 import { RootState } from '../../../store'
-import { Category, MeasureUnit, Provider } from '../../../types'
+
 interface ModalConfigConfirmCatalogDeleteProps {
   deleteType: 'category' | 'provider' | 'measureUnit'
   isOpen: boolean

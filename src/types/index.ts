@@ -1,28 +1,11 @@
 export type uiColors = 'primary' | 'secondary' | 'success' | 'danger' | 'default' | 'warning'
 
-export interface Category {
-  id?: number
-  description: string
-  color: string | undefined
-}
-export interface Provider {
-  id?: number
-  name: string
-}
-
 export interface Cliente {
   id: string
   nombre: string
   contacto: string
   direccion: string
   notas?: string
-}
-
-export interface MeasureUnit {
-  id?: string // Opcional para nuevas unidades
-  key: string
-  name: string
-  plural: string
 }
 
 export type UserRole = 'admin' | 'staff'
