@@ -72,7 +72,7 @@ const quoteSlice = createSlice({
       const index = (state.data.items ?? []).findIndex((i) => i.product?.id === action.payload.product?.id)
       if (index !== -1) {
         const updated = quoteService.buildQuoteItem({
-          product: action.payload.product,
+          product: action.payload.product, // Provide a default Product object
           requiredQuantity: action.payload.requiredQuantity,
           discount: action.payload.discount,
           discountType: action.payload.discountType,

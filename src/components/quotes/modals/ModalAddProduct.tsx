@@ -8,7 +8,6 @@ import { z } from 'zod'
 import { RootState } from '../../../store'
 import { clearSelectedProduct } from '../../../store/slices/productsSlice'
 import { addItem, clearCalculatedArea } from '../../../store/slices/quoteSlice'
-import { measureUnits } from '../../../types'
 import ProductsFilters from '../../products/ProductsFilters'
 import ProductsTable from '../../products/ProductsTable'
 import ModalAreaCalculator from './ModalAreaCalculator'
@@ -21,6 +20,7 @@ interface ModalAddProductProps {
 const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
   const selectedProduct = useSelector((state: RootState) => state.productos.selectedProduct)
   const calculatedArea = useSelector((state: RootState) => state.quote.calculatedArea)
+  const measureUnits = useSelector((state: RootState) => state.catalog.measureUnits)
 
   const [filterValue, setFilterValue] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
