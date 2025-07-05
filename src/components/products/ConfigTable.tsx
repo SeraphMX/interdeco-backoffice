@@ -14,10 +14,12 @@ import {
   useDisclosure
 } from '@heroui/react'
 import { EllipsisVertical } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { productService } from '../../services/productService'
 import { RootState } from '../../store'
 import { setSelectedItem, setShowForm } from '../../store/slices/catalogSlice'
+//TODO:Usar mejor los tipos de zod
 import { Category, MeasureUnit, Provider } from '../../types'
 import ModalConfigConfirmCatalogDelete from './modals/ModalConfigConfirmCatalogDelete'
 
@@ -39,7 +41,8 @@ const getColor = (item: Provider | Category | MeasureUnit) => {
 const ConfigTable = ({ type, items }: ConfigTableProps) => {
   const dispatch = useDispatch()
   const products = useSelector((state: RootState) => state.productos.items)
-  const selectedItem = useSelector((state: RootState) => state.catalog.selectedItem)
+  const { selectedItem, showForm } = useSelector((state: RootState) => state.catalog)
+  const [itemToDelete, setItemToDelete] = useState<Provider | Category | MeasureUnit | null>(null)
 
   const { isOpen, onOpenChange, onOpen } = useDisclosure()
 
@@ -60,17 +63,41 @@ const ConfigTable = ({ type, items }: ConfigTableProps) => {
     return 0
   }
 
-  const handleConfirmDelete = async (item: Provider | Category | MeasureUnit) => {
-    dispatch(setSelectedItem(item))
+  const handleConfirmDelete = (item: Provider | Category | MeasureUnit) => {
+    setItemToDelete(item)
     onOpen()
   }
 
-  const handleEdit = (item: Provider | Category | MeasureUnit) => {
-    dispatch(setSelectedItem({ ...item }))
-    setTimeout(() => {
-      dispatch(setShowForm(true))
-    }, 200)
+  const handleEdit = async (item: Provider | Category | MeasureUnit) => {
+    if (type === 'measureUnit') {
+      console.log('Editing measure unit:', item)
+
+      dispatch(
+        setSelectedItem({
+          ...(item as MeasureUnit),
+          id: (item as MeasureUnit).key
+        })
+      )
+    } else {
+      dispatch(setSelectedItem({ ...item }))
+    }
   }
+
+  useEffect(() => {
+    // Si showForm es true, aseguramos que selectedItem esté vacío
+    if (selectedItem) {
+      if (showForm) {
+        dispatch(setSelectedItem(null))
+        dispatch(setShowForm(false))
+      }
+
+      setTimeout(() => {
+        dispatch(setShowForm(true))
+      }, 200)
+    }
+
+    console.log('showForm changed:', showForm, 'selectedItem:', selectedItem)
+  }, [showForm, selectedItem, dispatch])
 
   return (
     <>
@@ -116,7 +143,7 @@ const ConfigTable = ({ type, items }: ConfigTableProps) => {
                       <EllipsisVertical size={20} />
                     </Button>
                   </DropdownTrigger>
-                  <DropdownMenu aria-label='Static Actions'>
+                  <DropdownMenu aria-label='Opciones del elemento'>
                     <DropdownItem key='edit' onPress={() => handleEdit(item)}>
                       Editar
                     </DropdownItem>
@@ -135,9 +162,10 @@ const ConfigTable = ({ type, items }: ConfigTableProps) => {
         onOpenChange={onOpenChange}
         deleteType={type}
         onConfirm={async () => {
-          await productService.deleteCatalogItem(type, selectedItem as Provider | Category | MeasureUnit)
+          await productService.deleteCatalogItem(type, itemToDelete)
           onOpenChange()
         }}
+        selectedItem={itemToDelete}
       />
     </>
   )
