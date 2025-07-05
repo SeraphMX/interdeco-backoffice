@@ -20,10 +20,17 @@ interface ProductsFiltersProps {
 const ProductsFilters = ({ filters }: ProductsFiltersProps) => {
   const rxCategories = useSelector((state: RootState) => state.catalog.categories)
   const rxProviders = useSelector((state: RootState) => state.catalog.providers)
+  const rxProducts = useSelector((state: RootState) => state.productos.items)
 
   const search = filters?.search
   const categories = filters?.categories
   const providers = filters?.providers
+
+  const usedCategoryIds = new Set(rxProducts.map((product) => product.category))
+  const filteredCategories = rxCategories.filter((category) => usedCategoryIds.has(category.id ?? -1))
+
+  const usedProviderIds = new Set(rxProducts.map((product) => product.provider))
+  const filteredProviders = rxProviders.filter((provider) => usedProviderIds.has(provider.id ?? -1))
 
   const clearFilters = () => {
     if (search?.setValue) {
@@ -73,8 +80,8 @@ const ProductsFilters = ({ filters }: ProductsFiltersProps) => {
           selectedKeys={new Set(categories?.value)}
           onSelectionChange={(keys) => categories?.setValue(Array.from(keys).map((key) => key.toString()))}
         >
-          {rxCategories.map((category) => (
-            <DropdownItem key={category.id}>{category.description}</DropdownItem>
+          {filteredCategories.map((category) => (
+            <DropdownItem key={category.id?.toString() ?? ''}>{category.description}</DropdownItem>
           ))}
         </DropdownMenu>
       </Dropdown>
@@ -98,14 +105,14 @@ const ProductsFilters = ({ filters }: ProductsFiltersProps) => {
           selectedKeys={new Set(providers?.value)}
           onSelectionChange={(keys) => providers?.setValue(Array.from(keys).map((key) => key.toString()))}
         >
-          {rxProviders.map((provider) => (
-            <DropdownItem key={provider.id}>{provider.name}</DropdownItem>
+          {filteredProviders.map((provider) => (
+            <DropdownItem key={provider.id?.toString() ?? ''}>{provider.name}</DropdownItem>
           ))}
         </DropdownMenu>
       </Dropdown>
 
       {(categories?.value?.length ?? 0) > 0 || (providers?.value?.length ?? 0) > 0 ? (
-        <Tooltip content='Limpiar filtros'>
+        <Tooltip content='Limpiar filtros' placement='right'>
           <Button variant='light' color='danger' onPress={clearFilters} isIconOnly>
             <X size={20} />
           </Button>
