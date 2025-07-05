@@ -12,6 +12,7 @@ export const providerSchema = z.object({
 })
 
 export const measureUnitSchema = z.object({
+  id: z.string().optional(),
   key: z.string().min(1, 'La clave es obligatoria'),
   name: z.string().min(1, 'El nombre es obligatorio'),
   plural: z.string().min(1, 'El plural es obligatorio')

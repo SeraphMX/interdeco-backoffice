@@ -19,6 +19,7 @@ export interface Cliente {
 }
 
 export interface MeasureUnit {
+  id?: string // Opcional para nuevas unidades
   key: string
   name: string
   plural: string
