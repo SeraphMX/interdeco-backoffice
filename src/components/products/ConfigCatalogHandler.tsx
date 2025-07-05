@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Category, categorySchema, MeasureUnit, measureUnitSchema, Provider, providerSchema } from '../../schemas/catalog.schema'
 import { productService } from '../../services/productService'
 import { RootState } from '../../store'
-import { setSelectedItem, setShowForm } from '../../store/slices/catalogSlice'
+import { setShowForm } from '../../store/slices/catalogSlice'
 
 type AddCatalogItemProps = {
   type: 'category' | 'provider' | 'measureUnit'
@@ -22,22 +22,19 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
   const selectedItem = useSelector((state: RootState) => state.catalog.selectedItem)
 
   const colors = [
-    { key: 'rojo', label: 'Rojo', value: 'bg-red-300' },
-    { key: 'verde', label: 'Verde', value: 'bg-green-300' },
-    { key: 'azul', label: 'Azul', value: 'bg-blue-300' },
-    { key: 'amarillo', label: 'Amarillo', value: 'bg-yellow-300' },
-    { key: 'naranja', label: 'Naranja', value: 'bg-orange-300' },
-    { key: 'morado', label: 'Morado', value: 'bg-purple-300' }
+    { key: 'rojo', label: 'Rojo', value: 'bg-red-300', fill: 'fill-red-300' },
+    { key: 'verde', label: 'Verde', value: 'bg-green-200', fill: 'fill-green-200' },
+    { key: 'azul', label: 'Azul', value: 'bg-blue-200', fill: 'fill-blue-200' },
+    { key: 'amarillo', label: 'Amarillo', value: 'bg-yellow-200', fill: 'fill-yellow-200' },
+    { key: 'naranja', label: 'Naranja', value: 'bg-orange-300', fill: 'fill-orange-300' },
+    { key: 'morado', label: 'Morado', value: 'bg-purple-300', fill: 'fill-purple-300' },
+    { key: 'ambar', label: 'Ámbar', value: 'bg-amber-300', fill: 'fill-amber-300' },
+    { key: 'amarillo-claro', label: 'Amarillo claro', value: 'bg-amber-200', fill: 'fill-amber-200' },
+    { key: 'purpura', label: 'Púrpura', value: 'bg-purple-200', fill: 'fill-purple-200' },
+    { key: 'cielo', label: 'Cielo', value: 'bg-sky-200', fill: 'fill-sky-200' },
+    { key: 'esmeralda', label: 'Esmeralda', value: 'bg-emerald-200', fill: 'fill-emerald-200' },
+    { key: 'gris', label: 'Gris', value: 'bg-gray-200', fill: 'fill-gray-200' }
   ]
-
-  const fillColors: Record<'rojo' | 'verde' | 'azul' | 'amarillo' | 'naranja' | 'morado', string> = {
-    rojo: 'fill-red-300',
-    verde: 'fill-green-300',
-    azul: 'fill-blue-300',
-    amarillo: 'fill-yellow-300',
-    naranja: 'fill-orange-300',
-    morado: 'fill-purple-300'
-  }
 
   const typesMap = {
     category: {
@@ -79,9 +76,22 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
     mode: 'onSubmit'
   })
 
+  const isEditing = (() => {
+    switch (type) {
+      case 'category':
+        return !!categoryForm.watch('id')
+      case 'provider':
+        return !!providerForm.watch('id')
+      case 'measureUnit':
+        return !!measureUnitForm.watch('id')
+      default:
+        return false
+    }
+  })()
+
   const setCatalogItem = async (item: Category | Provider | MeasureUnit) => {
     try {
-      if (selectedItem) {
+      if (isEditing) {
         // Actualizar
         await productService.updateCatalogItem(type, item)
       } else {
@@ -108,7 +118,6 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
   })
 
   const resetForms = () => {
-    dispatch(setSelectedItem(null))
     dispatch(setShowForm(false))
 
     if (type === 'category') categoryForm.reset({ description: '', color: undefined })
@@ -130,7 +139,7 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
           <X />
         </Button>
         <Button isIconOnly variant='ghost' type='submit' color='primary'>
-          {selectedItem ? <Save /> : <Plus />}
+          {isEditing ? <Save /> : <Plus />}
         </Button>
       </section>
     )
@@ -141,6 +150,12 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
       case 'category':
         return (
           <form className='flex items-center gap-2 my-4' onSubmit={onSubmitCategory}>
+            <Input
+              {...categoryForm.register('id', {
+                setValueAs: (v) => (v === '' ? undefined : Number(v))
+              })}
+              className='hidden'
+            />
             <Input
               label='Nombre de la categoría'
               isClearable
@@ -158,10 +173,7 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
               isInvalid={!!categoryForm.formState.errors.color}
             >
               {(color) => (
-                <SelectItem
-                  key={color.value}
-                  startContent={<Circle className={cn('w-4 h-4 text-white', fillColors[color.key as keyof typeof fillColors])} />}
-                >
+                <SelectItem key={color.value} startContent={<Circle className={cn('w-4 h-4 text-white', color.fill)} />}>
                   {color.label}
                 </SelectItem>
               )}
@@ -172,6 +184,12 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
       case 'provider':
         return (
           <form className='flex items-center gap-2 my-4' onSubmit={onSubmitProvider}>
+            <Input
+              {...providerForm.register('id', {
+                setValueAs: (v) => (v === '' ? undefined : Number(v))
+              })}
+              className='hidden'
+            />
             <Input
               label='Nombre del proveedor'
               isClearable
@@ -187,6 +205,7 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
       case 'measureUnit':
         return (
           <form className='flex items-center gap-2 my-4' onSubmit={onSubmitMeasureUnit}>
+            <Input {...measureUnitForm.register('id')} className='hidden' />
             <Input
               label='Clave'
               className='max-w-20'
@@ -251,7 +270,6 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
             color='primary'
             className='mb-2'
             onPress={() => {
-              dispatch(setSelectedItem(null)) // Limpia cualquier elemento seleccionado
               resetForms() // Limpia los formularios
               dispatch(setShowForm(true)) // Muestra el formulario
             }}
