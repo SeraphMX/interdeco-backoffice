@@ -2,18 +2,18 @@ import { Input, Select, SelectItem, Textarea } from '@heroui/react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { useSelector } from 'react-redux'
-import { ProductFormData, productSchemaAdd } from '../../schemas/product.schema'
+import { productSchemaAdd } from '../../schemas/product.schema'
 import { productService } from '../../services/productService'
 import { RootState } from '../../store'
 import { Product } from '../../types'
+import { formatCurrency } from '../../utils/currency'
 
 type AddProductProps = {
   onSuccess: (newProduct: Product) => void
 }
 
-//TODO: Implementar los campos de formulario para agregar un producto
 const AddProduct = ({ onSuccess }: AddProductProps) => {
-  const form = useForm<ProductFormData>({
+  const form = useForm({
     resolver: zodResolver(productSchemaAdd),
     mode: 'all',
     defaultValues: {
@@ -45,7 +45,7 @@ const AddProduct = ({ onSuccess }: AddProductProps) => {
   const livePrice = parseFloat((watchPrice || 0).toString())
   const liveUtility = parseFloat((watchUtility || 0).toString())
   const publicPrice = livePrice * (1 + liveUtility / 100)
-  const pricePerPackage = publicPrice * watchPackageUnit
+  const pricePerPackage = publicPrice * parseFloat(watchPackageUnit?.toString() || '1')
 
   // Get unique categories and providers
   const rxCategories = useSelector((state: RootState) => state.catalog.categories)
@@ -61,7 +61,7 @@ const AddProduct = ({ onSuccess }: AddProductProps) => {
         ...data,
         price: parseFloat(data.price.toString()),
         utility: parseFloat(data.utility.toString()),
-        package_unit: parseFloat(data.package_unit.toString()),
+        package_unit: parseFloat((data.package_unit ?? 1).toString()),
         measurement_unit: data.measurement_unit,
         sku: data.sku.trim(),
         spec: data.spec?.trim() || '',
@@ -86,6 +86,26 @@ const AddProduct = ({ onSuccess }: AddProductProps) => {
     }
   )
 
+  const selectedUnitKey = measureUnits.find((u) => u.key === watchMeasurementUnit)?.key
+  const selectedUnitName = measureUnits.find((u) => u.key === watchMeasurementUnit)?.name
+
+  const isSingleUnit = parseFloat(watchPackageUnit?.toString() || '1') <= 1
+
+  const getFormattedUnit = () => {
+    switch (selectedUnitKey) {
+      case 'M2':
+        return 'm²'
+      case 'ML':
+        return 'm lineal'
+      case 'KG':
+        return 'Kg'
+      default:
+        return (selectedUnitName ?? '').toLowerCase()
+    }
+  }
+
+  const unitLabel = isSingleUnit ? `/${getFormattedUnit()}` : `/${getFormattedUnit()} | ${formatCurrency(pricePerPackage)}`
+
   return (
     <form id='add-product-form' className='grid sm:grid-cols-2 gap-4' onSubmit={handleSave}>
       <Input size='sm' label='SKU' {...register('sku')} isInvalid={!!errors.sku} isClearable />
@@ -109,6 +129,7 @@ const AddProduct = ({ onSuccess }: AddProductProps) => {
         {...register('package_unit')}
         isInvalid={!!errors.package_unit}
         isClearable
+        min={1}
       />
       <Select
         className='max-w-xs'
@@ -116,6 +137,7 @@ const AddProduct = ({ onSuccess }: AddProductProps) => {
         size='sm'
         {...register('measurement_unit')}
         isInvalid={!!errors.measurement_unit}
+        disallowEmptySelection
       >
         {measureUnits.map((measure) => (
           <SelectItem key={measure.key}>{measure.name}</SelectItem>
@@ -126,16 +148,8 @@ const AddProduct = ({ onSuccess }: AddProductProps) => {
       <div className='col-span-2 text-center'>
         <p className='text-sm text-gray-500'>Precio público</p>
         <p className='font-medium'>
-          {publicPrice.toLocaleString('es-MX', {
-            style: 'currency',
-            currency: 'MXN'
-          })}
-          /{measureUnits.find((u) => u.key === watchMeasurementUnit)?.key} |{' '}
-          {pricePerPackage.toLocaleString('es-MX', {
-            style: 'currency',
-            currency: 'MXN'
-          })}{' '}
-          /paquete
+          {formatCurrency(publicPrice)}
+          {unitLabel}
         </p>
       </div>
       <Textarea
