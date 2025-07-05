@@ -1,11 +1,11 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Quote } from '../../types'
 
-interface CustomerState {
+export interface QuotesState {
   items: Quote[]
 }
 
-const initialState: CustomerState = {
+const initialState: QuotesState = {
   items: []
 }
 

@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Customer } from '../../types'
 
-interface CustomerState {
+export interface CustomerState {
   items: Customer[]
   selectedCustomer?: Customer | null
 }

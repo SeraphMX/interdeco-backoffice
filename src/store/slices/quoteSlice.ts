@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { quoteService } from '../../services/quoteService'
 import { Customer, Quote, QuoteItem, QuoteStatus } from '../../types'
 
-interface QuoteState {
+export interface QuoteState {
   selectedCustomer: Customer | null
   calculatedArea: number
   itemsLoaded: boolean
