@@ -62,13 +62,11 @@ export const productService = {
 
       if (error) throw error
 
-      setTimeout(() => {
-        addToast({
-          title: 'Producto eliminado',
-          description: `El producto se borrado correctamente.`,
-          color: 'danger'
-        })
-      }, 1000)
+      addToast({
+        title: 'Producto eliminado',
+        description: `El producto se borrado correctamente.`,
+        color: 'danger'
+      })
     } catch (err) {
       addToast({
         title: 'Error al eliminar',
@@ -252,7 +250,7 @@ export const productService = {
       if (error) throw error
 
       addToast({
-        title: `${itemName} ${itemName === 'Proveedor' ? 'actualizado' : 'actualizada'} `,
+        title: `${itemName} ${itemName === 'Proveedor' ? 'actualizado' : 'actualizada'}`,
         description: `${itemName === 'Proveedor' ? 'El' : 'La'} ${itemName.toLowerCase()} se ha actualizado correctamente.`,
         color: 'primary'
       })
