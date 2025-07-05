@@ -1,4 +1,4 @@
-import { Button, useDisclosure } from '@heroui/react'
+import { Button, Tooltip, useDisclosure } from '@heroui/react'
 import { ImportIcon, Plus, Settings } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
@@ -32,7 +32,7 @@ const Catalogo = () => {
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         setwrapperHeight(entry.contentRect.height)
-        console.log('Altura del div actualizada:', entry.contentRect.height)
+        //console.log('Altura del div actualizada:', entry.contentRect.height)
       }
     })
 
@@ -77,7 +77,7 @@ const Catalogo = () => {
   }, [selectedProduct])
 
   return (
-    <div className='flex flex-col gap-4 h-full'>
+    <div className='flex flex-col gap-4 h-full pb-4'>
       <div className='flex justify-between items-center '>
         <ProductsFilters
           filters={{
@@ -105,14 +105,17 @@ const Catalogo = () => {
             <ImportIcon size={20} />
             Importar
           </Button>
-          <Button isIconOnly variant='ghost' onPress={onOpenConfig}>
-            <Settings size={20} />
-          </Button>
+
+          <Tooltip content='Configuración' placement='bottom'>
+            <Button isIconOnly variant='ghost' onPress={onOpenConfig}>
+              <Settings size={20} />
+            </Button>
+          </Tooltip>
           <ModalProductsConfig isOpen={isOpenConfig} onOpenChange={onOpenChangeConfig} />
         </section>
       </div>
 
-      {selectedProduct && <ProductEdit />}
+      <ProductEdit />
 
       <div ref={tableWrapperRef} className='flex flex-col flex-1 shadow-small rounded-lg '>
         <ProductsTable

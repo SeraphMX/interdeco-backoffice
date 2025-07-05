@@ -49,6 +49,7 @@ import {
   updateItem
 } from '../store/slices/quoteSlice'
 import { Quote, QuoteItem } from '../types'
+import { formatCurrency } from '../utils/currency'
 import { formatDate, parseISOtoRelative } from '../utils/date'
 
 const NuevaCotizacion = () => {
@@ -649,15 +650,15 @@ const NuevaCotizacion = () => {
               <div className='flex flex-col gap-2 text-right'>
                 <div className='text-lg'>
                   <span className='font-medium'>Subtotal:</span>
-                  <span className='ml-2'>{subtotal.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
+                  <span className='ml-2'> {formatCurrency(subtotal)}</span>
                 </div>
                 <div className='text-lg'>
                   <span className='font-medium'>IVA:</span>
-                  <span className='ml-2'>{taxes.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
+                  <span className='ml-2'>{formatCurrency(taxes)}</span>
                 </div>
                 <div className='text-xl font-semibold'>
                   <span>Total:</span>
-                  <span className='ml-2'>{quote.data.total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</span>
+                  <span className='ml-2'>{formatCurrency(quote.data.total)}</span>
                 </div>
               </div>
             </CardBody>

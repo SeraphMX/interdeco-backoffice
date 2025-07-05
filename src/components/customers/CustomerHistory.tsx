@@ -7,6 +7,7 @@ import { customerService } from '../../services/customerService'
 import { RootState } from '../../store'
 import { clearQuote, setQuote } from '../../store/slices/quoteSlice'
 import { Quote, quoteStatus, uiColors } from '../../types'
+import { formatCurrency } from '../../utils/currency'
 import { formatDate } from '../../utils/date'
 
 const CustomerHistory = () => {
@@ -74,12 +75,7 @@ const CustomerHistory = () => {
             <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>
               {quote.created_at ? formatDate(quote.created_at, { style: 'short' }) : 'Fecha no disponible'}
             </TableCell>
-            <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>
-              {quote.total.toLocaleString('es-MX', {
-                style: 'currency',
-                currency: 'MXN'
-              })}
-            </TableCell>
+            <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>{formatCurrency(quote.total)}</TableCell>
             <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>
               <Chip
                 variant='solid'

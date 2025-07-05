@@ -50,11 +50,11 @@ const ConfigTable = ({ type, items }: ConfigTableProps) => {
   const getProductsCount = (item: Provider | Category | MeasureUnit) => {
     if ('description' in item) {
       // Category
-      return products.filter((p) => p.category_description === item.description).length
+      return products.filter((p) => p.category === item.id).length
     }
     if ('name' in item && 'id' in item) {
       // Provider
-      return products.filter((p) => p.provider_name === item.name).length
+      return products.filter((p) => p.provider === item.id).length
     }
     if ('name' in item && 'key' in item) {
       // MeasureUnit

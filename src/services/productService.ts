@@ -43,15 +43,44 @@ export const productService = {
   },
 
   async updateProduct(product: Product): Promise<Product | null> {
+    if (!product.id) return null
     try {
+      const productUpdateData = {
+        sku: product.sku.trim(),
+        spec: product.spec?.trim() || '',
+        description: product.description?.trim() || '',
+        price: parseFloat(product.price.toString()),
+        utility: parseFloat(product.utility.toString()),
+        package_unit: parseFloat(product.package_unit.toString()),
+        measurement_unit: product.measurement_unit,
+        provider: product.provider,
+        category: product.category
+      }
+
       console.log('Datos a guardar:', product)
 
-      const { data: updatedProduct, error } = await supabase.from('products').update(product).eq('id', product.id).select().single()
+      const { data: updatedProduct, error } = await supabase
+        .from('products')
+        .update(productUpdateData)
+        .eq('id', product.id)
+        .select()
+        .single()
       if (error) throw error
+
+      addToast({
+        title: 'Producto actualizado',
+        description: 'El producto se ha actualizado correctamente.',
+        color: 'primary'
+      })
 
       return updatedProduct
     } catch (err) {
       console.error('Error al actualizar el producto:', err)
+      addToast({
+        title: 'Error al actualizar el producto',
+        description: 'Hubo un error al eliminar el producto. Inténtalo de nuevo.',
+        color: 'danger'
+      })
       return null
     }
   },
@@ -65,7 +94,7 @@ export const productService = {
       addToast({
         title: 'Producto eliminado',
         description: `El producto se borrado correctamente.`,
-        color: 'danger'
+        color: 'primary'
       })
     } catch (err) {
       addToast({
