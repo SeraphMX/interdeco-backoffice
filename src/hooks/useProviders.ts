@@ -2,8 +2,8 @@
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { supabase } from '../lib/supabase'
+import { Provider } from '../schemas/catalog.schema'
 import { addProvider, removeProvider, setProviders, updateProvider } from '../store/slices/catalogSlice'
-import { Provider } from '../types'
 
 export const useProviders = () => {
   const dispatch = useDispatch()

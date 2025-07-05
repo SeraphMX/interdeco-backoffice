@@ -32,7 +32,8 @@ import QuoteStatus from '../components/shared/QuoteStatus'
 import { useDebouncedAutoSave } from '../hooks/useDebounceAutosave'
 import { quoteService } from '../services/quoteService'
 import { RootState } from '../store'
-import { Category } from '../store/slices/catalogSlice'
+
+import { Category } from '../schemas/catalog.schema'
 import {
   clearItems,
   clearQuote,

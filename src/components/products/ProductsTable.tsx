@@ -1,10 +1,11 @@
 import { Chip, SortDescriptor, Spinner, Switch, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react'
 import { useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { Category } from '../../schemas/catalog.schema'
 import { productService } from '../../services/productService'
 import { RootState } from '../../store'
 import { setSelectedProduct, updateProduct } from '../../store/slices/productsSlice'
-import { Category, Product } from '../../types'
+import { Product } from '../../types'
 
 interface ProductsTableProps {
   wrapperHeight?: number

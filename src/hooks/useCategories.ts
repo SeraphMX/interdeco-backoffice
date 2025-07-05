@@ -2,8 +2,8 @@
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { supabase } from '../lib/supabase'
+import { Category } from '../schemas/catalog.schema'
 import { addCategory, removeCategory, setCategories, updateCategory } from '../store/slices/catalogSlice'
-import { Category } from '../types'
 
 export const useCategories = () => {
   const dispatch = useDispatch()

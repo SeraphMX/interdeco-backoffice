@@ -7,7 +7,7 @@ interface ModalProductAddProps {
 }
 const ModalProductAdd = ({ isOpen, onOpenChange }: ModalProductAddProps) => {
   return (
-    <Modal size='xl' isOpen={isOpen} onOpenChange={onOpenChange}>
+    <Modal size='xl' isOpen={isOpen} onOpenChange={onOpenChange} backdrop='blur'>
       <ModalContent>
         {(onClose) => (
           <>
