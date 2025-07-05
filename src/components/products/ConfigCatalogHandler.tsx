@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Category, categorySchema, MeasureUnit, measureUnitSchema, Provider, providerSchema } from '../../schemas/catalog.schema'
 import { productService } from '../../services/productService'
 import { RootState } from '../../store'
-import { setShowForm } from '../../store/slices/catalogSlice'
+import { setSelectedItem, setShowForm } from '../../store/slices/catalogSlice'
 
 type AddCatalogItemProps = {
   type: 'category' | 'provider' | 'measureUnit'
@@ -242,8 +242,6 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
   }
 
   useEffect(() => {
-    if (!selectedItem) return
-
     switch (type) {
       case 'category':
         categoryForm.reset(selectedItem as Category)
@@ -256,6 +254,22 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
         break
     }
   }, [type, selectedItem, categoryForm, providerForm, measureUnitForm])
+
+  useEffect(() => {
+    if (selectedItem) {
+      if (showForm) {
+        // Si showForm es true, aseguramos que selectedItem esté vacío
+        dispatch(setSelectedItem(null))
+        dispatch(setShowForm(false))
+      }
+
+      setTimeout(() => {
+        dispatch(setShowForm(true))
+      }, 200)
+    }
+
+    console.log('showForm changed:', showForm, 'selectedItem:', selectedItem)
+  }, [showForm, selectedItem, dispatch])
 
   return (
     <>
@@ -280,7 +294,7 @@ const ConfigCatalogHandler = ({ type }: AddCatalogItemProps) => {
         </section>
       ) : (
         <>
-          <h4 className='text-sm text-gray-600  '>{selectedItem ? 'Editar elemento' : 'Agregar elemento'}</h4>
+          <h4 className='text-sm text-gray-600  '>{isEditing ? 'Editar elemento' : 'Agregar elemento'}</h4>
           {renderForm()}
         </>
       )}

@@ -5,6 +5,7 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownTrigger,
+  SortDescriptor,
   Table,
   TableBody,
   TableCell,
@@ -14,13 +15,12 @@ import {
   useDisclosure
 } from '@heroui/react'
 import { EllipsisVertical } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { Category, MeasureUnit, Provider } from '../../schemas/catalog.schema'
 import { productService } from '../../services/productService'
 import { RootState } from '../../store'
 import { setSelectedItem, setShowForm } from '../../store/slices/catalogSlice'
-//TODO:Usar mejor los tipos de zod
-import { Category, MeasureUnit, Provider } from '../../schemas/catalog.schema'
 import ModalConfigConfirmCatalogDelete from './modals/ModalConfigConfirmCatalogDelete'
 
 interface ConfigTableProps {
@@ -41,10 +41,10 @@ const getColor = (item: Provider | Category | MeasureUnit) => {
 const ConfigTable = ({ type, items }: ConfigTableProps) => {
   const dispatch = useDispatch()
   const products = useSelector((state: RootState) => state.productos.items)
-  const { selectedItem, showForm } = useSelector((state: RootState) => state.catalog)
   const [itemToDelete, setItemToDelete] = useState<Provider | Category | MeasureUnit | null>(null)
 
   const { isOpen, onOpenChange, onOpen } = useDisclosure()
+  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'products', direction: 'descending' })
 
   // Función para contar productos según el tipo de item
   const getProductsCount = (item: Provider | Category | MeasureUnit) => {
@@ -62,6 +62,33 @@ const ConfigTable = ({ type, items }: ConfigTableProps) => {
     }
     return 0
   }
+
+  const sortedItems = [...items].sort((a, b) => {
+    const column = sortDescriptor.column
+    const direction = sortDescriptor.direction
+
+    let first: string | number | undefined
+    let second: string | number | undefined
+
+    if (column === 'products') {
+      first = getProductsCount(a)
+      second = getProductsCount(b)
+    } else if (column === 'label') {
+      first = getLabel(a)
+      second = getLabel(b)
+    } else {
+      return 0 // Si no es una columna válida, no ordenar
+    }
+
+    let cmp = 0
+    if (typeof first === 'number' && typeof second === 'number') {
+      cmp = first - second
+    } else {
+      cmp = (first ?? '').toString().localeCompare((second ?? '').toString(), 'es', { sensitivity: 'base' })
+    }
+
+    return direction === 'descending' ? -cmp : cmp
+  })
 
   const handleConfirmDelete = (item: Provider | Category | MeasureUnit) => {
     setItemToDelete(item)
@@ -83,22 +110,6 @@ const ConfigTable = ({ type, items }: ConfigTableProps) => {
     }
   }
 
-  useEffect(() => {
-    // Si showForm es true, aseguramos que selectedItem esté vacío
-    if (selectedItem) {
-      if (showForm) {
-        dispatch(setSelectedItem(null))
-        dispatch(setShowForm(false))
-      }
-
-      setTimeout(() => {
-        dispatch(setShowForm(true))
-      }, 200)
-    }
-
-    console.log('showForm changed:', showForm, 'selectedItem:', selectedItem)
-  }, [showForm, selectedItem, dispatch])
-
   return (
     <>
       <Table
@@ -109,6 +120,8 @@ const ConfigTable = ({ type, items }: ConfigTableProps) => {
           th: 'bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600',
           base: 'max-h-[400px] overflow-auto shadow-small rounded-xl'
         }}
+        sortDescriptor={sortDescriptor}
+        onSortChange={setSortDescriptor}
       >
         <TableHeader
           columns={[
@@ -118,12 +131,16 @@ const ConfigTable = ({ type, items }: ConfigTableProps) => {
           ]}
         >
           {(column) => (
-            <TableColumn key={column.key} align={(column.align as 'center' | 'start' | 'end' | undefined) || 'start'}>
+            <TableColumn
+              key={column.key}
+              allowsSorting={column.sortable}
+              align={(column.align as 'center' | 'start' | 'end' | undefined) || 'start'}
+            >
               {column.label}
             </TableColumn>
           )}
         </TableHeader>
-        <TableBody items={items}>
+        <TableBody items={sortedItems}>
           {(item) => (
             <TableRow key={'key' in item ? item.key : item.id}>
               <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>
@@ -163,6 +180,7 @@ const ConfigTable = ({ type, items }: ConfigTableProps) => {
         deleteType={type}
         onConfirm={async () => {
           await productService.deleteCatalogItem(type, itemToDelete)
+          dispatch(setShowForm(false))
           onOpenChange()
         }}
         selectedItem={itemToDelete}
