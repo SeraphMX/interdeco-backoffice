@@ -2,8 +2,8 @@
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { supabase } from '../lib/supabase'
+import { MeasureUnit } from '../schemas/catalog.schema'
 import { addMeasureUnit, removeMeasureUnit, setMeasureUnits, updateMeasureUnit } from '../store/slices/catalogSlice'
-import { MeasureUnit } from '../types'
 
 export const useMeasureUnits = () => {
   const dispatch = useDispatch()
@@ -25,7 +25,7 @@ export const useMeasureUnits = () => {
         const { eventType, new: newData, old: oldData } = payload
         if (eventType === 'INSERT') dispatch(addMeasureUnit(newData as MeasureUnit))
         if (eventType === 'UPDATE') dispatch(updateMeasureUnit(newData as MeasureUnit))
-        if (eventType === 'DELETE') dispatch(removeMeasureUnit(oldData.id))
+        if (eventType === 'DELETE') dispatch(removeMeasureUnit(oldData.key))
       })
       .subscribe()
 

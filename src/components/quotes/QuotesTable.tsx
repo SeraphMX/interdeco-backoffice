@@ -169,8 +169,6 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
         </TableHeader>
         <TableBody items={sortedItems} isLoading={loading} loadingContent={<Spinner label='Cargando datos...' />}>
           {(quote) => {
-            //const category = rxCategories.find((cat: Category) => cat.description === item.category_description)
-            //const categoryColor = category?.color || 'bg-gray-300'
             return (
               <TableRow key={quote.id}>
                 <TableCell className='w-16'>
