@@ -2,7 +2,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Category, MeasureUnit, Provider } from '../../schemas/catalog.schema'
 
-interface CatalogState {
+export interface CatalogState {
   categories: Category[]
   providers: Provider[]
   measureUnits: MeasureUnit[]
