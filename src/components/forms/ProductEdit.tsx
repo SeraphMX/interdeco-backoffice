@@ -92,9 +92,7 @@ const ProductEdit = () => {
     // Agrega este estado
 
     const displayUnitPrice = formatCurrency(publicPrice)
-
     const displayPackagePrice = formatCurrency(pricePerPackage)
-
     const previousPrice = formatCurrency(selectedProduct?.public_price ?? 0)
 
     const unitSuffix = unitKey === 'M2' ? '/m²' : unitKey === 'ML' ? '/m Lineal' : `/${capitalizeFirst(unitKey)}`
