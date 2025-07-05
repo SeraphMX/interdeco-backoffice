@@ -21,22 +21,27 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('pdfkit')) return 'vendor-pdfkit'
-            if (id.includes('fontkit')) return 'vendor-fontkit'
-            if (id.includes('react-pdf')) return 'vendor-react-pdf'
-            if (id.includes('react') || id.includes('react-dom')) return 'vendor-react'
-            if (id.includes('crypto-js')) return 'vendor-crypto'
-            if (id.includes('react-router-dom')) return 'vendor-router'
+            // Agrupa TODO lo relacionado con React (react, react-dom, framer-motion, router, lucide, heroicons)
+            const reactLibs = ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'lucide-react', '@heroicons', '@headlessui']
+            if (reactLibs.some((lib) => id.includes(lib))) return 'vendor-react'
+
             if (id.includes('redux') || id.includes('@reduxjs/toolkit')) return 'vendor-redux'
             if (id.includes('zod')) return 'vendor-zod'
             if (id.includes('lodash')) return 'vendor-lodash'
-            if (id.includes('framer-motion')) return 'vendor-framer'
+            if (id.includes('crypto-js')) return 'vendor-crypto'
+
+            if (id.includes('pdfkit')) return 'vendor-pdfkit'
+            if (id.includes('fontkit')) return 'vendor-fontkit'
+            if (id.includes('react-pdf')) return 'vendor-react-pdf'
+
             if (id.includes('chart.js') || id.includes('react-chartjs-2')) return 'vendor-charts'
             if (id.includes('@supabase')) return 'vendor-supabase'
             if (id.includes('@heroui')) return 'vendor-heroui'
+
             const compressionLibs = ['pako', 'base64-js', 'fflate', 'brotli', 'inflate', 'deflate', 'stream']
             if (compressionLibs.some((lib) => id.includes(lib))) return 'vendor-compression'
-            return 'vendor'
+
+            return 'vendor' // Todo lo demás
           }
         }
       }
