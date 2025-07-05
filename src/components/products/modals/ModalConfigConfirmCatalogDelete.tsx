@@ -8,9 +8,16 @@ interface ModalConfigConfirmCatalogDeleteProps {
   isOpen: boolean
   onOpenChange: (isOpen: boolean) => void
   onConfirm?: () => void
+  selectedItem?: Provider | Category | MeasureUnit | null // o el tipo específico que uses
 }
-const ModalConfigConfirmCatalogDelete = ({ deleteType, isOpen, onOpenChange, onConfirm }: ModalConfigConfirmCatalogDeleteProps) => {
-  const selectedItem = useSelector((state: RootState) => state.catalog.selectedItem)
+
+const ModalConfigConfirmCatalogDelete = ({
+  deleteType,
+  isOpen,
+  onOpenChange,
+  onConfirm,
+  selectedItem
+}: ModalConfigConfirmCatalogDeleteProps) => {
   const products = useSelector((state: RootState) => state.productos.items)
 
   const mapItemContent = {
