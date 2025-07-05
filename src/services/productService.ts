@@ -157,7 +157,8 @@ export const productService = {
       return null
     }
   },
-  async deleteCatalogItem(type: 'provider' | 'category' | 'measureUnit', item: Provider | Category | MeasureUnit): Promise<void> {
+  async deleteCatalogItem(type: 'provider' | 'category' | 'measureUnit', item: Provider | Category | MeasureUnit | null): Promise<void> {
+    if (!item) return
     try {
       let tableName: string
       let itemId: number | string | undefined
