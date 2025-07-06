@@ -6,6 +6,7 @@ export interface QuoteState {
   selectedCustomer: Customer | null
   calculatedArea: number
   itemsLoaded: boolean
+  isPublicAccess: boolean
 
   selectedItem: QuoteItem | null
   data: Quote
@@ -16,6 +17,7 @@ const initialState: QuoteState = {
   calculatedArea: 0,
   selectedItem: null,
   itemsLoaded: false,
+  isPublicAccess: false,
   data: {
     id: null,
     customer_id: null,
@@ -116,6 +118,9 @@ const quoteSlice = createSlice({
       }
 
       state.data = action.payload
+    },
+    setPublicAccess: (state, action: PayloadAction<boolean>) => {
+      state.isPublicAccess = action.payload
     }
   }
 })
@@ -137,7 +142,8 @@ export const {
   setQuoteTotal,
   setQuoteStatus,
   clearQuote,
-  setQuote
+  setQuote,
+  setPublicAccess
 } = quoteSlice.actions
 
 export default quoteSlice.reducer

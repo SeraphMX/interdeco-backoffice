@@ -44,7 +44,8 @@ export const quoteService = {
       discountType
     }
   },
-  async saveQuote(quote: Quote): Promise<{ success: boolean; quote?: Quote; error?: string }> {
+  async saveQuote(quote: Quote): Promise<{ success: boolean; quote?: Quote; error?: string; url?: string }> {
+    console.log('Saving quote:', quote)
     try {
       // 1. Insertar la cotización principal
       const { data: quoteResult, error: insertQuoteError } = await supabase
@@ -52,7 +53,8 @@ export const quoteService = {
         .insert({
           customer_id: quote.customer_id || null,
           total: quote.total,
-          status: quote.status || 'open'
+          status: quote.status || 'open',
+          access_token: null
         })
         .select()
         .single()
@@ -61,48 +63,55 @@ export const quoteService = {
       const quoteId = quoteResult?.id
       if (!quoteId) throw new Error('No se obtuvo ID de cotización')
 
-      // 2. Mapeo de items compatible con ambos flujos
-      const quoteItems = (quote.items ?? []).map((item) => {
-        // Determinar product_id según el caso
-        const product_id = item.product_id || item.product?.id || null
+      // 2. Insertar items
+      const quoteItems = (quote.items ?? []).map((item) => ({
+        quote_id: quoteId,
+        product_id: item.product_id || item.product?.id || null,
+        description: item.product ? `${item.product.sku ?? ''} ${item.product.description ?? ''}`.trim() : '',
+        unit_price: item.product?.price ?? 0,
+        required_quantity: item.requiredQuantity,
+        total_quantity: item.totalQuantity,
+        packages_required: item.packagesRequired ?? 1,
+        subtotal: item.subtotal,
+        discount_type: item.discountType ?? 'percentage',
+        original_subtotal: item.originalSubtotal ?? item.subtotal,
+        discount: item.discount ?? 0
+      }))
 
-        // Crear descripción basada en lo disponible
-        const description = item.product ? `${item.product.sku ?? ''} ${item.product.description ?? ''}`.trim() : ''
+      const { error: insertItemsError } = await supabase.from('quote_items').insert(quoteItems)
+      if (insertItemsError) throw insertItemsError
 
-        // Calcular unit_price inteligentemente
-        const unit_price = item.product?.price ?? 0
+      // 3. Llamar a la función Netlify que genera el token
+      const baseUrl = import.meta.env.VITE_NETLIFY_FUNCTIONS_URL || 'http://localhost:8888'
 
-        return {
-          quote_id: quoteId,
-          product_id,
-          description,
-          unit_price,
-          required_quantity: item.requiredQuantity,
-          total_quantity: item.totalQuantity,
-          packages_required: item.packagesRequired ?? 1,
-          subtotal: item.subtotal,
-          discount_type: item.discountType ?? 'percentage',
-          original_subtotal: item.originalSubtotal ?? item.subtotal,
-          discount: item.discount ?? 0
-        }
+      console.log('Base URL for Netlify function:', baseUrl)
+
+      const response = await fetch(`${baseUrl}/.netlify/functions/generate-quote-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quote: quoteResult
+        })
       })
 
-      // 3. Insertar items
-      const { error: insertItemsError } = await supabase.from('quote_items').insert(quoteItems)
+      console.log('Response from Netlify function:', response)
 
-      if (insertItemsError) throw insertItemsError
+      if (!response.ok) {
+        throw new Error('Error al generar token en función Netlify')
+      }
+
+      const { url } = await response.json()
 
       return {
         success: true,
-        quote: {
-          id: quoteId,
-          ...quoteResult
-        }
+        quote: { id: quoteId, ...quoteResult },
+        url // URL con el token firmado
       }
     } catch (e) {
       return { success: false, error: (e as Error).message }
     }
   },
+
   async cloneQuote(quote: Quote): Promise<{ success: boolean; quote?: Quote; error?: string }> {
     try {
       if (!quote.id) {
