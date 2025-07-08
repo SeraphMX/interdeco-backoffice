@@ -122,7 +122,6 @@ const QuoteActions = () => {
 
   const handleSendMessage = () => {
     const phone = '524272794272' // sin + ni espacios
-    //const quoteUrl = `https://tusitio.com/cotizacion/${quoteId}`
     const message = `Hola, revisé mi cotización: ${quote.data.id && `#${getQuoteID(quote.data)}`}`
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
     window.open(url, '_blank') // Abre WhatsApp en una nueva pestaña
