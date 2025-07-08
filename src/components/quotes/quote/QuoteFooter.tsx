@@ -1,12 +1,15 @@
-import { Card, CardBody } from '@heroui/react'
+import { Button, Card, CardBody, Link, useDisclosure } from '@heroui/react'
 import { motion } from 'framer-motion'
+import { DollarSign } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { BrowserView, MobileView } from 'react-device-detect'
+import { BrowserView } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../../store'
 import { setQuoteTotal } from '../../../store/slices/quoteSlice'
 import CountUp from '../../shared/CountUp'
 import QuoteActions from './QuoteActions'
+import ModalPayment from './modals/ModalPayment'
+import ModalTerms from './modals/ModalTerms'
 
 const QuoteFooter = () => {
   const dispatch = useDispatch()
@@ -15,7 +18,8 @@ const QuoteFooter = () => {
   const [subtotal, setSubtotal] = useState(0)
 
   const quote = useSelector((state: RootState) => state.quote)
-
+  const { isOpen: isOpenPaymentModal, onOpen: onOpenPaymentModal, onOpenChange: onOpenChangePaymentModal } = useDisclosure()
+  const { isOpen: isOpenTermsModal, onOpen: onOpenTermsModal, onOpenChange: onOpenChangeTermsModal } = useDisclosure()
   useEffect(() => {
     if ((quote.data.items ?? []).length > 0) {
       setSubtotal((quote.data.items ?? []).reduce((acc, item) => acc + item.subtotal, 0))
@@ -31,32 +35,21 @@ const QuoteFooter = () => {
   return (
     <footer>
       {(quote.data.items ?? []).length > 0 && (
-        <Card className='p-4 px-8 '>
+        <Card className=' px-4 '>
           <CardBody className='flex flex-row justify-between items-center gap-4 '>
             <BrowserView>
               <QuoteActions />
             </BrowserView>
 
-            <MobileView>
-              <div className='flex items-center justify-between w-full'>
-                <div className='flex-1 flex justify-end'></div>
-              </div>
-            </MobileView>
-
-            {/* 
-
-// <div className='flex justify-between w-full   items-center gap-4'>
-              //   <ul className='text-sm text-gray-600 list-disc list-inside space-y-1 ml-4'>
-              //     <li>Todo trabajo requiere de un 60% de anticipo, el cual se podrá pagar.</li>
-              //     <li>Aceptamos pagos en efectivo, mediante depósito o transferencia electrónica a la cuenta.</li>
-              //     <li>Precios sujetos a cambio sin previo aviso y sujetos a existencia.</li>
-              //     <li>Una vez realizado el pedido no se aceptan cambios de material ni cancelaciones.</li>
-              //     <li>Los tiempos de entrega varían dependiendo del material.</li>
-              //     <li>Mejoramos cualquier presupuesto presentado por escrito.</li>
-              //     <li>Trabajo 100% garantizado.</li>
-              //   </ul>
-              //   <img src='/branding/warranty.svg' className='w-40 ' alt='' />
-              // </div> */}
+            <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost' onPress={onOpenPaymentModal}>
+              <DollarSign />
+              Pagar
+            </Button>
+            <ModalPayment
+              isOpen={isOpenPaymentModal}
+              onOpenChange={onOpenChangePaymentModal}
+              onConfirm={() => console.log('Payment confirmed')}
+            />
 
             {quote.data.items && quote.data.items.length > 0 && (
               <motion.div
@@ -84,6 +77,12 @@ const QuoteFooter = () => {
           </CardBody>
         </Card>
       )}
+      {quote.isPublicAccess && (
+        <Link size='sm' onPress={onOpenTermsModal}>
+          Ver términos
+        </Link>
+      )}
+      <ModalTerms isOpen={isOpenTermsModal} onOpenChange={onOpenChangeTermsModal} />
     </footer>
   )
 }
