@@ -1,11 +1,16 @@
 import { Body, Button, Container, Head, Heading, Html, Img, Link, Preview, Section, Text } from '@react-email/components'
-import { CSSProperties } from 'react'
+import React, { CSSProperties } from 'react'
+import { Quote } from '../src/types'
 
-const SendQuoteMail = ({ downloadLink, customer }: { downloadLink: string; customer: string }) => (
+void React.createElement
+
+const baseUrl = process.env.VITE_NETLIFY_FUNCTIONS_URL || 'http://localhost:3000'
+
+const SendQuoteMail = ({ quote }: { quote: Quote }) => (
   <Html>
     <Head />
     <Body style={main}>
-      <Preview>Tienes una nueva cotizacón disponible para consultar</Preview>
+      <Preview>Tienes una nueva cotización disponible para consultar</Preview>
       <Container style={container}>
         <Section style={coverSection}>
           <Section style={imageSection}>
@@ -21,13 +26,13 @@ const SendQuoteMail = ({ downloadLink, customer }: { downloadLink: string; custo
             />
           </Section>
           <Section style={upperSection}>
-            <Heading style={h1}>¡Hola! {customer}</Heading>
+            <Heading style={h1}>¡Hola! {quote.customer_name}</Heading>
             <Text style={mainText}>
               Gracias por tu interés en nuestros productos y servicios. Hemos preparado una cotización personalizada para ti. Puedes
               consultarla en línea o descargarla haciendo clic en el botón de abajo.
             </Text>
             <Section style={verificationSection}>
-              <Button style={button} href={downloadLink}>
+              <Button style={button} href={baseUrl + `/cotizacion/${quote.access_token}`}>
                 Ver cotización
               </Button>
             </Section>
@@ -49,7 +54,7 @@ export default SendQuoteMail
 
 SendQuoteMail.PreviewProps = {
   downloadLink:
-    'https://boletos.ejemplo.com/descargar/abc123http://localhost:8888/cotizacion/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJxdW90ZV9pZCI6MTI2LCJpYXQiOjE3NTE4MDE0NTYsImV4cCI6MTc1MTg4Nzg1Nn0.z2o42-7N2SC_uLMZ6JVcmHy1dZpc_E-uH2r38WiI8-w',
+    'http://localhost:8888/cotizacion/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJxdW90ZV9pZCI6MTI2LCJpYXQiOjE3NTE4MDE0NTYsImV4cCI6MTc1MTg4Nzg1Nn0.z2o42-7N2SC_uLMZ6JVcmHy1dZpc_E-uH2r38WiI8-w',
 
   customer: 'Juan Pérez'
 }
