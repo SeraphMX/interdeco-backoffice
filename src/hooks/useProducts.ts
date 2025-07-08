@@ -1,4 +1,3 @@
-// src/hooks/useCustomers.ts
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { supabase } from '../lib/supabase'

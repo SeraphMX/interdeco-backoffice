@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import QuotesFilters from '../components/quotes/QuotesFilters'
 import QuotesTable from '../components/quotes/QuotesTable'
 import { RootState } from '../store'
-import { clearQuote } from '../store/slices/quoteSlice'
+import { clearQuote, setItemsLoaded } from '../store/slices/quoteSlice'
 
 const Cotizaciones = () => {
   const navigate = useNavigate()
@@ -20,6 +20,7 @@ const Cotizaciones = () => {
 
   const handleNewQuote = () => {
     dispatch(clearQuote())
+    dispatch(setItemsLoaded(true))
     navigate('/cotizaciones/nueva')
   }
 

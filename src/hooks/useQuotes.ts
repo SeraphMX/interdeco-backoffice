@@ -15,7 +15,6 @@ export const useQuotes = () => {
         console.error('[useQuotes] Error al cargar cotizaciones:', error.message)
         return
       }
-      console.log('[useQuotes] Cotizaciones obtenidas:', data)
       dispatch(setQuotes(data))
     }
 
