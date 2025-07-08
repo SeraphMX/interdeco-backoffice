@@ -1,122 +1,20 @@
-import { addToast, Button, Card, CardBody, useDisclosure } from '@heroui/react'
+import { Card, CardBody } from '@heroui/react'
 import { motion } from 'framer-motion'
-import { Archive, ArchiveRestore, File, MailPlus, Save, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { BrowserView, MobileView } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
-import { quoteService } from '../../../services/quoteService'
 import { RootState } from '../../../store'
-import { clearQuote, setQuote, setQuoteStatus, setQuoteTotal } from '../../../store/slices/quoteSlice'
+import { setQuoteTotal } from '../../../store/slices/quoteSlice'
 import CountUp from '../../shared/CountUp'
-import ModalConfirmDeleteQuote from '../modals/ModalConfirmDeleteQuote'
-import ModalSendQuote from './modals/ModalSendQuote'
+import QuoteActions from './QuoteActions'
 
 const QuoteFooter = () => {
   const dispatch = useDispatch()
-  const navigate = useNavigate()
+
   const [taxes, setTaxes] = useState(0)
   const [subtotal, setSubtotal] = useState(0)
 
   const quote = useSelector((state: RootState) => state.quote)
-
-  const {
-    isOpen: isOpenConfirmDeleteQuote,
-    onOpen: onOpenConfirmDeleteQuote,
-    onOpenChange: onOpenChangeConfirmDeleteQuote
-  } = useDisclosure()
-
-  const { isOpen: isOpenSendQuote, onOpen: onOpenSendQuote, onOpenChange: onOpenChangeSendQuote } = useDisclosure()
-
-  const handlePreviewQuote = () => {
-    sessionStorage.setItem('previewQuote', JSON.stringify(quote.data))
-    window.open('/cotizacion/preview', '_blank')
-  }
-
-  const handleSaveQuote = async () => {
-    if (!quote.data.id) {
-      const savedQuote = await quoteService.saveQuote(quote.data)
-
-      if (savedQuote.success) {
-        if (!savedQuote) return
-        if (savedQuote.quote) {
-          dispatch(setQuote({ ...quote.data, id: savedQuote.quote.id, last_updated: savedQuote.quote.last_updated }))
-        }
-      }
-    }
-  }
-
-  const handleDeleteQuote = async () => {
-    if (!quote.data.id) {
-      addToast({
-        title: 'Error',
-        description: 'No se puede eliminar una cotización que no ha sido guardada.',
-        color: 'danger'
-      })
-      return
-    }
-
-    if (quote.data.status === 'open') {
-      const result = await quoteService.deleteQuote(quote.data)
-
-      if (result.success) {
-        dispatch(clearQuote())
-        navigate('/cotizaciones')
-      } else {
-        console.error('Error al eliminar la cotización:', result.error)
-      }
-    } else {
-      const updateResult = await quoteService.updateQuote({ ...quote.data, status: 'archived' })
-
-      if (!updateResult.success) {
-        console.error('Error al archivar la cotización:', updateResult.error)
-        addToast({
-          title: 'Error al archivar',
-          description: 'Hubo un error al archivar la cotización. Inténtalo de nuevo.',
-          color: 'danger'
-        })
-        return
-      }
-
-      addToast({
-        title: 'Cotización archivada',
-        description: 'La cotización ha sido archivada correctamente.',
-        color: 'success'
-      })
-      navigate('/cotizaciones')
-      dispatch(setQuote(updateResult.quote))
-    }
-  }
-
-  const handleRestoreQuote = async () => {
-    console.log('Restaurando cotización', quote.data.id)
-
-    const updatedQuote = await quoteService.setQuoteStatus(quote.data.id ?? 0, 'open')
-
-    dispatch(setQuote(updatedQuote.quote))
-
-    addToast({
-      title: 'Cotización restaurada',
-      description: 'La cotización ha sido restaurada correctamente.',
-      color: 'success'
-    })
-  }
-
-  const handleCloseQuote = () => {
-    dispatch(clearQuote())
-    navigate(-1) // Regresa a la página anterior
-  }
-
-  const handleSendQuote = () => {
-    //onOpenSendQuote()
-    dispatch(setQuoteStatus('sent'))
-    onOpenChangeSendQuote()
-
-    // addToast({
-    //   title: 'Enviar cotización',
-    //   description: 'Funcionalidad de envío de cotización aún no implementada.',
-    //   color: 'primary'
-    // })
-  }
 
   useEffect(() => {
     if ((quote.data.items ?? []).length > 0) {
@@ -135,63 +33,15 @@ const QuoteFooter = () => {
       {(quote.data.items ?? []).length > 0 && (
         <Card className='p-4 px-8 '>
           <CardBody className='flex flex-row justify-between items-center gap-4 '>
-            <section className='flex justify-end gap-3'>
-              {!quote.data.id && (
-                <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost' onPress={handleSaveQuote}>
-                  <Save />
-                  Guardar
-                </Button>
-              )}
-              <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='secondary' variant='ghost' onPress={handlePreviewQuote}>
-                <File />
-                Ver PDF
-              </Button>
-              {quote.data.id && !quote.isPublicAccess && (
-                <>
-                  {quote.data.status !== 'sent' && (
-                    <Button className='flex flex-col h-16 w-16 p-2 gap-0 ' color='secondary' variant='ghost' onPress={onOpenSendQuote}>
-                      <MailPlus />
-                      Enviar
-                    </Button>
-                  )}
+            <BrowserView>
+              <QuoteActions />
+            </BrowserView>
 
-                  <ModalSendQuote isOpen={isOpenSendQuote} onOpenChange={onOpenChangeSendQuote} onConfirm={handleSendQuote} />
-
-                  {quote.data.status === 'open' ? (
-                    <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='danger' variant='ghost' onPress={onOpenConfirmDeleteQuote}>
-                      <Trash2 />
-                      Eliminar
-                    </Button>
-                  ) : quote.data.status === 'archived' ? (
-                    <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost' onPress={handleRestoreQuote}>
-                      <ArchiveRestore />
-                      Restaurar
-                    </Button>
-                  ) : (
-                    quote.data.status !== 'sent' && (
-                      <Button
-                        className='flex flex-col h-16 w-16 p-2 gap-0'
-                        color='danger'
-                        variant='ghost'
-                        onPress={onOpenConfirmDeleteQuote}
-                      >
-                        <Archive />
-                        Archivar
-                      </Button>
-                    )
-                  )}
-                  <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='danger' variant='ghost' onPress={handleCloseQuote}>
-                    <X />
-                    Cerrar
-                  </Button>
-                  <ModalConfirmDeleteQuote
-                    isOpen={isOpenConfirmDeleteQuote}
-                    onOpenChange={onOpenChangeConfirmDeleteQuote}
-                    onConfirm={handleDeleteQuote}
-                  />
-                </>
-              )}
-            </section>
+            <MobileView>
+              <div className='flex items-center justify-between w-full'>
+                <div className='flex-1 flex justify-end'></div>
+              </div>
+            </MobileView>
 
             {/* 
 
