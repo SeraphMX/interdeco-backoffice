@@ -45,7 +45,6 @@ export const quoteService = {
     }
   },
   async saveQuote(quote: Quote): Promise<{ success: boolean; quote?: Quote; error?: string; url?: string }> {
-    console.log('Saving quote:', quote)
     try {
       // 1. Insertar la cotización principal
       const { data: quoteResult, error: insertQuoteError } = await supabase
@@ -156,6 +155,11 @@ export const quoteService = {
 
       return { success: true, quote: result.quote }
     } catch (e) {
+      addToast({
+        title: 'Error al guardar',
+        description: 'Hubo un error al guardar la cotización. Inténtalo de nuevo.',
+        color: 'danger'
+      })
       return { success: false, error: (e as Error).message }
     }
   },
@@ -227,11 +231,13 @@ export const quoteService = {
 
       if (deleteQuoteError) throw deleteQuoteError
 
-      addToast({
-        title: 'Cotización eliminada',
-        description: 'La cotización ha sido eliminada correctamente.',
-        color: 'success'
-      })
+      setTimeout(() => {
+        addToast({
+          title: 'Cotización eliminada',
+          description: 'La cotización ha sido eliminada correctamente.',
+          color: 'primary'
+        })
+      }, 1000) // Esperar un segundo para asegurar que la eliminación se procese
 
       return { success: true }
     } catch (e) {
@@ -279,6 +285,40 @@ export const quoteService = {
         }
       }
     } catch (e) {
+      return { success: false, error: (e as Error).message }
+    }
+  },
+  async sendQuoteEmail(email: string, quote: Quote): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (!quote || !email) {
+        throw new Error('El ID de la cotización y el correo electrónico son requeridos para enviar la cotización.')
+      }
+
+      const baseUrl = import.meta.env.VITE_NETLIFY_FUNCTIONS_URL || 'http://localhost:8888'
+
+      const response = await fetch(`${baseUrl}/.netlify/functions/send-quote-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to: email, quote })
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al enviar el correo electrónico de la cotización.')
+      }
+
+      addToast({
+        title: 'Correo enviado',
+        description: 'La cotización ha sido enviada correctamente por correo electrónico.',
+        color: 'primary'
+      })
+
+      return { success: true }
+    } catch (e) {
+      addToast({
+        title: 'Error al enviar correo',
+        description: 'Hubo un error al enviar la cotización por correo electrónico. Inténtalo de nuevo.',
+        color: 'danger'
+      })
       return { success: false, error: (e as Error).message }
     }
   }
