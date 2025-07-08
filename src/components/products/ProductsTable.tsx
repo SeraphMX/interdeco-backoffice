@@ -31,8 +31,6 @@ const ProductsTable = ({
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'public_price', direction: 'descending' })
 
   const filteredItems = useMemo(() => {
-    console.log('Filtros activos:', { selectedCategories, selectedProviders, filterValue })
-
     return rxProducts.filter((item) => {
       const matchesSearch =
         item.description.toLowerCase().includes(filterValue.toLowerCase()) ||
@@ -115,6 +113,7 @@ const ProductsTable = ({
             filteredItemsCount={filteredItems.length}
             selectedCategories={selectedCategories}
             selectedProviders={selectedProviders}
+            tableType='compact'
           />
         }
         className='overflow-auto z-10'

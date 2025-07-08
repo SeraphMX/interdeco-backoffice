@@ -7,14 +7,22 @@ interface ProductsTableFooterProps {
   filteredItemsCount: number
   selectedCategories: string[]
   selectedProviders: string[]
+  tableType?: 'default' | 'compact'
 }
 
-const ProductsTableFooter = ({ filteredItemsCount, selectedCategories, selectedProviders }: ProductsTableFooterProps) => {
+const ProductsTableFooter = ({
+  filteredItemsCount,
+  selectedCategories,
+  selectedProviders,
+  tableType = 'default'
+}: ProductsTableFooterProps) => {
   const rxProducts = useSelector((state: RootState) => state.productos.items)
   const rxCategories = useSelector((state: RootState) => state.catalog.categories)
 
   return (
-    <footer className='text-sm bg-gray-50  text-gray-700 z-10  fixed bottom-0 left-0 right-0 flex justify-center items-center p-1'>
+    <footer
+      className={`text-sm bg-gray-50  text-gray-700 z-10  ${tableType === 'default' ? 'fixed' : 'hidden'} bottom-0 left-0 right-0 flex justify-center items-center p-1`}
+    >
       <section className='container mx-auto px-6 pb-2  flex justify-between items-center'>
         <div>{filteredItemsCount} resultados encontrados</div>
         <div className='flex items-center gap-2'>
