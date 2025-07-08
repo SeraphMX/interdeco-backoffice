@@ -1,3 +1,5 @@
+import { faWhatsapp } from '@fortawesome/free-brands-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { addToast, Button, useDisclosure } from '@heroui/react'
 import { pdf } from '@react-pdf/renderer'
 import { saveAs } from 'file-saver'
@@ -114,16 +116,18 @@ const QuoteActions = () => {
   }
 
   const handleSendQuote = () => {
-    //onOpenSendQuote()
     dispatch(setQuoteStatus('sent'))
     onOpenChangeSendQuote()
-
-    // addToast({
-    //   title: 'Enviar cotización',
-    //   description: 'Funcionalidad de envío de cotización aún no implementada.',
-    //   color: 'primary'
-    // })
   }
+
+  const handleSendMessage = () => {
+    const phone = '524272794272' // sin + ni espacios
+    //const quoteUrl = `https://tusitio.com/cotizacion/${quoteId}`
+    const message = `Hola, revisé mi cotización: ${quote.data.id && `#${getQuoteID(quote.data)}`}`
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+    window.open(url, '_blank') // Abre WhatsApp en una nueva pestaña
+  }
+
   return (
     (quote.data.items ?? []).length > 0 && (
       <section className='flex justify-end gap-3'>
@@ -139,6 +143,13 @@ const QuoteActions = () => {
             Ver PDF
           </Button>
         </BrowserView>
+
+        {quote.isPublicAccess && (
+          <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='success' variant='ghost' onPress={handleSendMessage}>
+            <FontAwesomeIcon icon={faWhatsapp} size='2x' />
+            Mensaje
+          </Button>
+        )}
 
         <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='secondary' variant='ghost' onPress={handleDownloadQuote}>
           <FileDown />
