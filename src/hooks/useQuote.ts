@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { quoteService } from '../services/quoteService'
 import { RootState } from '../store'
 import { setItems, setItemsLoaded, setSelectedCustomer } from '../store/slices/quoteSlice'
-import { QuoteItem } from '../types'
 
 export const useQuote = () => {
   const dispatch = useDispatch()
@@ -11,27 +10,25 @@ export const useQuote = () => {
   const customers = useSelector((state: RootState) => state.clientes.items)
   const products = useSelector((state: RootState) => state.productos.items)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (quote.data.id && !quote.itemsLoaded) {
-        const customer = customers.find((c) => c.id == quote.data.customer_id)
-        if (customer) dispatch(setSelectedCustomer(customer))
+  const quoteId = quote.data?.id
+  const customerId = quote.data?.customer_id
 
-        const items = await loadQuoteItems(quote.data.id)
-        if (isMounted && items.length) {
-          dispatch(setItems(items as QuoteItem[]))
-          dispatch(setItemsLoaded(true))
-        }
-      }
-    }
+  const productsReady = products.length > 0
+  const customersReady = customers.length > 0
+
+  useEffect(() => {
+    if (!quoteId || quote.itemsLoaded || !productsReady || !customersReady) return
 
     let isMounted = true
-    const loadQuoteItems = async (quoteId: number) => {
-      const response = await quoteService.getQuoteItems(quoteId)
 
-      if (response.success && response.items) {
-        return response.items.map((item) => ({
-          product: products.find((p) => p.id === item.product_id) || null,
+    const fetchData = async () => {
+      const customer = customers.find((c) => c.id === customerId)
+      if (customer) dispatch(setSelectedCustomer(customer))
+
+      const response = await quoteService.getQuoteItems(quoteId)
+      if (response.success && response.items && isMounted) {
+        const items = response.items.map((item) => ({
+          product: products.find((p) => p.id === item.product_id) || undefined,
           requiredQuantity: item.required_quantity || 0,
           totalQuantity: item.total_quantity || 0,
           packagesRequired: item.packages_required || 0,
@@ -41,8 +38,10 @@ export const useQuote = () => {
           discountType: item.discount_type || 'percentage',
           id: item.id
         }))
+
+        dispatch(setItems(items))
+        dispatch(setItemsLoaded(true))
       }
-      return []
     }
 
     fetchData()
@@ -50,5 +49,5 @@ export const useQuote = () => {
     return () => {
       isMounted = false
     }
-  }, [quote.data.id, dispatch, customers, products, quote.data.customer_id, quote.itemsLoaded])
+  }, [quoteId, customerId, quote.itemsLoaded, productsReady, customersReady, dispatch, customers, products])
 }
