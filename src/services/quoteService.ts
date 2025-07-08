@@ -81,7 +81,7 @@ export const quoteService = {
       if (insertItemsError) throw insertItemsError
 
       // 3. Llamar a la función Netlify que genera el token
-      const baseUrl = import.meta.env.VITE_NETLIFY_FUNCTIONS_URL || 'http://localhost:8888'
+      const baseUrl = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://localhost:8888'
 
       console.log('Base URL for Netlify function:', baseUrl)
 
@@ -294,7 +294,7 @@ export const quoteService = {
         throw new Error('El ID de la cotización y el correo electrónico son requeridos para enviar la cotización.')
       }
 
-      const baseUrl = import.meta.env.VITE_NETLIFY_FUNCTIONS_URL || 'http://localhost:8888'
+      const baseUrl = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://localhost:8888'
 
       const response = await fetch(`${baseUrl}/.netlify/functions/send-quote-email`, {
         method: 'POST',

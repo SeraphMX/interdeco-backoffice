@@ -4,7 +4,7 @@ import { Quote } from '../src/types'
 
 void React.createElement
 
-const baseUrl = process.env.VITE_NETLIFY_FUNCTIONS_URL || 'http://localhost:3000'
+const baseUrl = process.env.VITE_PUBLIC_BASE_URL || 'http://localhost:8888'
 
 const SendQuoteMail = ({ quote }: { quote: Quote }) => (
   <Html>

@@ -17,7 +17,7 @@ const Cotizacion = () => {
 
     dispatch(setPublicAccess(true))
 
-    const baseUrl = import.meta.env.VITE_NETLIFY_FUNCTIONS_URL || 'http://localhost:8888'
+    const baseUrl = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://localhost:8888'
 
     // if (!token) {
     //   setError('Token no proporcionado')
