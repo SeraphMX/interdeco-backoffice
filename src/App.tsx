@@ -5,6 +5,7 @@ import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import { AppStart } from './AppStart'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
+import PublicRoute from './components/PublicRoute'
 import Catalogo from './pages/Catalogo'
 import Clientes from './pages/Clientes'
 import { default as Cotizacion, default as Quote } from './pages/Cotizacion'
@@ -46,8 +47,11 @@ function App() {
                 <Route path='/usuarios' element={<Users />} />
               </Route>
 
-              <Route path='/cotizaciones/preview' element={<QuotePreviewPage />} />
-              <Route path='/cotizacion/:token' element={<Cotizacion />} />
+              <Route path='/cotizacion' element={<PublicRoute />}>
+                <Route path=':token' element={<Cotizacion />} />
+              </Route>
+
+              <Route path='/cotizacion/preview' element={<QuotePreviewPage />} />
             </Routes>
           </Suspense>
         </div>

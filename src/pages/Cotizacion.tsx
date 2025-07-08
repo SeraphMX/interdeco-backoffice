@@ -34,6 +34,9 @@ const Cotizacion = () => {
         }
 
         const data = await res.json()
+
+        console.log('Cotización verificada desde el servidor:', data.quote)
+
         dispatch(setQuote(data.quote))
       } catch (err) {
         setError((err as Error).message)
@@ -48,11 +51,9 @@ const Cotizacion = () => {
   if (!rxQuote) return <div className='p-4'>Cargando cotización...</div>
 
   return (
-    <main className='container mx-auto px-4 py-8 flex-grow min-h-screen-minus-navbar'>
-      <div className='container  space-y-4  h-full flex flex-col'>
-        <Quote />
-      </div>
-    </main>
+    <div className='container  space-y-4  h-full flex flex-col'>
+      <Quote />
+    </div>
   )
 }
 
