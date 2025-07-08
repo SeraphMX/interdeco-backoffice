@@ -25,6 +25,7 @@ import { clearQuote, setQuote } from '../../store/slices/quoteSlice'
 import { Quote, quoteStatus, uiColors } from '../../types'
 import { formatCurrency } from '../../utils/currency'
 import { formatDate } from '../../utils/date'
+import { getQuoteID } from '../../utils/strings'
 import QuoteStatus from '../shared/QuoteStatus'
 import ModalConfirmDeleteQuote from './modals/ModalConfirmDeleteQuote'
 import ModalConfirmOpenQuote from './modals/ModalConfirmOpenQuote'
@@ -99,6 +100,10 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
     handleSetQuote(quote)
   }
 
+  const handlePreviewQuote = (quote: Quote) => {
+    window.open(`/cotizacion/${quote.access_token}`, '_blank')
+  }
+
   const handleSetQuote = (quote: Quote | undefined) => {
     if (!quote) return
     dispatch(clearQuote())
@@ -171,9 +176,7 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
           {(quote) => {
             return (
               <TableRow key={quote.id}>
-                <TableCell className='w-16'>
-                  {quote.created_at && `${quote.id}${new Date(quote.created_at).getFullYear().toString().slice(-2)}`}
-                </TableCell>
+                <TableCell className='w-16'>{quote.created_at && `${getQuoteID(quote)}`}</TableCell>
                 <TableCell className='w-32 whitespace-nowrap text-ellipsis overflow-hidden'>
                   {formatDate(quote.created_at ?? '', { style: 'short' })}
                 </TableCell>
@@ -196,11 +199,14 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
                   )}
                 </TableCell>
                 <TableCell>
-                  <Dropdown>
+                  <Dropdown placement='left'>
                     <DropdownTrigger>
                       <Button variant='light' startContent={<EllipsisVertical />} isIconOnly size='sm'></Button>
                     </DropdownTrigger>
                     <DropdownMenu aria-label='Static Actions'>
+                      <DropdownItem key='copy' onPress={() => handlePreviewQuote(quote)}>
+                        Vista previa
+                      </DropdownItem>
                       <DropdownItem key='copy' onPress={() => handleCloneQuote(quote)}>
                         Duplicar
                       </DropdownItem>

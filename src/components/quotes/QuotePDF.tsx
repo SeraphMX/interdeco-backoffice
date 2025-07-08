@@ -3,6 +3,7 @@ import { Document, Font, Image, Page, StyleSheet, Text, View } from '@react-pdf/
 import { Quote } from '../../types'
 import { formatCurrency } from '../../utils/currency'
 import { formatDate } from '../../utils/date'
+import { getQuoteID } from '../../utils/strings'
 
 // Registrar fuente Inter
 Font.register({
@@ -40,7 +41,7 @@ export const QuotePDF = ({ quote }: { quote: Quote }) => {
         {/* ENCABEZADO */}
         <Image style={styles.logo} src='/branding/logo-interdeco-full.png' />
         <View style={styles.header}>
-          <Text style={styles.title}>Cotización #{quote.id}</Text>
+          <Text style={styles.title}>Cotización #{getQuoteID(quote)}</Text>
           {quote.customer_name && <Text>Cliente: {quote.customer_name}</Text>}
           <Text>Fecha: {quote.created_at ? formatDate(quote.created_at) : formatDate(new Date(), { style: 'fullDay' })}</Text>
         </View>

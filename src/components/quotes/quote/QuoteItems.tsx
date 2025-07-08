@@ -126,7 +126,7 @@ const QuoteItems = ({ scrollRef }: QuoteItemsProps) => {
                 <p className='text-center text-gray-500'>Agrega productos para comenzar a cotizar</p>
               </section>
             ) : (
-              <motion.div className='space-y-5 p-2' variants={containerVariants} initial='hidden' animate='show' layout>
+              <motion.div className='space-y-5' variants={containerVariants} initial='hidden' animate='show' layout>
                 <AnimatePresence>
                   {(quote.data.items ?? []).slice(0, visibleCount).map((item, index, arr) => (
                     <QuoteItemSingle

@@ -1,11 +1,14 @@
 import { Button } from '@heroui/react'
 import { ArrowLeft } from 'lucide-react'
+import { MobileView } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { RootState } from '../../../store'
 import { setQuoteStatus } from '../../../store/slices/quoteSlice'
 import { Quote } from '../../../types'
+import { getQuoteID } from '../../../utils/strings'
 import QuoteStatus from '../../shared/QuoteStatus'
+import QuoteActions from './QuoteActions'
 import QuoteCustomerData from './QuoteCustomerData'
 
 const QuoteHeader = () => {
@@ -17,12 +20,15 @@ const QuoteHeader = () => {
     dispatch(setQuoteStatus(quote.status))
   }
   return (
-    <header className='flex justify-between items-center gap-4'>
+    <header className={`flex justify-between items-center gap-4 flex-col sm:flex-row`}>
       {quote.isPublicAccess ? (
-        <section>
+        <section className='flex items-center justify-between w-full sm:w-auto gap-4'>
           <Link to='https://interdeco.mx' className='flex items-center space-x-2 font-bold text-gray-700'>
-            <img src='/branding/logo-full.svg' className='h-24' alt='logo-interdeco' />
+            <img src='/branding/logo-full.svg' className='h-20 sm:h-24' alt='logo-interdeco' />
           </Link>
+          <MobileView>
+            <QuoteActions />
+          </MobileView>
         </section>
       ) : (
         <div className='flex items-center gap-4'>
@@ -30,7 +36,7 @@ const QuoteHeader = () => {
             <ArrowLeft size={24} />
           </Button>
           <h1 className='text-3xl font-bold text-gray-900 flex items-center gap-2'>
-            {quote.data.id ? `Cotización #${quote.data.id}${new Date().getFullYear().toString().slice(-2)}` : 'Nueva Cotización'}
+            {quote.data.id ? `Cotización #${getQuoteID(quote.data)}` : 'Nueva Cotización'}
 
             {quote.data.id && <QuoteStatus quote={quote.data} onSuccess={onSuccessSetStatus} />}
           </h1>

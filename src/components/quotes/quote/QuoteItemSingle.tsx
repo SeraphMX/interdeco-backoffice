@@ -55,15 +55,15 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
       }}
     >
       <header className='flex items-center gap-4 p-4 bg-gray-50'>
-        <div className='flex-grow min-w-0'>
-          <h3 className='font-medium text-lg flex gap-4 items-center'>
-            {item.product?.sku} {item.product?.spec}
+        <section>
+          <h3 className='font-medium text-lg flex flex-col sm:flex-row sm:gap-2 items-start'>
+            <span className='font-semibold'>{item.product?.sku}</span> {item.product?.spec}
             <Chip className={category.color} size='sm' variant='flat'>
               {category.description}
             </Chip>
           </h3>
           <p className='text-gray-600'>{item.product?.description}</p>
-        </div>
+        </section>
 
         {!rxQuote.isPublicAccess && (
           <section className='flex items-center gap-2'>
@@ -135,7 +135,7 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
             <dl className='space-y-3'>
               {isExceeding && (
                 <div className='flex justify-between'>
-                  <dt className='font-medium'>Paquetes necesarios</dt>
+                  <dt className='font-semibold'>Paquetes necesarios</dt>
                   <dd className='text-gray-600'>{item.packagesRequired}</dd>
                 </div>
               )}
@@ -145,7 +145,7 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
                 <dd className='text-gray-600'>{formatCurrency(pricePerPackage)}</dd>
               </div>
               <div className='flex justify-between'>
-                <dt className={`${!item.discount && 'font-medium'}`}>Subtotal</dt>
+                <dt className={`${!item.discount && 'font-semibold'}`}>Subtotal</dt>
                 <dd className={`${!item.discount && 'font-medium text-lg'} text-gray-600 `}>
                   {formatCurrency(item.discount ? (item.originalSubtotal ?? 0) : (item.subtotal ?? 0))}
                 </dd>
@@ -172,7 +172,7 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
                   </div>
 
                   <div className='flex justify-between'>
-                    <dt className='font-medium'>Subtotal</dt>
+                    <dt className='font-semibold'>Subtotal</dt>
                     <dd className='text-gray-600 font-medium text-lg'>{formatCurrency(item.subtotal || 0)}</dd>
                   </div>
                 </>
