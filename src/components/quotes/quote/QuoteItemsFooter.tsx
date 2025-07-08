@@ -46,32 +46,48 @@ const QuoteItemsFooter = () => {
             </Chip>
 
             {quote.data.status === 'open' && (
-              <Chip
-                color={isSaving ? 'primary' : isSaved ? 'success' : isDirty ? 'warning' : 'default'}
-                className='text-sm'
-                variant='flat'
-                size='lg'
-                startContent={
-                  isSaved ? (
-                    <CloudCheck size={24} />
-                  ) : isSaving ? (
-                    <Spinner size='sm' />
-                  ) : isDirty ? (
-                    <CloudAlert size={24} />
-                  ) : (
-                    <CloudCheck size={24} />
-                  )
+              <Tooltip
+                content={
+                  <div className='px-1 py-2'>
+                    <div className='text-small font-bold'>Fecha de creación</div>
+                    <div className='text-tiny'>{formatDate(quote.data.created_at ?? new Date())}</div>
+                    {quote.data.last_updated && (
+                      <>
+                        <div className='text-small font-bold mt-2'>Última actualización</div>
+                        <div className='text-tiny'>{formatDate(quote.data.last_updated)}</div>
+                      </>
+                    )}
+                  </div>
                 }
+                hidden={!quote.data.id}
               >
-                {isSaved ? 'Guardada' : isSaving ? 'Guardando...' : isDirty ? 'Sin guardar' : 'Sin cambios'}
-              </Chip>
+                <Chip
+                  color={isSaving ? 'primary' : isSaved ? 'success' : isDirty ? 'warning' : 'default'}
+                  className='text-sm'
+                  variant='flat'
+                  size='lg'
+                  startContent={
+                    isSaved ? (
+                      <CloudCheck size={24} />
+                    ) : isSaving ? (
+                      <Spinner size='sm' />
+                    ) : isDirty ? (
+                      <CloudAlert size={24} />
+                    ) : (
+                      <CloudCheck size={24} />
+                    )
+                  }
+                >
+                  {isSaved ? 'Guardada' : isSaving ? 'Guardando...' : isDirty ? 'Sin guardar' : 'Sin cambios'}
+                </Chip>
+              </Tooltip>
             )}
           </>
         )}
         {quote.data.status === 'sent' && (
           <Tooltip
             content={`Fecha: 
-              ${formatDate(quote.data.last_updated ?? '')}`}
+              ${formatDate(quote.data.last_updated ?? new Date())}`}
           >
             <Chip className='text-sm' variant='flat' size='lg'>
               Enviada: {quote.data.last_updated ? parseISOtoRelative(quote.data.last_updated) : 'Fecha no disponible'}

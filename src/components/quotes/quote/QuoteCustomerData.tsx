@@ -1,4 +1,5 @@
 import { Avatar, Badge, Button, useDisclosure } from '@heroui/react'
+import { motion } from 'framer-motion'
 import { ArrowRightLeft, Plus, X } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../../store'
@@ -16,12 +17,17 @@ const QuoteCustomerData = () => {
       <div className='flex items-center gap-4'>
         {quote.selectedCustomer && (
           <>
-            <div>
+            <motion.div
+              className='flex-1 flex flex-col items-start justify-end gap-2 '
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
               {quote.isPublicAccess && (
                 <p className='text-2xl font-bold text-right '>{`Cotización #${quote.data.id}${new Date().getFullYear().toString().slice(-2)}`}</p>
               )}
               <p className='text-lg'>{quote.selectedCustomer.name || 'Cliente no seleccionado'}</p>
-            </div>
+            </motion.div>
             {!quote.isPublicAccess && (
               <Badge
                 color='danger'

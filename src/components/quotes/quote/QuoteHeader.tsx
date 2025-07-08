@@ -26,7 +26,7 @@ const QuoteHeader = () => {
         </section>
       ) : (
         <div className='flex items-center gap-4'>
-          <Button isIconOnly variant='light' onPress={() => navigate('/cotizaciones')}>
+          <Button isIconOnly variant='light' onPress={() => navigate(-1)}>
             <ArrowLeft size={24} />
           </Button>
           <h1 className='text-3xl font-bold text-gray-900 flex items-center gap-2'>

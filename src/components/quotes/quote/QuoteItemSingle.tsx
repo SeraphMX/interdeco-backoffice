@@ -1,4 +1,5 @@
-import { Button, Chip, Input } from '@heroui/react'
+import { Button, Chip, NumberInput } from '@heroui/react'
+import { motion, Variant } from 'framer-motion'
 import { Minus, Tag } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../../store'
@@ -10,11 +11,15 @@ interface QuoteItemProps {
   onUpdateQuantity: (item: QuoteItem, quantity: number) => void
   onRemoveItem: (item: QuoteItem) => void
   onSetDiscount: (item: QuoteItem) => void
+  itemVariants?: {
+    hidden: Variant
+    show: Variant
+  }
+  isLastItem?: boolean
+  scrollRef?: React.RefObject<HTMLDivElement>
 }
 
-const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount }: QuoteItemProps) => {
-  console.log('QuoteItemSingle render', item ?? 'Producto no definido')
-
+const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, itemVariants, isLastItem, scrollRef }: QuoteItemProps) => {
   const rxQuote = useSelector((state: RootState) => state.quote)
   const rxCategories = useSelector((state: RootState) => state.catalog.categories)
 
@@ -29,7 +34,26 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount }
   )
 
   return (
-    <article key={item.product?.id} className='border rounded-lg overflow-hidden'>
+    <motion.article
+      key={item.product?.id}
+      className='bg-white shadow-sm border rounded-lg overflow-hidden'
+      variants={itemVariants}
+      transition={{
+        type: 'spring',
+        stiffness: 500,
+        damping: 20,
+        velocity: 0.1
+      }}
+      layout
+      onAnimationStart={() => {
+        if (isLastItem && scrollRef?.current) {
+          scrollRef.current.scrollTo({
+            top: scrollRef.current.scrollHeight,
+            behavior: 'smooth'
+          })
+        }
+      }}
+    >
       <header className='flex items-center gap-4 p-4 bg-gray-50'>
         <div className='flex-grow min-w-0'>
           <h3 className='font-medium text-lg flex gap-4 items-center'>
@@ -49,15 +73,24 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount }
                   <Tag size={18} />
                 </Button>
 
-                <Input
-                  type='number'
+                <NumberInput
                   className='w-20'
-                  value={item.requiredQuantity.toString()}
+                  value={item.requiredQuantity}
                   size='sm'
                   aria-label='Cantidad requerida'
-                  onChange={(e) => onUpdateQuantity(item, Number(e.target.value))}
-                  onFocus={(e) => e.target.select()}
+                  onValueChange={(value) => onUpdateQuantity(item, value)}
+                  onFocus={(e) => {
+                    const input = e.target as HTMLInputElement
+                    input.select()
+                  }}
                   classNames={{ input: 'text-right' }}
+                  minValue={1}
+                  min={1}
+                  onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                    if (e.key === 'Enter') {
+                      e.currentTarget.blur() // 👈 aquí haces que pierda el foco
+                    }
+                  }}
                 />
                 <Button isIconOnly color='danger' variant='light' aria-label='Eliminar artículo' onPress={() => onRemoveItem(item)}>
                   <Minus size={18} />
@@ -148,7 +181,7 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount }
           </section>
         </div>
       </section>
-    </article>
+    </motion.article>
   )
 }
 
