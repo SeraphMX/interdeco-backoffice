@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import { quoteService } from '../../../services/quoteService'
 import { RootState } from '../../../store'
 import { clearQuote, setQuote, setQuoteStatus } from '../../../store/slices/quoteSlice'
+import { getQuoteID } from '../../../utils/strings'
 import ModalConfirmDeleteQuote from '../modals/ModalConfirmDeleteQuote'
 import { QuotePDF } from '../QuotePDF'
 import ModalSendQuote from './modals/ModalSendQuote'
@@ -33,7 +34,7 @@ const QuoteActions = () => {
 
   const handleDownloadQuote = async () => {
     const blob = await pdf(<QuotePDF quote={quote.data} />).toBlob()
-    saveAs(blob, 'cotizacion-interdeco.pdf')
+    saveAs(blob, `InterDeco Cotización-${getQuoteID(quote.data)}.pdf`)
 
     //saveAs(blob, 'cotizacion.pdf')
   }
