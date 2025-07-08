@@ -54,7 +54,7 @@ export interface Quote {
   total_items?: number | null
   total: number
   status: QuoteStatus
-  acces_token?: string // Para autenticación en API
+  access_token?: string | null // Para autenticación en API
 }
 
 export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'open' | 'archived'
