@@ -143,17 +143,17 @@ const QuoteActions = () => {
           </Button>
         </BrowserView>
 
+        <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='secondary' variant='ghost' onPress={handleDownloadQuote}>
+          <FileDown />
+          Descargar
+        </Button>
+
         {quote.isPublicAccess && (
           <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='success' variant='ghost' onPress={handleSendMessage}>
             <FontAwesomeIcon icon={faWhatsapp} size='2x' />
             Mensaje
           </Button>
         )}
-
-        <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='secondary' variant='ghost' onPress={handleDownloadQuote}>
-          <FileDown />
-          Descargar
-        </Button>
 
         {/* <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost'>
           <DollarSign />
