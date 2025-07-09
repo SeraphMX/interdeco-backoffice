@@ -27,7 +27,7 @@ const QuoteHeader = () => {
             <img src='/branding/logo-full.svg' className='h-20 sm:h-24' alt='logo-interdeco' />
           </Link>
           <MobileView>
-            <QuoteActions />
+            <QuoteActions type='header' />
           </MobileView>
         </section>
       ) : (

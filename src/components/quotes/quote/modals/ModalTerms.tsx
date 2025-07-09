@@ -22,7 +22,7 @@ const ModalTerms = ({ isOpen, onOpenChange }: ModalTermsProps) => {
               </ul>
 
               <p className='text-sm'>
-                En InterDeco confiamos tanto en la calidad y el valor de nuestro servicio, que te ofrecemos una{' '}
+                En <strong>InterDeco</strong>fiamos tanto en la calidad y el valor de nuestro servicio, que te ofrecemos una{' '}
                 <strong>garantía única</strong>: Si encuentras un presupuesto más bajo (por escrito y con los mismos materiales
                 especificados) <strong>igualamos el precio</strong> y <strong>te regalamos la instalación</strong>.
               </p>

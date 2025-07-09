@@ -1,21 +1,26 @@
 import { faWhatsapp } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { addToast, Button, useDisclosure } from '@heroui/react'
+import { addToast, useDisclosure } from '@heroui/react'
 import { pdf } from '@react-pdf/renderer'
 import { saveAs } from 'file-saver'
-import { Archive, ArchiveRestore, FileDown, FileSearch, MailPlus, Save, Trash2, X } from 'lucide-react'
-import { BrowserView } from 'react-device-detect'
+import { Archive, ArchiveRestore, DollarSign, FileDown, FileSearch, MailPlus, Save, Trash2, X } from 'lucide-react'
+import { isBrowser, isMobile } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { quoteService } from '../../../services/quoteService'
 import { RootState } from '../../../store'
 import { clearQuote, setQuote, setQuoteStatus } from '../../../store/slices/quoteSlice'
 import { getQuoteID } from '../../../utils/strings'
+import ActionButton from '../../shared/ActionButton'
 import ModalConfirmDeleteQuote from '../modals/ModalConfirmDeleteQuote'
 import { QuotePDF } from '../QuotePDF'
+import ModalPayment from './modals/ModalPayment'
 import ModalSendQuote from './modals/ModalSendQuote'
 
-const QuoteActions = () => {
+interface QuoteActionsProps {
+  type?: 'header' | 'footer'
+}
+const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
 
@@ -28,6 +33,7 @@ const QuoteActions = () => {
   } = useDisclosure()
 
   const { isOpen: isOpenSendQuote, onOpen: onOpenSendQuote, onOpenChange: onOpenChangeSendQuote } = useDisclosure()
+  const { isOpen: isOpenPaymentModal, onOpen: onOpenPaymentModal, onOpenChange: onOpenChangePaymentModal } = useDisclosure()
 
   const handlePreviewQuote = () => {
     sessionStorage.setItem('previewQuote', JSON.stringify(quote.data))
@@ -37,19 +43,14 @@ const QuoteActions = () => {
   const handleDownloadQuote = async () => {
     const blob = await pdf(<QuotePDF quote={quote.data} />).toBlob()
     saveAs(blob, `InterDeco Cotización-${getQuoteID(quote.data)}.pdf`)
-
-    //saveAs(blob, 'cotizacion.pdf')
   }
 
   const handleSaveQuote = async () => {
     if (!quote.data.id) {
       const savedQuote = await quoteService.saveQuote(quote.data)
 
-      if (savedQuote.success) {
-        if (!savedQuote) return
-        if (savedQuote.quote) {
-          dispatch(setQuote({ ...quote.data, id: savedQuote.quote.id, last_updated: savedQuote.quote.last_updated }))
-        }
+      if (savedQuote.success && savedQuote.quote) {
+        dispatch(setQuote({ ...quote.data, id: savedQuote.quote.id, last_updated: savedQuote.quote.last_updated }))
       }
     }
   }
@@ -127,79 +128,89 @@ const QuoteActions = () => {
     window.open(url, '_blank') // Abre WhatsApp en una nueva pestaña
   }
 
+  const isHeader = type === 'header'
+  const isFooter = type === 'footer'
+
+  const renderPublicActions = () => (
+    <>
+      {quote.isPublicAccess && isFooter && (
+        <ActionButton icon={<DollarSign />} label='Pagar' color='primary' onClick={onOpenPaymentModal} />
+      )}
+    </>
+  )
+
+  const renderInternalActions = () => {
+    if (!quote.data.id) return null
+    if (quote.isPublicAccess) return null
+
+    return (
+      <>
+        {quote.data.status !== 'sent' && <ActionButton icon={<MailPlus />} label='Enviar' color='secondary' onClick={onOpenSendQuote} />}
+        {quote.data.status === 'open' && (
+          <ActionButton icon={<Trash2 />} label='Eliminar' color='danger' onClick={onOpenConfirmDeleteQuote} />
+        )}
+        {quote.data.status === 'archived' && (
+          <ActionButton icon={<ArchiveRestore />} label='Restaurar' color='primary' onClick={handleRestoreQuote} />
+        )}
+        {quote.data.status !== 'sent' && quote.data.status !== 'open' && quote.data.status !== 'archived' && (
+          <ActionButton icon={<Archive />} label='Archivar' color='danger' onClick={onOpenConfirmDeleteQuote} />
+        )}
+        <ActionButton icon={<X />} label='Cerrar' color='danger' onClick={handleCloseQuote} />
+
+        <ModalSendQuote isOpen={isOpenSendQuote} onOpenChange={onOpenChangeSendQuote} onConfirm={handleSendQuote} />
+
+        <ModalConfirmDeleteQuote
+          isOpen={isOpenConfirmDeleteQuote}
+          onOpenChange={onOpenChangeConfirmDeleteQuote}
+          onConfirm={handleDeleteQuote}
+        />
+      </>
+    )
+  }
+
+  const renderMobileActions = () => {
+    if (!isHeader) return null
+
+    return (
+      <>
+        <ActionButton icon={<FileDown />} label='Descargar' color='secondary' onClick={handleDownloadQuote} />
+        <ActionButton icon={<FontAwesomeIcon icon={faWhatsapp} size='2x' />} label='Mensaje' color='success' onClick={handleSendMessage} />
+      </>
+    )
+  }
+
+  const renderBrowserActions = () => (
+    <>
+      <ActionButton icon={<FileSearch />} label='Ver PDF' color='secondary' onClick={handlePreviewQuote} />
+      <ActionButton icon={<FileDown />} label='Descargar' color='secondary' onClick={handleDownloadQuote} />
+      {quote.isPublicAccess && (
+        <ActionButton icon={<FontAwesomeIcon icon={faWhatsapp} size='2x' />} label='Mensaje' color='success' onClick={handleSendMessage} />
+      )}
+    </>
+  )
+
   return (
     (quote.data.items ?? []).length > 0 && (
       <section className='flex justify-end gap-3'>
-        {!quote.data.id && (
-          <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost' onPress={handleSaveQuote}>
-            <Save />
-            Guardar
-          </Button>
-        )}
-        <BrowserView>
-          <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='secondary' variant='ghost' onPress={handlePreviewQuote}>
-            <FileSearch />
-            Ver PDF
-          </Button>
-        </BrowserView>
+        {/* Guardar cotización (cuando no tiene ID) */}
+        {!quote.data.id && <ActionButton icon={<Save />} label='Guardar' color='primary' onClick={handleSaveQuote} />}
 
-        <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='secondary' variant='ghost' onPress={handleDownloadQuote}>
-          <FileDown />
-          Descargar
-        </Button>
+        {/* Acciones por tipo de dispositivo */}
+        {isMobile && isHeader && renderMobileActions()}
+        {isBrowser && renderBrowserActions()}
 
-        {quote.isPublicAccess && (
-          <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='success' variant='ghost' onPress={handleSendMessage}>
-            <FontAwesomeIcon icon={faWhatsapp} size='2x' />
-            Mensaje
-          </Button>
-        )}
+        {/* Acciones si la cotización es pública */}
+        {renderPublicActions()}
 
-        {/* <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost'>
-          <DollarSign />
-          Pagar
-        </Button> */}
+        {/* Acciones internas si ya está guardada */}
+        {renderInternalActions()}
 
-        {quote.data.id && !quote.isPublicAccess && (
-          <>
-            {quote.data.status !== 'sent' && (
-              <Button className='flex flex-col h-16 w-16 p-2 gap-0 ' color='secondary' variant='ghost' onPress={onOpenSendQuote}>
-                <MailPlus />
-                Enviar
-              </Button>
-            )}
-
-            <ModalSendQuote isOpen={isOpenSendQuote} onOpenChange={onOpenChangeSendQuote} onConfirm={handleSendQuote} />
-
-            {quote.data.status === 'open' ? (
-              <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='danger' variant='ghost' onPress={onOpenConfirmDeleteQuote}>
-                <Trash2 />
-                Eliminar
-              </Button>
-            ) : quote.data.status === 'archived' ? (
-              <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='primary' variant='ghost' onPress={handleRestoreQuote}>
-                <ArchiveRestore />
-                Restaurar
-              </Button>
-            ) : (
-              quote.data.status !== 'sent' && (
-                <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='danger' variant='ghost' onPress={onOpenConfirmDeleteQuote}>
-                  <Archive />
-                  Archivar
-                </Button>
-              )
-            )}
-            <Button className='flex flex-col h-16 w-16 p-2 gap-0' color='danger' variant='ghost' onPress={handleCloseQuote}>
-              <X />
-              Cerrar
-            </Button>
-            <ModalConfirmDeleteQuote
-              isOpen={isOpenConfirmDeleteQuote}
-              onOpenChange={onOpenChangeConfirmDeleteQuote}
-              onConfirm={handleDeleteQuote}
-            />
-          </>
-        )}
+        {/* Modal de pago */}
+        <ModalPayment
+          isOpen={isOpenPaymentModal}
+          onOpenChange={onOpenChangePaymentModal}
+          onConfirm={() => console.log('Payment confirmed')}
+        />
       </section>
     )
   )
