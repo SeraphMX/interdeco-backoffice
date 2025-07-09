@@ -113,7 +113,7 @@ const ProductsTable = ({
             filteredItemsCount={filteredItems.length}
             selectedCategories={selectedCategories}
             selectedProviders={selectedProviders}
-            tableType='compact'
+            tableType={variant}
           />
         }
         className='overflow-auto z-10'

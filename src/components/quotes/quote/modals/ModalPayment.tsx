@@ -41,7 +41,7 @@ const ModalPayment = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
             </ModalBody>
             <ModalFooter>
               <Button variant='light' color='primary' onPress={onClose}>
-                Cancelar
+                Cerrar
               </Button>
             </ModalFooter>
           </>

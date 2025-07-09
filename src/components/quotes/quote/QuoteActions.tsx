@@ -210,11 +210,7 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
         {renderInternalActions()}
 
         {/* Modal de pago */}
-        <ModalPayment
-          isOpen={isOpenPaymentModal}
-          onOpenChange={onOpenChangePaymentModal}
-          onConfirm={() => console.log('Payment confirmed')}
-        />
+        <ModalPayment isOpen={isOpenPaymentModal} onOpenChange={onOpenChangePaymentModal} />
       </section>
     )
   )

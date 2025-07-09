@@ -7,7 +7,7 @@ interface ProductsTableFooterProps {
   filteredItemsCount: number
   selectedCategories: string[]
   selectedProviders: string[]
-  tableType?: 'default' | 'compact'
+  tableType?: 'default' | 'minimal'
 }
 
 const ProductsTableFooter = ({
