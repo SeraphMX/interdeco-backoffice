@@ -1,10 +1,10 @@
 import { Chip, SortDescriptor, Spinner, Switch, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@heroui/react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { productService } from '../../services/productService'
 import { RootState } from '../../store'
 import { selectProductsWithCategoryName } from '../../store/selectors/catalogSelectors'
-import { setSelectedProduct, updateProduct } from '../../store/slices/productsSlice'
+import { setIsEditing, setSelectedProduct, updateProduct } from '../../store/slices/productsSlice'
 import { Product } from '../../types'
 import { calculateSellingPrice, calculateTotalPrice } from '../../utils/pricing'
 import ProductsTableFooter from './ProductsTableFooter'
@@ -93,6 +93,13 @@ const ProductsTable = ({
       console.error('Error al actualizar el estado del producto:', error)
     }
   }
+
+  useEffect(() => {
+    return () => {
+      // Esto se ejecuta al desmontar
+      dispatch(setIsEditing(false))
+    }
+  }, [dispatch])
 
   return (
     <>
