@@ -1,7 +1,7 @@
 import { addToast } from '@heroui/react'
 import { clone } from 'lodash'
 import { supabase } from '../lib/supabase'
-import { Product, Quote, QuoteItem, QuoteItemDB } from '../types'
+import { Product, Quote, QuoteItem, QuoteItemDB, QuoteLogItem, QuoteStatus } from '../types'
 
 export type DiscountType = 'percentage' | 'fixed'
 
@@ -83,8 +83,6 @@ export const quoteService = {
       // 3. Llamar a la función Netlify que genera el token
       const baseUrl = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://localhost:8888'
 
-      console.log('Base URL for Netlify function:', baseUrl)
-
       const response = await fetch(`${baseUrl}/.netlify/functions/generate-quote-token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,13 +91,12 @@ export const quoteService = {
         })
       })
 
-      console.log('Response from Netlify function:', response)
-
       if (!response.ok) {
         throw new Error('Error al generar token en función Netlify')
       }
 
       const { url } = await response.json()
+      await this.logQuoteAction(quoteResult, 'created')
 
       return {
         success: true,
@@ -110,7 +107,6 @@ export const quoteService = {
       return { success: false, error: (e as Error).message }
     }
   },
-
   async cloneQuote(quote: Quote): Promise<{ success: boolean; quote?: Quote; error?: string }> {
     try {
       if (!quote.id) {
@@ -152,6 +148,8 @@ export const quoteService = {
       if (!result.success) {
         throw new Error(result.error || 'Error al guardar la cotización clonada.')
       }
+
+      await this.logQuoteAction(quote, 'cloned')
 
       return { success: true, quote: result.quote }
     } catch (e) {
@@ -264,15 +262,39 @@ export const quoteService = {
       return { success: false, error: (e as Error).message }
     }
   },
-  async setQuoteStatus(quoteId: number, status: string): Promise<{ success: boolean; quote?: Quote; error?: string }> {
+  async setQuoteStatus(quoteId: number, status: QuoteStatus): Promise<{ success: boolean; quote?: Quote; error?: string }> {
     try {
       if (!quoteId) {
         throw new Error('El ID de la cotización es requerido para actualizar el estado.')
       }
 
-      const { data: updatedQuote, error } = await supabase.from('quotes').update({ status }).eq('id', quoteId).select().single()
+      // 1. Obtener el estado anterior
+      const { data: previousQuote, error: fetchError } = await supabase.from('quotes').select('id, status').eq('id', quoteId).single()
 
-      if (error) throw error
+      if (fetchError) throw fetchError
+
+      const previousStatus = previousQuote.status
+
+      // 2. Actualizar el estado de la cotización
+      const { data: updatedQuote, error: updateError } = await supabase
+        .from('quotes')
+        .update({ status })
+        .eq('id', quoteId)
+        .select()
+        .single()
+
+      if (updateError) throw updateError
+
+      // 3. Determinar la acción a registrar
+      let action = status
+      if (previousStatus === 'archived' && status === 'open') {
+        action = 'restored'
+      } else {
+        action = status
+      }
+
+      // 4. Registrar el log
+      await this.logQuoteAction(updatedQuote, action)
 
       return {
         success: true,
@@ -306,6 +328,8 @@ export const quoteService = {
         throw new Error('Error al enviar el correo electrónico de la cotización.')
       }
 
+      await this.logQuoteAction(quote, 'sent_mail')
+
       addToast({
         title: 'Correo enviado',
         description: 'La cotización ha sido enviada correctamente por correo electrónico.',
@@ -322,25 +346,51 @@ export const quoteService = {
       return { success: false, error: (e as Error).message }
     }
   },
-  async logQuoteAccess(quote: Quote, action: string, ip: string, user?: string): Promise<{ success: boolean; error?: string }> {
+  async logQuoteAction(quote: Quote, action: string, userId?: string): Promise<{ success: boolean; error?: string }> {
     try {
-      if (!quote) {
-        throw new Error('La cotización es requerida para registrar el acceso.')
+      if (!quote?.id) {
+        throw new Error('La cotización es requerida para registrar el evento.')
       }
 
-      const { error } = await supabase.from('quote_access_logs').insert({
-        quote_id: quote.id,
-        action: action,
-        user_id: user,
-        user_agent: navigator.userAgent,
-        ip_address: ip
+      const baseUrl = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://localhost:8888'
+
+      const response = await fetch(`${baseUrl}/.netlify/functions/track-event`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quoteId: quote.id,
+          action: action,
+          userId: userId ?? null
+        })
       })
 
-      if (error) throw error
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText)
+      }
 
       return { success: true }
     } catch (e) {
-      console.log('Error al registrar el acceso a la cotización:', (e as Error).message)
+      console.error('Error al registrar acción de cotización:', (e as Error).message)
+      return { success: false, error: (e as Error).message }
+    }
+  },
+  async getQuoteHistory(quote: Quote): Promise<{ success: boolean; logs?: QuoteLogItem[]; error?: string }> {
+    try {
+      if (!quote) {
+        throw new Error('La cotización es requerida para obtener los registros de acceso.')
+      }
+
+      const { data: logs, error } = await supabase
+        .from('quote_access_logs')
+        .select('*')
+        .eq('quote_id', quote.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      return { success: true, logs }
+    } catch (e) {
       return { success: false, error: (e as Error).message }
     }
   }

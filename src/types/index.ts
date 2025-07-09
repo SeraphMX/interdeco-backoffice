@@ -44,6 +44,16 @@ export interface QuoteItemDB {
   discount?: number
 }
 
+export interface QuoteLogItem {
+  id: number
+  quote_id: number
+  action: string
+  user_id?: number
+  user_agent: string
+  ip_address: string
+  created_at: string
+}
+
 export interface Quote {
   id?: number | null
   customer_id?: number | null
@@ -55,23 +65,10 @@ export interface Quote {
   total: number
   status: QuoteStatus
   access_token?: string | null // Para autenticación en API
+  history?: QuoteLogItem[] // Historial de acciones
 }
 
-export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'open' | 'archived'
-
-export type CotizacionStatus = 'pendiente' | 'aprobada' | 'rechazada' | 'finalizada'
-
-export interface Cotizacion {
-  id: string
-  clienteId: string
-  fecha: string
-  items: QuoteItem[]
-  subtotal: number
-  iva: number
-  descuento: number
-  total: number
-  status: CotizacionStatus
-}
+export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'open' | 'archived' | 'restored'
 
 export interface Product {
   sku: string
@@ -159,4 +156,19 @@ export const quoteStatus = [
   { key: 'rejected', label: 'rechazada', color: 'danger' },
   { key: 'expired', label: 'expirada', color: 'default' },
   { key: 'archived', label: 'archivada', color: 'danger' }
+]
+
+export const quoteActions = [
+  { key: 'created', label: 'Creada', icon: 'save', color: 'primary' },
+  { key: 'sent_mail', label: 'Enviada por Mail ', icon: 'mail-plus', color: 'secondary' },
+  { key: 'sent_whatsapp', label: 'Enviada por WhatsApp ', icon: 'mail-plus', color: 'secondary' },
+  { key: 'restored', label: 'Restaurar', icon: 'archive-restore', color: 'primary' },
+  { key: 'updated', label: 'Actualización', icon: 'archive-restore', color: 'primary' },
+  { key: 'accepted', label: 'Aceptada', icon: 'check-circle', color: 'success' },
+  { key: 'rejected', label: 'Rechazada', icon: 'x-circle', color: 'danger' },
+  { key: 'expired', label: 'Expirada', icon: 'clock', color: 'default' },
+  { key: 'archived', label: 'Archivada', icon: 'archive', color: 'danger' },
+  { key: 'opened', label: 'Vista', icon: 'eye', color: 'success' },
+  { key: 'downloaded', label: 'Descargada', icon: 'file-down', color: 'secondary' },
+  { key: 'cloned', label: 'Clonada', icon: 'file-down', color: 'secondary' }
 ]

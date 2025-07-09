@@ -26,7 +26,8 @@ const initialState: QuoteState = {
     last_updated: null,
     items: [],
     total: 0,
-    status: 'open'
+    status: 'open',
+    history: []
   }
 }
 
