@@ -15,11 +15,6 @@ const handler: Handler = async (event) => {
     }
   }
 
-  // Obtener IP del visitante
-  const ip = event.headers['x-forwarded-for']?.split(',')[0] || event.headers['client-ip'] || 'IP no disponible'
-
-  console.log(`Verificando token: ${token} desde IP: ${ip}`)
-
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as {
       quote_id: number
@@ -37,7 +32,7 @@ const handler: Handler = async (event) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ quote: data, ip })
+      body: JSON.stringify({ quote: data })
     }
   } catch (err) {
     return {
