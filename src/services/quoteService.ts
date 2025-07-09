@@ -99,12 +99,11 @@ export const quoteService = {
         throw new Error('Error al generar token en función Netlify')
       }
 
-      const { url } = await response.json()
+      const { access_token } = await response.json()
 
       return {
         success: true,
-        quote: { id: quoteId, ...quoteResult },
-        url // URL con el token firmado
+        quote: { id: quoteId, ...quoteResult, access_token }
       }
     } catch (e) {
       return { success: false, error: (e as Error).message }
