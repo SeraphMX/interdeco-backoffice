@@ -40,11 +40,7 @@ const Cotizacion = () => {
 
         dispatch(setQuote(data.quote))
 
-        quoteService.logQuoteAccess(
-          data.quote,
-          'opened',
-          data.ip // Aquí pasamos la IP que nos devuelve el servidor
-        )
+        quoteService.logQuoteAction(data.quote, 'opened')
       } catch (err) {
         setError((err as Error).message)
       }

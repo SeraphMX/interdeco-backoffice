@@ -15,7 +15,7 @@ import ActionButton from '../../shared/ActionButton'
 import ModalConfirmDeleteQuote from '../modals/ModalConfirmDeleteQuote'
 import { QuotePDF } from '../QuotePDF'
 import ModalPayment from './modals/ModalPayment'
-import ModalSendQuote from './modals/ModalSendQuote'
+import ModalQuoteSend from './modals/ModalQuoteSend'
 
 interface QuoteActionsProps {
   type?: 'header' | 'footer'
@@ -43,6 +43,7 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
   const handleDownloadQuote = async () => {
     const blob = await pdf(<QuotePDF quote={quote.data} />).toBlob()
     saveAs(blob, `InterDeco Cotización-${getQuoteID(quote.data)}.pdf`)
+    await quoteService.logQuoteAction(quote.data, 'downloaded')
   }
 
   const handleSaveQuote = async () => {
@@ -157,7 +158,7 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
         )}
         <ActionButton icon={<X />} label='Cerrar' color='danger' onClick={handleCloseQuote} />
 
-        <ModalSendQuote isOpen={isOpenSendQuote} onOpenChange={onOpenChangeSendQuote} onConfirm={handleSendQuote} />
+        <ModalQuoteSend isOpen={isOpenSendQuote} onOpenChange={onOpenChangeSendQuote} onConfirm={handleSendQuote} />
 
         <ModalConfirmDeleteQuote
           isOpen={isOpenConfirmDeleteQuote}
