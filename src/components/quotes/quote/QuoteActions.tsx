@@ -51,7 +51,14 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
       const savedQuote = await quoteService.saveQuote(quote.data)
 
       if (savedQuote.success && savedQuote.quote) {
-        dispatch(setQuote({ ...quote.data, id: savedQuote.quote.id, last_updated: savedQuote.quote.last_updated }))
+        dispatch(
+          setQuote({
+            ...quote.data,
+            id: savedQuote.quote.id,
+            last_updated: savedQuote.quote.last_updated,
+            access_token: savedQuote.quote.access_token
+          })
+        )
       }
     }
   }

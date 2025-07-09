@@ -68,11 +68,9 @@ const handler: Handler = async (event) => {
   // Guardar el token en la cotización
   await supabase.from('quotes').update({ access_token: token }).eq('id', quote.id)
 
-  const url = `https://tudominio.com/cotizaciones/nueva/${token}`
-
   return {
     statusCode: 200,
-    body: JSON.stringify({ url })
+    body: JSON.stringify({ access_token: token })
   }
 }
 
