@@ -1,5 +1,6 @@
 import { Button, Chip, Spinner, Tooltip, useDisclosure } from '@heroui/react'
 import { BrushCleaning, CloudAlert, CloudCheck, Plus } from 'lucide-react'
+import { isMobile } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { useDebouncedAutoSave } from '../../../hooks/useDebounceAutosave'
 import { RootState } from '../../../store'
@@ -24,20 +25,6 @@ const QuoteItemsFooter = () => {
 
   return (
     <footer className='sticky bottom-0 left-0 right-0  p-2 px-6 shadow-medium bg-white z-10 flex justify-between items-center '>
-      {quote.data.status === 'open' && (
-        <section className='flex justify-start items-center'>
-          <Button size='md' color='primary' variant='light' startContent={<Plus size={18} />} onPress={onOpenAddProduct}>
-            Agregar producto
-          </Button>
-          {(quote.data.items ?? []).length > 0 && (
-            <Button size='md' color='danger' variant='light' startContent={<BrushCleaning size={18} />} onPress={onOpenConfirmClear}>
-              Limpiar productos
-            </Button>
-          )}
-          <ModalConfirmClear isOpen={isOpenConfirmClear} onOpenChange={onOpenChangeConfirmClear} onConfirm={handleClearItems} />
-          <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
-        </section>
-      )}
       <section className='flex justify-end items-center gap-2'>
         {(quote.data.items?.length ?? 0) > 0 && (
           <>
@@ -84,17 +71,45 @@ const QuoteItemsFooter = () => {
             )}
           </>
         )}
-        {quote.data.status === 'sent' && (
+        {quote.data.status === 'sent' && !isMobile && (
           <Tooltip
             content={`Fecha: 
               ${formatDate(quote.data.last_updated ?? new Date())}`}
           >
             <Chip className='text-sm' variant='flat' size='lg'>
-              Enviada: {quote.data.last_updated ? parseISOtoRelative(quote.data.last_updated) : 'Fecha no disponible'}
+              Enviada {quote.data.last_updated ? parseISOtoRelative(quote.data.last_updated) : 'Fecha no disponible'}
             </Chip>
           </Tooltip>
         )}
       </section>
+      {quote.data.status === 'open' && (
+        <section className='flex justify-start items-center'>
+          <Button
+            size='md'
+            color='primary'
+            variant='light'
+            startContent={<Plus size={18} />}
+            onPress={onOpenAddProduct}
+            isIconOnly={isMobile}
+          >
+            {!isMobile && 'Agregar producto'}
+          </Button>
+          {(quote.data.items ?? []).length > 0 && (
+            <Button
+              size='md'
+              color='danger'
+              variant='light'
+              startContent={<BrushCleaning size={18} />}
+              onPress={onOpenConfirmClear}
+              isIconOnly={isMobile}
+            >
+              {!isMobile && 'Limpiar productos'}
+            </Button>
+          )}
+          <ModalConfirmClear isOpen={isOpenConfirmClear} onOpenChange={onOpenChangeConfirmClear} onConfirm={handleClearItems} />
+          <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
+        </section>
+      )}
     </footer>
   )
 }

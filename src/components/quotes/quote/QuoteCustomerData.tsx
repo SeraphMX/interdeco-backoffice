@@ -4,7 +4,6 @@ import { ArrowRightLeft, Plus, X } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../../store'
 import { clearSelectedCustomer } from '../../../store/slices/quoteSlice'
-import { getQuoteID } from '../../../utils/strings'
 import CustomerIcon from '../../shared/CustomerIcon'
 import ModalSelectCustomer from '../modals/ModalSelectCustomer'
 
@@ -15,17 +14,19 @@ const QuoteCustomerData = () => {
 
   return (
     <section>
-      <div className='flex items-center gap-4 justify-end'>
+      <div className='flex items-center gap-4 flex-col sm:flex-row '>
         {quote.selectedCustomer && (
-          <>
+          <div className='flex items-center gap-4 w-full sm:w-auto'>
             <motion.div
-              className='flex-1 flex flex-col items-start sm:items-end justify-end gap-2 '
+              className='flex-1 flex flex-col items-start justify-end gap-2 '
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
-              {quote.isPublicAccess && <p className='text-2xl font-bold text-right '>{`Cotización #${getQuoteID(quote.data)}`}</p>}
-              <p className='text-lg'>{quote.selectedCustomer.name || 'Cliente no seleccionado'}</p>
+              {quote.isPublicAccess && (
+                <p className='text-2xl font-bold text-right '>{`Cotización #${quote.data.id}${new Date().getFullYear().toString().slice(-2)}`}</p>
+              )}
+              <p className='text-sm sm:text-lg'>{quote.selectedCustomer.name || 'Cliente no seleccionado'}</p>
             </motion.div>
             {!quote.isPublicAccess && (
               <Badge
@@ -35,7 +36,7 @@ const QuoteCustomerData = () => {
                 onClick={() => {
                   dispatch(clearSelectedCustomer())
                 }}
-                className='w-5 h-5 p-0 cursor-pointer'
+                className={`w-5 h-5 p-0 cursor-pointer ${quote.data.status !== 'open' && 'hidden'}`}
               >
                 <Avatar
                   isBordered
@@ -48,7 +49,7 @@ const QuoteCustomerData = () => {
                 />
               </Badge>
             )}
-          </>
+          </div>
         )}
 
         {quote.data.status === 'open' && !quote.isPublicAccess && (
