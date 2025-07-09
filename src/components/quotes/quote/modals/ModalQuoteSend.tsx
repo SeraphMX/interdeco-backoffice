@@ -14,7 +14,7 @@ interface ModalSelectCustomerProps {
   onConfirm: () => void
 }
 
-const ModalSendQuote = ({ isOpen, onOpenChange, onConfirm }: ModalSelectCustomerProps) => {
+const ModalQuoteSend = ({ isOpen, onOpenChange, onConfirm }: ModalSelectCustomerProps) => {
   const rxQuote = useSelector((state: RootState) => state.quote)
   const [sendType, setSendType] = useState<'email' | 'whatsapp'>('email')
   const [isLoading, setIsLoading] = useState(false)
@@ -143,4 +143,4 @@ const ModalSendQuote = ({ isOpen, onOpenChange, onConfirm }: ModalSelectCustomer
   )
 }
 
-export default ModalSendQuote
+export default ModalQuoteSend
