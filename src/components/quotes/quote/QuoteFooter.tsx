@@ -1,12 +1,12 @@
-import { Card, CardBody } from '@heroui/react'
+import { Card, CardBody, Link, useDisclosure } from '@heroui/react'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { BrowserView, MobileView } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../../store'
 import { setQuoteTotal } from '../../../store/slices/quoteSlice'
 import CountUp from '../../shared/CountUp'
 import QuoteActions from './QuoteActions'
+import ModalTerms from './modals/ModalTerms'
 
 const QuoteFooter = () => {
   const dispatch = useDispatch()
@@ -16,6 +16,7 @@ const QuoteFooter = () => {
 
   const quote = useSelector((state: RootState) => state.quote)
 
+  const { isOpen: isOpenTermsModal, onOpen: onOpenTermsModal, onOpenChange: onOpenChangeTermsModal } = useDisclosure()
   useEffect(() => {
     if ((quote.data.items ?? []).length > 0) {
       setSubtotal((quote.data.items ?? []).reduce((acc, item) => acc + item.subtotal, 0))
@@ -31,32 +32,9 @@ const QuoteFooter = () => {
   return (
     <footer>
       {(quote.data.items ?? []).length > 0 && (
-        <Card className='p-4 px-8 '>
+        <Card className=' px-4 '>
           <CardBody className='flex flex-row justify-between items-center gap-4 '>
-            <BrowserView>
-              <QuoteActions />
-            </BrowserView>
-
-            <MobileView>
-              <div className='flex items-center justify-between w-full'>
-                <div className='flex-1 flex justify-end'></div>
-              </div>
-            </MobileView>
-
-            {/* 
-
-// <div className='flex justify-between w-full   items-center gap-4'>
-              //   <ul className='text-sm text-gray-600 list-disc list-inside space-y-1 ml-4'>
-              //     <li>Todo trabajo requiere de un 60% de anticipo, el cual se podrá pagar.</li>
-              //     <li>Aceptamos pagos en efectivo, mediante depósito o transferencia electrónica a la cuenta.</li>
-              //     <li>Precios sujetos a cambio sin previo aviso y sujetos a existencia.</li>
-              //     <li>Una vez realizado el pedido no se aceptan cambios de material ni cancelaciones.</li>
-              //     <li>Los tiempos de entrega varían dependiendo del material.</li>
-              //     <li>Mejoramos cualquier presupuesto presentado por escrito.</li>
-              //     <li>Trabajo 100% garantizado.</li>
-              //   </ul>
-              //   <img src='/branding/warranty.svg' className='w-40 ' alt='' />
-              // </div> */}
+            <QuoteActions />
 
             {quote.data.items && quote.data.items.length > 0 && (
               <motion.div
@@ -84,6 +62,15 @@ const QuoteFooter = () => {
           </CardBody>
         </Card>
       )}
+      {quote.isPublicAccess && (
+        <section className='flex justify-between items-center gap-2 mt-2 '>
+          <p className='text-sm text-gray-600'>&copy; InterDeco 2025</p>
+          <Link size='sm' onPress={onOpenTermsModal} className='cursor-pointer text-blue-600 hover:underline'>
+            Ver términos de la cotización
+          </Link>
+        </section>
+      )}
+      <ModalTerms isOpen={isOpenTermsModal} onOpenChange={onOpenChangeTermsModal} />
     </footer>
   )
 }
