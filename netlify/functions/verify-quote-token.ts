@@ -15,17 +15,18 @@ const handler: Handler = async (event) => {
     }
   }
 
-  try {
-    // Verifica el token
-    const decoded = jwt.verify(token, JWT_SECRET) as { quote_id: number; customer_id: number }
+  // Obtener IP del visitante
+  const ip = event.headers['x-forwarded-for']?.split(',')[0] || event.headers['client-ip'] || 'IP no disponible'
 
-    // (Opcional) Recupera la cotización desde Supabase
-    const { data, error } = await supabase
-      .from('quotes')
-      .select('*')
-      .eq('id', decoded.quote_id)
-      .eq('access_token', token) // Seguridad extra
-      .single()
+  console.log(`Verificando token: ${token} desde IP: ${ip}`)
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      quote_id: number
+      customer_id: number
+    }
+
+    const { data, error } = await supabase.from('quotes').select('*').eq('id', decoded.quote_id).eq('access_token', token).single()
 
     if (error || !data) {
       return {
@@ -36,7 +37,7 @@ const handler: Handler = async (event) => {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ quote: data })
+      body: JSON.stringify({ quote: data, ip })
     }
   } catch (err) {
     return {

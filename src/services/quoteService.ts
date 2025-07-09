@@ -321,5 +321,27 @@ export const quoteService = {
       })
       return { success: false, error: (e as Error).message }
     }
+  },
+  async logQuoteAccess(quote: Quote, action: string, ip: string, user?: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      if (!quote) {
+        throw new Error('La cotización es requerida para registrar el acceso.')
+      }
+
+      const { error } = await supabase.from('quote_access_logs').insert({
+        quote_id: quote.id,
+        action: action,
+        user_id: user,
+        user_agent: navigator.userAgent,
+        ip_address: ip
+      })
+
+      if (error) throw error
+
+      return { success: true }
+    } catch (e) {
+      console.log('Error al registrar el acceso a la cotización:', (e as Error).message)
+      return { success: false, error: (e as Error).message }
+    }
   }
 }

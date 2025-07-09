@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useParams } from 'react-router-dom'
 import Quote from '../components/quotes/Quote'
+import { quoteService } from '../services/quoteService'
 import { RootState } from '../store'
 import { setPublicAccess, setQuote } from '../store/slices/quoteSlice'
 
@@ -35,9 +36,15 @@ const Cotizacion = () => {
 
         const data = await res.json()
 
-        console.log('Cotización verificada desde el servidor:', data.quote)
+        console.log('Cotización verificada desde el servidor:', data)
 
         dispatch(setQuote(data.quote))
+
+        quoteService.logQuoteAccess(
+          data.quote,
+          'opened',
+          data.ip // Aquí pasamos la IP que nos devuelve el servidor
+        )
       } catch (err) {
         setError((err as Error).message)
       }
