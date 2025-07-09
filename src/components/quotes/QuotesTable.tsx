@@ -29,6 +29,7 @@ import { getQuoteID } from '../../utils/strings'
 import QuoteStatus from '../shared/QuoteStatus'
 import ModalConfirmDeleteQuote from './modals/ModalConfirmDeleteQuote'
 import ModalConfirmOpenQuote from './modals/ModalConfirmOpenQuote'
+import ModalQuoteHistory from './quote/modals/ModalQuoteHistory'
 
 interface QuotesTableProps {
   wrapperHeight?: number
@@ -44,6 +45,8 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
   const dispatch = useDispatch()
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'created_at', direction: 'descending' })
   const { isOpen: isOpenConfirmOpenQuote, onOpen: onOpenConfirmOpenQuote, onOpenChange: onOpenChangeConfirmOpenQuote } = useDisclosure()
+  const { isOpen: isOpenQuoteHistory, onOpen: onOpenQuoteHistory, onOpenChange: onOpenChangeQuoteHistory } = useDisclosure()
+
   const {
     isOpen: isOpenConfirmDeleteQuote,
     onOpen: onOpenConfirmDeleteQuote,
@@ -137,6 +140,16 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
     //navigate('/cotizaciones/nueva')
   }
 
+  const handleHistoryQuote = async (quote: Quote) => {
+    const history = await quoteService.getQuoteHistory(quote)
+    if (history.logs && history.logs.length > 0) {
+      dispatch(setQuote({ ...quote, history: history.logs }))
+      onOpenQuoteHistory()
+    } else {
+      console.error('No se pudo obtener el historial de la cotización')
+    }
+  }
+
   const onSuccessSetStatus = async () => {
     dispatch(clearQuote())
   }
@@ -204,8 +217,11 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
                       <Button variant='light' startContent={<EllipsisVertical />} isIconOnly size='sm'></Button>
                     </DropdownTrigger>
                     <DropdownMenu aria-label='Static Actions'>
-                      <DropdownItem key='copy' onPress={() => handlePreviewQuote(quote)}>
+                      <DropdownItem key='preview' onPress={() => handlePreviewQuote(quote)}>
                         Vista previa
+                      </DropdownItem>
+                      <DropdownItem key='history' onPress={() => handleHistoryQuote(quote)}>
+                        Historial
                       </DropdownItem>
                       <DropdownItem key='copy' onPress={() => handleCloneQuote(quote)}>
                         Duplicar
@@ -254,6 +270,7 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
         onOpenChange={onOpenChangeConfirmDeleteQuote}
         isOpen={isOpenConfirmDeleteQuote}
       />
+      <ModalQuoteHistory isOpen={isOpenQuoteHistory} onOpenChange={onOpenChangeQuoteHistory} />
     </>
   )
 }
