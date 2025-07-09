@@ -7,10 +7,9 @@ import InputClipboard from '../../../shared/InputClipboard'
 interface ModalPaymentProps {
   isOpen: boolean
   onOpenChange: (isOpen: boolean) => void
-  onConfirm: () => void
 }
 
-const ModalPayment = ({ isOpen, onOpenChange, onConfirm }: ModalPaymentProps) => {
+const ModalPayment = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
   const rxQuote = useSelector((state: RootState) => state.quote.data)
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='sm'>
@@ -41,11 +40,8 @@ const ModalPayment = ({ isOpen, onOpenChange, onConfirm }: ModalPaymentProps) =>
               </div>
             </ModalBody>
             <ModalFooter>
-              <Button variant='light' color='danger' onPress={onClose}>
+              <Button variant='light' color='primary' onPress={onClose}>
                 Cancelar
-              </Button>
-              <Button color='primary' onPress={onConfirm}>
-                Aceptar
               </Button>
             </ModalFooter>
           </>
