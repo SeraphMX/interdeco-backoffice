@@ -173,7 +173,6 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
 
     return (
       <>
-        <ActionButton icon={<FileDown />} label='Descargar' color='secondary' onClick={handleDownloadQuote} />
         <ActionButton icon={<FontAwesomeIcon icon={faWhatsapp} size='2x' />} label='Mensaje' color='success' onClick={handleSendMessage} />
       </>
     )
@@ -182,21 +181,26 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
   const renderBrowserActions = () => (
     <>
       <ActionButton icon={<FileSearch />} label='Ver PDF' color='secondary' onClick={handlePreviewQuote} />
-      <ActionButton icon={<FileDown />} label='Descargar' color='secondary' onClick={handleDownloadQuote} />
       {quote.isPublicAccess && (
         <ActionButton icon={<FontAwesomeIcon icon={faWhatsapp} size='2x' />} label='Mensaje' color='success' onClick={handleSendMessage} />
       )}
     </>
   )
 
+  const renderDownloadButton = () => {
+    if (isFooter && quote.isPublicAccess && isMobile) return null
+    return <ActionButton icon={<FileDown />} label='Descargar' color='secondary' onClick={handleDownloadQuote} />
+  }
+
   return (
     (quote.data.items ?? []).length > 0 && (
-      <section className='flex justify-end gap-3'>
+      <section className={`flex justify-end gap-3 ${!quote.isPublicAccess && 'order-2 sm:order-1'}`}>
         {/* Guardar cotización (cuando no tiene ID) */}
         {!quote.data.id && <ActionButton icon={<Save />} label='Guardar' color='primary' onClick={handleSaveQuote} />}
 
         {/* Acciones por tipo de dispositivo */}
         {isMobile && isHeader && renderMobileActions()}
+        {renderDownloadButton()}
         {isBrowser && renderBrowserActions()}
 
         {/* Acciones si la cotización es pública */}

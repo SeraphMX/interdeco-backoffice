@@ -54,7 +54,7 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
         }
       }}
     >
-      <header className='flex items-center gap-4 p-4 bg-gray-50'>
+      <header className='flex items-center flex-col sm:flex-row justify-between gap-4 p-4 bg-gray-50'>
         <section>
           <h3 className='font-medium text-lg flex flex-col sm:flex-row sm:gap-2 items-start'>
             <span className='font-semibold'>{item.product?.sku}</span> {item.product?.spec}

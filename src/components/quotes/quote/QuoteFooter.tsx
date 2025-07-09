@@ -1,6 +1,7 @@
 import { Card, CardBody, Link, useDisclosure } from '@heroui/react'
 import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
+import { isMobile } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../../store'
 import { setQuoteTotal } from '../../../store/slices/quoteSlice'
@@ -33,12 +34,14 @@ const QuoteFooter = () => {
     <footer>
       {(quote.data.items ?? []).length > 0 && (
         <Card className=' px-4 '>
-          <CardBody className='flex flex-row justify-between items-center gap-4 '>
+          <CardBody
+            className={quote.isPublicAccess || !isMobile ? 'flex gap-4 flex-row justify-between items-center' : 'flex gap-4 flex-col'}
+          >
             <QuoteActions />
 
             {quote.data.items && quote.data.items.length > 0 && (
               <motion.div
-                className='flex flex-col gap-2 text-right'
+                className={`flex flex-col gap-2 text-right ${!quote.isPublicAccess && 'order-1 sm:order-2'}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}

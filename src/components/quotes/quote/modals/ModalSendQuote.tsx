@@ -49,11 +49,11 @@ const ModalSendQuote = ({ isOpen, onOpenChange, onConfirm }: ModalSelectCustomer
   })
 
   useEffect(() => {
-    if (isOpen) {
-      emailForm.reset({ email: rxQuote.selectedCustomer?.email || '' })
-      whatsappForm.reset({ phone: rxQuote.selectedCustomer?.phone || '' })
-    }
-  }, [isOpen, rxQuote.selectedCustomer, emailForm, whatsappForm])
+    console.log('Cambio en cliente seleccionado:', rxQuote.selectedCustomer)
+
+    emailForm.reset({ email: rxQuote.selectedCustomer?.email || '' })
+    whatsappForm.reset({ phone: rxQuote.selectedCustomer?.phone || '' })
+  }, [rxQuote.selectedCustomer, emailForm, whatsappForm])
 
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='lg'>
@@ -101,7 +101,7 @@ const ModalSendQuote = ({ isOpen, onOpenChange, onConfirm }: ModalSelectCustomer
               </RadioGroup>
 
               {sendType === 'email' && (
-                <form id='emailForm' onSubmit={handleEmailSubmit}>
+                <form id='emailForm' onSubmit={handleEmailSubmit} className={rxQuote.selectedCustomer ? 'hidden' : ''}>
                   <Input
                     isInvalid={!!emailForm.formState.errors.email}
                     errorMessage={emailForm.formState.errors.email?.message}
@@ -113,7 +113,7 @@ const ModalSendQuote = ({ isOpen, onOpenChange, onConfirm }: ModalSelectCustomer
               )}
 
               {sendType === 'whatsapp' && (
-                <form id='whatsappForm' onSubmit={handleWhatsAppSubmit}>
+                <form id='whatsappForm' onSubmit={handleWhatsAppSubmit} className={rxQuote.selectedCustomer ? 'hidden' : ''}>
                   <Input
                     isInvalid={!!whatsappForm.formState.errors.phone}
                     errorMessage={whatsappForm.formState.errors.phone?.message}

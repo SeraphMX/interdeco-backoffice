@@ -31,11 +31,11 @@ const QuoteHeader = () => {
           </MobileView>
         </section>
       ) : (
-        <div className='flex items-center gap-4'>
+        <div className='flex items-center gap-2'>
           <Button isIconOnly variant='light' onPress={() => navigate(-1)}>
             <ArrowLeft size={24} />
           </Button>
-          <h1 className='text-3xl font-bold text-gray-900 flex items-center gap-2'>
+          <h1 className='text-xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2'>
             {quote.data.id ? `Cotización #${getQuoteID(quote.data)}` : 'Nueva Cotización'}
 
             {quote.data.id && <QuoteStatus quote={quote.data} onSuccess={onSuccessSetStatus} />}
