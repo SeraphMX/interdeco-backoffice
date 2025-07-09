@@ -16,16 +16,12 @@ const handler: Handler = async (event) => {
   }
 
   try {
-    // Verifica el token
-    const decoded = jwt.verify(token, JWT_SECRET) as { quote_id: number; customer_id: number }
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      quote_id: number
+      customer_id: number
+    }
 
-    // (Opcional) Recupera la cotización desde Supabase
-    const { data, error } = await supabase
-      .from('quotes')
-      .select('*')
-      .eq('id', decoded.quote_id)
-      .eq('access_token', token) // Seguridad extra
-      .single()
+    const { data, error } = await supabase.from('quotes').select('*').eq('id', decoded.quote_id).eq('access_token', token).single()
 
     if (error || !data) {
       return {

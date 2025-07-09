@@ -84,16 +84,6 @@ const QuoteItemsFooter = () => {
       </section>
       {quote.data.status === 'open' && (
         <section className='flex justify-start items-center'>
-          <Button
-            size='md'
-            color='primary'
-            variant='light'
-            startContent={<Plus size={18} />}
-            onPress={onOpenAddProduct}
-            isIconOnly={isMobile}
-          >
-            {!isMobile && 'Agregar producto'}
-          </Button>
           {(quote.data.items ?? []).length > 0 && (
             <Button
               size='md'
@@ -106,6 +96,16 @@ const QuoteItemsFooter = () => {
               {!isMobile && 'Limpiar productos'}
             </Button>
           )}
+          <Button
+            size='md'
+            color='primary'
+            variant='light'
+            startContent={<Plus size={18} />}
+            onPress={onOpenAddProduct}
+            isIconOnly={isMobile}
+          >
+            {!isMobile && 'Agregar producto'}
+          </Button>
           <ModalConfirmClear isOpen={isOpenConfirmClear} onOpenChange={onOpenChangeConfirmClear} onConfirm={handleClearItems} />
           <ModalAddProduct isOpen={isOpenAddProduct} onOpenChange={onOpenChangeAddProduct} />
         </section>
