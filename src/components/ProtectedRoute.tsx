@@ -1,8 +1,8 @@
+import { Spinner } from '@heroui/react'
 import { useSelector } from 'react-redux'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useQuotes } from '../hooks/useQuotes'
 import { RootState } from '../store'
-import { Spinner } from '@heroui/react'
 
 interface ProtectedRouteProps {
   children?: React.ReactNode
@@ -18,7 +18,7 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
   if (isLoading) {
     return (
       <div className='flex justify-center items-center min-h-screen'>
-        <Spinner size='lg' label='Cargando sesión...' />
+        <Spinner size='lg' label='Cargando ...' />
       </div>
     )
   }
