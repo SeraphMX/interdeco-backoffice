@@ -105,6 +105,40 @@ export interface Customer {
   status?: string
 }
 
+export type EmailTemplate = 'register' | 'welcome' | 'purchaseConfirmation' | 'passwordReset' | 'passwordChangedConfirmation'
+export type EmailActions = 'create-account' | 'verify-account' | 'password-reset' | 'password-changed' | 'purchase-confirmation'
+
+export type EmailProps = {
+  to: string
+  subject: string
+  template: EmailTemplate
+  props: any
+}
+
+export interface SignUpParams {
+  email: string
+  password: string
+  terms?: boolean | true
+
+  metadata: {
+    full_name: string
+    phone: string
+    role?: 'admin' | 'staff'
+  }
+}
+
+export interface SignInParams {
+  email: string
+  password: string
+}
+
+export interface Profile {
+  id: string
+  full_name: string
+  phone: string
+  role: 'admin' | 'staff'
+}
+
 export const estadosMexico = [
   { key: '01', label: 'Aguascalientes' },
   { key: '02', label: 'Baja California' },

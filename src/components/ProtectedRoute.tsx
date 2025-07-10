@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useQuotes } from '../hooks/useQuotes'
 import { RootState } from '../store'
+import { Spinner } from '@heroui/react'
 
 interface ProtectedRouteProps {
   children?: React.ReactNode
@@ -9,16 +10,24 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
-  const { currentUser } = useSelector((state: RootState) => state.auth)
+  const { user, isLoading } = useSelector((state: RootState) => state.auth)
   const location = useLocation()
 
   useQuotes()
 
-  if (!currentUser) {
+  if (isLoading) {
+    return (
+      <div className='flex justify-center items-center min-h-screen'>
+        <Spinner size='lg' label='Cargando sesión...' />
+      </div>
+    )
+  }
+
+  if (!user) {
     return <Navigate to='/login' state={{ from: location }} replace />
   }
 
-  if (requiredRole && currentUser.role !== requiredRole && currentUser.role !== 'admin') {
+  if (requiredRole && user.role !== requiredRole && user.role !== 'admin') {
     return <Navigate to='/' replace />
   }
 
