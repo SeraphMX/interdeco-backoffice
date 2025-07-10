@@ -1,23 +1,16 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { supabase } from '../../lib/supabase'
+import { User } from '../../schemas/user.schema'
 import { userService } from '../../services/userService'
-
-interface AuthUserPayload {
-  id: string
-  email: string
-  phone: string
-  full_name: string
-  role: 'admin' | 'staff'
-}
 
 interface AuthState {
   isAuthenticated: boolean
-  user: AuthUserPayload | null
+  user: User | null
   isLoading: boolean
-  authError?: authError | null | undefined
+  authError?: AuthError | null | undefined
 }
 
-interface authError {
+interface AuthError {
   type: string
   message: string
   code?: string
@@ -38,7 +31,7 @@ const initialState: AuthState = {
 }
 
 // LOGIN thunk
-export const loginUser = createAsyncThunk<AuthUserPayload, { email: string; password: string }, { rejectValue: authError }>(
+export const loginUser = createAsyncThunk<User, { email: string; password: string }, { rejectValue: AuthError }>(
   'auth/loginUser',
   async ({ email, password }, thunkAPI) => {
     try {
@@ -58,13 +51,53 @@ export const loginUser = createAsyncThunk<AuthUserPayload, { email: string; pass
       // Usa el mensaje específico de Supabase si está disponible
       const supabaseMessage = (error as errorResponse)?.message || (error as errorResponse)?.error_description || 'Error al iniciar sesión'
 
-      let authError: authError = {
+      let authError: AuthError = {
         type: 'login',
         message: supabaseMessage
       }
 
-      if (supabaseMessage === 'Invalid login credentials') {
-        authError = { type: 'login', message: 'Credenciales inválidas. Por favor, verifica tu correo electrónico y contraseña.' }
+      switch (supabaseMessage) {
+        case 'Email not confirmed':
+          authError = {
+            type: 'email_not_confirmed',
+            message: 'Por favor, confirma tu correo electrónico antes de iniciar sesión.'
+          }
+          break
+        case 'User not found':
+          authError = {
+            type: 'user_not_found',
+            message: 'Usuario no encontrado. Por favor, verifica tu correo electrónico.'
+          }
+          break
+        case 'Password is invalid':
+          authError = {
+            type: 'password_invalid',
+            message: 'Contraseña incorrecta. Por favor, verifica tu contraseña.'
+          }
+          break
+        case 'User is banned':
+          authError = {
+            type: 'user_banned',
+            message: 'Tu cuenta ha sido desactivada.'
+          }
+          break
+        case 'User is not active':
+          authError = {
+            type: 'user_not_active',
+            message: 'Tu cuenta no está activa. Por favor, contacta al administrador.'
+          }
+          break
+        case 'Invalid login credentials':
+          authError = {
+            type: 'login',
+            message: 'Credenciales inválidas. Por favor, verifica tu correo electrónico y contraseña.'
+          }
+          break
+        default:
+          authError = {
+            type: 'unknown',
+            message: supabaseMessage
+          }
       }
 
       return thunkAPI.rejectWithValue(authError)
@@ -74,14 +107,14 @@ export const loginUser = createAsyncThunk<AuthUserPayload, { email: string; pass
 
 // SIGNUP thunk
 export const signUpUser = createAsyncThunk<
-  AuthUserPayload,
+  User,
   { email: string; password: string; full_name: string; phone: string },
   {
-    rejectValue: authError
+    rejectValue: AuthError
   }
 >(
   'auth/signUpUser',
-  async ({ email, password, full_name, phone }, thunkAPI): Promise<AuthUserPayload | ReturnType<typeof thunkAPI.rejectWithValue>> => {
+  async ({ email, password, full_name, phone }, thunkAPI): Promise<User | ReturnType<typeof thunkAPI.rejectWithValue>> => {
     try {
       const { user } = await userService.signUp({
         email,
@@ -102,7 +135,7 @@ export const signUpUser = createAsyncThunk<
       const supabaseMessage =
         (error as errorResponse)?.message || (error as errorResponse)?.error_description || 'Error al registrar usuario'
 
-      const err: authError = {
+      const err: AuthError = {
         type: 'signup',
         message: supabaseMessage
       }
@@ -112,13 +145,15 @@ export const signUpUser = createAsyncThunk<
   }
 )
 
-// LOGOUT thunk
-export const logoutUser = createAsyncThunk('auth/logoutUser', async () => {
+export const logoutUser = createAsyncThunk<void, AuthError | undefined>('auth/logoutUser', async (authError, thunkAPI) => {
   await userService.signOut()
+  if (authError) {
+    return thunkAPI.rejectWithValue(authError)
+  }
 })
 
 export const restoreSession = createAsyncThunk<
-  AuthUserPayload,
+  User,
   void,
   { rejectValue: string } // ✅ Tipo en caso de error
 >('auth/restoreSession', async (_, thunkAPI) => {
@@ -151,7 +186,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setUser: (state, action: PayloadAction<Partial<AuthUserPayload> & { id: string }>) => {
+    setUser: (state, action: PayloadAction<Partial<User> & { id: string }>) => {
       const { id, email, phone, full_name, role } = action.payload
       state.isAuthenticated = true
       state.user = {
@@ -163,8 +198,21 @@ const authSlice = createSlice({
       }
       state.authError = null
     },
+    updateUser: (state, action: PayloadAction<Partial<User>>) => {
+      if (state.user) {
+        const { email, phone, full_name, role } = action.payload
+        state.user.email = email || state.user.email
+        state.user.phone = phone || state.user.phone
+        state.user.full_name = full_name || state.user.full_name
+        state.user.role = role || state.user.role
+      }
+      state.authError = null
+    },
     clearUser: () => {
       return initialState
+    },
+    setAuthError: (state, action: PayloadAction<AuthError | null>) => {
+      state.authError = action.payload
     },
     clearAuthError: (state) => {
       state.authError = null
@@ -176,10 +224,10 @@ const authSlice = createSlice({
         state.isLoading = true
         state.authError = null
       })
-      .addCase(loginUser.fulfilled, (state, action: PayloadAction<AuthUserPayload>) => {
+      .addCase(loginUser.fulfilled, (state, action: PayloadAction<User>) => {
         state.isLoading = false
         state.isAuthenticated = true
-        state.user = action.payload as AuthUserPayload
+        state.user = action.payload as User
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false
@@ -191,7 +239,7 @@ const authSlice = createSlice({
         state.isLoading = true
         state.authError = null
       })
-      .addCase(signUpUser.fulfilled, (state, action: PayloadAction<AuthUserPayload>) => {
+      .addCase(signUpUser.fulfilled, (state, action: PayloadAction<User>) => {
         state.isLoading = false
         state.isAuthenticated = true
         state.user = action.payload
@@ -202,9 +250,14 @@ const authSlice = createSlice({
         state.authError = action.payload ?? { type: 'login', message: 'Error desconocido' }
       })
 
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.authError = (action.payload as AuthError) ?? { type: 'login', message: 'Error desconocido' }
+      })
+
       .addCase(logoutUser.fulfilled, () => {
         return initialState
       })
+
       .addCase(restoreSession.fulfilled, (state, action) => {
         state.isAuthenticated = true
         state.user = action.payload
@@ -221,5 +274,5 @@ const authSlice = createSlice({
   }
 })
 
-export const { clearUser, setUser, clearAuthError } = authSlice.actions
+export const { clearUser, setUser, clearAuthError, updateUser, setAuthError } = authSlice.actions
 export default authSlice.reducer
