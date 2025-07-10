@@ -60,8 +60,8 @@ const Login = () => {
       })
     } else {
       reset({
-        email: '',
-        password: ''
+        email: 'staff@interdeco.mx',
+        password: '12345678'
       })
     }
   }, [selectedUser, reset])
@@ -85,7 +85,7 @@ const Login = () => {
               hideIconWrapper
               color='danger'
               icon={<TriangleAlert />}
-              title='Error al iniciar sesión'
+              title={authError.type === 'user_banned_live' ? 'Cuenta desactivada' : 'Error al iniciar sesión'}
               description={authError.message}
             />
           ) : (
