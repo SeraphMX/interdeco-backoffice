@@ -1,6 +1,9 @@
+import { addToast } from '@heroui/react'
 import { supabase } from '../lib/supabase'
+import { User } from '../schemas/user.schema'
 import { EmailActions, Profile, SignInParams, SignUpParams } from '../types'
 
+const baseUrl = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://localhost:8888'
 export const userService = {
   /**
    * Verifica si un correo electrónico ya está registrado en la base de datos.
@@ -42,6 +45,7 @@ export const userService = {
    * Las acciones deben estar definidas en el tipo `EmailActions`.
    * @returns La respuesta del servidor al enviar el correo.
    */
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   async sendEmail(email: string, action: EmailActions, props?: Record<string, any>) {
     console.log('Enviando correo electrónico:', email, 'con acción:', action)
 
@@ -123,6 +127,145 @@ export const userService = {
     }
 
     return data
+  },
+  async createUser(user: User) {
+    try {
+      const response = await fetch(`${baseUrl}/.netlify/functions/user-create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: user.email,
+          password: user.password,
+          full_name: user.full_name
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al crear el usuario en en la base')
+      }
+      const { user: userCreated }: { user: User } = await response.json()
+
+      // Insertar perfil en la tabla 'user_profiles'
+      const { error: profileError } = await supabase.from('user_profiles').insert({
+        id: userCreated.id,
+        full_name: user.full_name,
+        phone: user.phone || '',
+        email: userCreated.email,
+        role: user.role
+      })
+
+      if (profileError) throw profileError
+    } catch (error) {
+      console.error('Error al crear el usuario:', error)
+      throw new Error('No se pudo crear el usuario. Verifica los datos e intenta nuevamente.')
+    }
+  },
+  async updateUser(user: User) {
+    try {
+      const response = await fetch(`${baseUrl}/.netlify/functions/user-update`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: user.id,
+          email: user.email,
+          full_name: user.full_name
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al actualizar el usuario en la base')
+      }
+
+      const { user: updatedUser }: { user: User } = await response.json()
+
+      // Actualizar perfil en la tabla 'user_profiles'
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update({
+          full_name: user.full_name,
+          phone: user.phone || '',
+          email: updatedUser.email,
+          role: user.role
+        })
+        .eq('id', updatedUser.id)
+
+      if (profileError) throw profileError
+
+      return updatedUser
+    } catch (error) {
+      console.error('Error al actualizar el usuario:', error)
+      throw new Error('No se pudo actualizar el usuario. Verifica los datos e intenta nuevamente.')
+    }
+  },
+  async deleteUser(userId: string) {
+    try {
+      const response = await fetch(`${baseUrl}/.netlify/functions/user-delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: userId })
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar el usuario en la base')
+      }
+
+      // Eliminar perfil de la tabla 'user_profiles'
+      const { error: profileError } = await supabase.from('user_profiles').delete().eq('id', userId)
+      if (profileError) throw profileError
+
+      return { success: true }
+    } catch (error) {
+      console.error('Error al eliminar el usuario:', error)
+      throw new Error('No se pudo eliminar el usuario. Verifica los datos e intenta nuevamente.')
+    }
+  },
+
+  async setUserActive(user: User, isActive: boolean) {
+    //Si el usuario es administrador y es el único administrador activo, no se puede desactivar
+    if (
+      user.role === 'admin' &&
+      (await supabase.from('user_profiles').select('id').eq('role', 'admin').eq('is_active', true).limit(2)).data?.length === 1 &&
+      !isActive
+    ) {
+      addToast({
+        title: 'No se puede desactivar',
+        description: 'Debe haber al menos un administrador activo en el sistema.',
+        color: 'danger',
+        shouldShowTimeoutProgress: true,
+        timeout: 8000
+      })
+      throw new Error('No se puede desactivar al único administrador activo')
+    }
+
+    try {
+      const response = await fetch(`${baseUrl}/.netlify/functions/user-set-ban`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: user.id, is_active: isActive })
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al cambiar el estado en la base ')
+      }
+
+      // Actualizar el estado en la tabla 'user_profiles'
+      const { error: profileError } = await supabase.from('user_profiles').update({ is_active: isActive }).eq('id', user.id)
+
+      if (profileError) throw profileError
+
+      //return data
+    } catch (error) {
+      console.error('Error al actualizar el estado del usuario:', error)
+      throw new Error('No se pudo actualizar el estado del usuario. Verifica los datos e intenta nuevamente.')
+    }
   },
 
   /**
