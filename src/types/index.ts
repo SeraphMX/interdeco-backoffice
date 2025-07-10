@@ -10,14 +10,6 @@ export interface Cliente {
 
 export type UserRole = 'admin' | 'staff'
 
-export interface User {
-  id: string
-  email: string
-  password: string
-  name: string
-  role: UserRole
-}
-
 export interface QuoteItem {
   product_id?: number // Para relación con DB
   product?: Product | undefined // Para datos completos (undefined cuando no está cargado)
@@ -181,6 +173,11 @@ export const customerStatus = [
   { key: 'returning', label: 'Ocasional', color: 'bg-yellow-300' },
   { key: 'recent', label: 'Reciente', color: 'bg-purple-300' },
   { key: 'frequent', label: 'Frecuente', color: 'bg-orange-300' }
+]
+
+export const userRoles = [
+  { key: 'admin', label: 'Administrador', color: 'bg-blue-500' },
+  { key: 'staff', label: 'Staff', color: 'bg-green-500' }
 ]
 
 export const quoteStatus = [
