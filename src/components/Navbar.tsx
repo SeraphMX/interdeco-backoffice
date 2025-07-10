@@ -3,6 +3,7 @@ import { Book, ContactRound, FileText, LogOut, Menu, UsersRound, X } from 'lucid
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useSessionGuard } from '../hooks/userSessionGuard'
 import { AppDispatch, RootState } from '../store'
 import { logoutUser } from '../store/slices/authSlice'
 
@@ -12,6 +13,8 @@ const Navbar = () => {
   const dispatch = useDispatch<AppDispatch>()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { user } = useSelector((state: RootState) => state.auth)
+
+  useSessionGuard()
 
   const isActive = (path: string) => {
     return location.pathname === path ? 'bg-gray-100' : ''
