@@ -1,5 +1,5 @@
 import { Spinner } from '@heroui/react'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Provider } from 'react-redux'
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom'
 import { AppStart } from './AppStart'
@@ -13,15 +13,18 @@ import Cotizaciones from './pages/Cotizaciones'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import Users from './pages/Users'
+import { SessionBootstrapper } from './sessionBoostraper'
 import { store } from './store'
 
 const QuotePreviewPage = lazy(() => import('./pages/PreviewPDF').then((module) => ({ default: module.QuotePreviewPage })))
 
 function App() {
+  const [sessionReady, setSessionReady] = useState(false)
   return (
     <Provider store={store}>
       <Router>
         <AppStart />
+        <SessionBootstrapper onReady={() => setSessionReady(true)} />
         <div className='min-h-screen bg-gray-50'>
           <Suspense
             fallback={
@@ -30,29 +33,35 @@ function App() {
               </div>
             }
           >
-            <Routes>
-              <Route path='/login' element={<Login />} />
-              <Route
-                element={
-                  <ProtectedRoute>
-                    <Navbar />
-                  </ProtectedRoute>
-                }
-              >
-                <Route path='/' element={<Dashboard />} />
-                <Route path='/clientes' element={<Clientes />} />
-                <Route path='/catalogo' element={<Catalogo />} />
-                <Route path='/cotizaciones' element={<Cotizaciones />} />
-                <Route path='/cotizaciones/nueva' element={<Quote />} />
-                <Route path='/usuarios' element={<Users />} />
-              </Route>
+            {!sessionReady ? (
+              <div className='flex justify-center items-center min-h-screen'>
+                <Spinner size='lg' label='Validando sesión...' />
+              </div>
+            ) : (
+              <Routes>
+                <Route path='/login' element={<Login />} />
+                <Route
+                  element={
+                    <ProtectedRoute>
+                      <Navbar />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route path='/' element={<Dashboard />} />
+                  <Route path='/clientes' element={<Clientes />} />
+                  <Route path='/catalogo' element={<Catalogo />} />
+                  <Route path='/cotizaciones' element={<Cotizaciones />} />
+                  <Route path='/cotizaciones/nueva' element={<Quote />} />
+                  <Route path='/usuarios' element={<Users />} />
+                </Route>
 
-              <Route path='/cotizacion' element={<PublicRoute />}>
-                <Route path=':token' element={<Cotizacion />} />
-              </Route>
+                <Route path='/cotizacion' element={<PublicRoute />}>
+                  <Route path=':token' element={<Cotizacion />} />
+                </Route>
 
-              <Route path='/cotizacion/preview' element={<QuotePreviewPage />} />
-            </Routes>
+                <Route path='/cotizacion/preview' element={<QuotePreviewPage />} />
+              </Routes>
+            )}
           </Suspense>
         </div>
       </Router>

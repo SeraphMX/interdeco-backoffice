@@ -1,23 +1,25 @@
-import { Button } from '@heroui/react'
+import { Avatar, Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react'
 import { Book, ContactRound, FileText, LogOut, Menu, UsersRound, X } from 'lucide-react'
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { logout } from '../store/slices/authSlice'
+import { AppDispatch, RootState } from '../store'
+import { logoutUser } from '../store/slices/authSlice'
 
 const Navbar = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<AppDispatch>()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { user } = useSelector((state: RootState) => state.auth)
 
   const isActive = (path: string) => {
     return location.pathname === path ? 'bg-gray-100' : ''
   }
 
-  const handleLogout = () => {
-    dispatch(logout())
-    navigate('/login')
+  const handleLogout = async () => {
+    await dispatch(logoutUser())
+    navigate('/login', { replace: true })
   }
 
   const navItems = [
@@ -58,9 +60,29 @@ const Navbar = () => {
                 <span>{item.label}</span>
               </Link>
             ))}
-            <Button variant='light' onPress={handleLogout} className='text-gray-700' startContent={<LogOut size={20} />}>
-              Cerrar sesión
-            </Button>
+
+            <Dropdown placement='bottom-end'>
+              <DropdownTrigger>
+                <Avatar
+                  isBordered
+                  as='button'
+                  className='transition-transform'
+                  color='primary'
+                  size='sm'
+                  src='https://i.pravatar.cc/150?u=a042581f4e29026704d'
+                />
+              </DropdownTrigger>
+              <DropdownMenu aria-label='Profile Actions' variant='flat'>
+                <DropdownItem key='profile' className='h-14 gap-2'>
+                  <p className='font-semibold'>{user?.full_name}</p>
+                  <p className='font-semibold'>{user?.email}</p>
+                </DropdownItem>
+                <DropdownItem key='settings'>Mi perfil</DropdownItem>
+                <DropdownItem key='logout' color='danger' onPress={handleLogout}>
+                  Cerrar sesión
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
           </div>
         </div>
 
