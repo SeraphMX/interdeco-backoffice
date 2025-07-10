@@ -13,7 +13,7 @@ import Cotizaciones from './pages/Cotizaciones'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
 import Users from './pages/Users'
-import { SessionBootstrapper } from './sessionBoostraper'
+import { SessionBootstrapper } from './SessionBoostraper'
 import { store } from './store'
 
 const QuotePreviewPage = lazy(() => import('./pages/PreviewPDF').then((module) => ({ default: module.QuotePreviewPage })))

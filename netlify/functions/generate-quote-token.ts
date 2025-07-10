@@ -63,7 +63,7 @@ const handler: Handler = async (event) => {
     }
   }
 
-  const token = jwt.sign({ quote_id: quote.id }, JWT_SECRET, { expiresIn: '1d' })
+  const token = jwt.sign({ quote_id: quote.id }, JWT_SECRET, { expiresIn: '5d' })
 
   // Guardar el token en la cotización
   await supabase.from('quotes').update({ access_token: token }).eq('id', quote.id)
