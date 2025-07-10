@@ -21,22 +21,37 @@ export const userService = {
    * @param password - La nueva contraseña del usuario.
    * @returns La respuesta del servidor al cambiar la contraseña.
    */
-  async passwordChange(email: string, password: string) {
-    console.log('Cambiando contraseña para el correo:', email)
-    const response = await fetch('/api/account/password-change', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ email, password })
-    })
-    if (!response.ok) {
-      throw new Error('Error al cambiar la contraseña')
-    }
+  async passwordChange(user: User, password: string) {
+    console.log('Cambiando contraseña para el correo:', user.email)
+    try {
+      const response = await fetch(`${baseUrl}/.netlify/functions/user-password-change`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: user.id, password })
+      })
+      if (!response.ok) {
+        throw new Error('Error al cambiar la contraseña')
+      }
 
-    this.sendEmail(email, 'password-changed')
-    console.log('Contraseña cambiada y correo enviado a:', email)
-    return await response.json()
+      //this.sendEmail(email, 'password-changed')
+      console.log('Contraseña cambiada y correo enviado a:', user.email)
+
+      // Copiar al portapapeles
+      navigator.clipboard.writeText(password)
+
+      addToast({
+        title: 'Contraseña restablecida',
+        description: `La nueva contraseña es: ${password}, se ha copiado al portapapeles.`,
+        color: 'primary'
+      })
+
+      return await response.json()
+    } catch (error) {
+      console.error('[passwordChange]:', error)
+      throw new Error('No se pudo cambiar la contraseña. Verifica los datos e intenta nuevamente.')
+    }
   },
   /**
    * Envía un correo electrónico según la acción especificada.

@@ -61,7 +61,7 @@ const Login = () => {
     } else {
       reset({
         email: 'staff@interdeco.mx',
-        password: '12345678'
+        password: 'D1R8XYfWwN'
       })
     }
   }, [selectedUser, reset])

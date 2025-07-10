@@ -15,8 +15,9 @@ import {
   TableRow,
   useDisclosure
 } from '@heroui/react'
+import generator from 'generate-password-ts'
 import { EllipsisVertical } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { User } from '../../schemas/user.schema'
 import { userService } from '../../services/userService'
@@ -24,6 +25,7 @@ import { RootState } from '../../store'
 import { setIsEditing } from '../../store/slices/productsSlice'
 import { setSelectedUser, updateUser } from '../../store/slices/usersSlice'
 import ModalUserConfirmDelete from './modals/ModalUserConfirmDelete'
+import UsersTableFooter from './UsersTableFooter'
 
 interface ProductsTableProps {
   wrapperHeight?: number
@@ -34,69 +36,49 @@ interface ProductsTableProps {
   onRowAction?: () => void
 }
 
-const UsersTable = ({
-  wrapperHeight,
-  filterValue = '',
-  selectedCategories = [],
-  selectedProviders = [],
-  variant = 'default',
-  onRowAction = () => {}
-}: ProductsTableProps) => {
+const UsersTable = ({ wrapperHeight, filterValue = '', variant = 'default', onRowAction = () => {} }: ProductsTableProps) => {
   const rxUsers = useSelector((state: RootState) => state.users.items)
   const selectedUser = useSelector((state: RootState) => state.users.selectedUser)
   const loading = useSelector((state: RootState) => state.productos.loading)
   const isEditing = useSelector((state: RootState) => state.productos.isEditing)
   const dispatch = useDispatch()
-  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'public_price', direction: 'descending' })
+  const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'role', direction: 'ascending' })
 
   const { isOpen: isOpenConfirmDelete, onOpen: onOpenConfirmDelete, onOpenChange: onOpenChangeConfirmDelete } = useDisclosure()
 
-  //   const filteredItems = useMemo(() => {
-  //     return rxProducts.filter((item) => {
-  //       const matchesSearch =
-  //         item.description.toLowerCase().includes(filterValue.toLowerCase()) ||
-  //         (item.sku ?? '').toLowerCase().includes(filterValue.toLowerCase()) ||
-  //         //item.category_description.toLowerCase().includes(filterValue.toLowerCase()) ||
-  //         item.provider_name?.toLowerCase().includes(filterValue.toLowerCase()) ||
-  //         item.spec?.toLowerCase().includes(filterValue.toLowerCase())
+  const filteredItems = useMemo(() => {
+    return rxUsers.filter((user) => {
+      const matchesSearch =
+        user.full_name.toLowerCase().includes(filterValue.toLowerCase()) ||
+        user.email.toLowerCase().includes(filterValue.toLowerCase()) ||
+        user.phone?.toLowerCase().includes(filterValue.toLowerCase())
 
-  //       const matchesCategories = selectedCategories.length === 0 || selectedCategories.find((c) => c === item.category.toString())
-  //       const matchesProviders = selectedProviders.length === 0 || selectedProviders.find((p) => p === item.provider.toString())
+      //   const matchesCategories = selectedCategories.length === 0 || selectedCategories.find((c) => c === user.category.toString())
 
-  //       const matchesWithPrice = item.public_price !== undefined && (item.price ?? 0) > 0
-  //       const matchesActive = variant !== 'minimal' || item.is_active
+      return matchesSearch
+    })
+  }, [rxUsers, filterValue])
 
-  //       return matchesSearch && matchesProviders && matchesCategories && matchesWithPrice && matchesActive
-  //     })
-  //   }, [rxProducts, filterValue, selectedCategories, selectedProviders, variant])
+  const sortedItems = [...filteredItems].sort((a, b) => {
+    const column = sortDescriptor.column
+    const direction = sortDescriptor.direction
 
-  //   const sortedItems = [...filteredItems].sort((a, b) => {
-  //     const column = sortDescriptor.column
-  //     const direction = sortDescriptor.direction
+    const first = a[column as keyof typeof a]
+    const second = b[column as keyof typeof b]
+    let cmp = 0
+    if (typeof first === 'number' && typeof second === 'number') {
+      cmp = first - second
+    } else {
+      cmp = (first ?? '').toString().localeCompare((second ?? '').toString(), 'es', { sensitivity: 'base' })
+    }
 
-  //     let first = a[column as keyof typeof a]
-  //     let second = b[column as keyof typeof b]
-
-  //     // Ordenar por precio calculado manualmente
-  //     if (column === 'public_price') {
-  //       first = (a.price ?? 0) * (1 + (a.utility ?? 0) / 100)
-  //       second = (b.price ?? 0) * (1 + (b.utility ?? 0) / 100)
-  //     }
-
-  //     let cmp = 0
-  //     if (typeof first === 'number' && typeof second === 'number') {
-  //       cmp = first - second
-  //     } else {
-  //       cmp = (first ?? '').toString().localeCompare((second ?? '').toString(), 'es', { sensitivity: 'base' })
-  //     }
-
-  //     return direction === 'descending' ? -cmp : cmp
-  //   })
+    return direction === 'descending' ? -cmp : cmp
+  })
   const headerColumns = [
-    { name: 'NOMBRE', uid: 'spec', sortable: true },
-    { name: 'CORREO ELECTRÓNICO', uid: 'mail', sortable: true, align: 'start' },
+    { name: 'NOMBRE', uid: 'name', sortable: true },
+    { name: 'CORREO ELECTRÓNICO', uid: 'email', sortable: true, align: 'start' },
     { name: 'TELÉFONO', uid: 'phone', align: 'start' },
-    { name: 'ROL', uid: 'public_price', sortable: true, align: 'center' },
+    { name: 'ROL', uid: 'role', sortable: true, align: 'center' },
     { name: 'ACTIVO', uid: 'is_active', sortable: true, align: 'end' },
     { name: 'ACCIONES', uid: 'actions', align: 'center' }
   ]
@@ -105,7 +87,6 @@ const UsersTable = ({
     const previous = user.is_active // Guardamos valor previo por si hay que revertir
     // 1. Optimistic update
     dispatch(updateUser({ ...user, is_active: status }))
-
     try {
       // 2. Actualiza en backend
       await userService.setUserActive(user, status)
@@ -122,10 +103,6 @@ const UsersTable = ({
   }
 
   const handleDeleteUser = async () => {
-    // Si no hay usuario seleccionado, no hacemos nada
-
-    console.log('Eliminando usuario:', selectedUser)
-
     if (!selectedUser?.id) return
     const deletedUser = await userService.deleteUser(selectedUser.id)
 
@@ -135,6 +112,20 @@ const UsersTable = ({
     } else {
       console.error('Error al eliminar el usuario')
     }
+  }
+
+  const handleResetPassword = async (user: User) => {
+    //const password = userService.generatePassword()
+
+    const password = generator.generate({
+      length: 10,
+      numbers: true,
+      uppercase: true,
+      lowercase: true,
+      strict: true
+    })
+
+    await userService.passwordChange(user, password)
   }
 
   useEffect(() => {
@@ -152,20 +143,13 @@ const UsersTable = ({
         maxTableHeight={wrapperHeight}
         aria-label='Tabla de usuarios'
         isHeaderSticky
-        //sortDescriptor={sortDescriptor}
-        //onSortChange={setSortDescriptor}
+        sortDescriptor={sortDescriptor}
+        onSortChange={setSortDescriptor}
         selectionMode={isEditing ? 'none' : 'single'}
         selectionBehavior='replace'
         onRowAction={() => onRowAction()}
         disallowEmptySelection
-        // bottomContent={
-        //   <ProductsTableFooter
-        //     filteredItemsCount={filteredItems.length}
-        //     selectedCategories={selectedCategories}
-        //     selectedProviders={selectedProviders}
-        //     tableType={variant}
-        //   />
-        // }
+        bottomContent={<UsersTableFooter filteredItemsCount={filteredItems.length} />}
         className='overflow-auto z-10'
         classNames={{
           th: 'bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600'
@@ -189,7 +173,7 @@ const UsersTable = ({
           )}
         </TableHeader>
         <TableBody
-          items={rxUsers}
+          items={sortedItems}
           isLoading={loading}
           loadingContent={
             <div className='bg-white/20 backdrop-blur-md w-full h-full flex justify-center items-center'>
@@ -220,7 +204,7 @@ const UsersTable = ({
                       <DropdownItem key='preview' onPress={() => handleEditUser(user)}>
                         Editar
                       </DropdownItem>
-                      <DropdownItem key='reset-password' onPress={() => handleEditUser(user)}>
+                      <DropdownItem key='reset-password' onPress={() => handleResetPassword(user)}>
                         Restablecer contraseña
                       </DropdownItem>
                       {!user.is_active ? (

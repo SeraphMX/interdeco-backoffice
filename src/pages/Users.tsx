@@ -46,7 +46,7 @@ const Users = () => {
     }
   }, [])
   return (
-    <div className='space-y-6 h-full flex flex-col'>
+    <div className='space-y-6 h-full flex flex-col pb-4'>
       <header className='flex justify-between items-center gap-4'>
         <UsersFilters
           filters={{

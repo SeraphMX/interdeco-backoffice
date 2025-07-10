@@ -4,7 +4,7 @@ export const createUserSchema = z.object({
   id: z.string().optional(),
   email: z.string().email({ message: 'Email inválido' }),
   password: z.string().min(8, { message: 'Mínimo 8 caracteres' }).max(100).optional(),
-  phone: z.string().min(10, { message: 'Número de teléfono inválido' }),
+  phone: z.string().min(10, { message: 'Número de teléfono inválido' }).optional(),
   full_name: z.string().min(5, { message: 'El nombre es obligatorio' }).max(100),
   role: z.enum(['admin', 'staff'], {
     errorMap: () => ({ message: 'Selecciona un tipo de usuario' })

@@ -1,13 +1,11 @@
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { User } from '../schemas/user.schema'
 import { AppDispatch } from '../store'
 import { logoutUser, updateUser } from '../store/slices/authSlice'
 
 export function useSessionGuard() {
-  const navigate = useNavigate()
   const dispatch = useDispatch<AppDispatch>()
 
   useEffect(() => {
