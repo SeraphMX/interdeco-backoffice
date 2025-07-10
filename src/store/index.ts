@@ -5,6 +5,7 @@ import clientesReducer from './slices/customersSlice'
 import productsReducer from './slices/productsSlice'
 import quoteReducer from './slices/quoteSlice'
 import quotesReducer from './slices/quotesSlice'
+import usersReducer from './slices/usersSlice'
 
 export const store = configureStore({
   reducer: {
@@ -15,7 +16,8 @@ export const store = configureStore({
     quote: quoteReducer,
 
     productos: productsReducer,
-    auth: authReducer
+    auth: authReducer,
+    users: usersReducer
   }
 })
 
