@@ -53,10 +53,11 @@ const SendQuoteMail = ({ quote }: { quote: Quote }) => (
 export default SendQuoteMail
 
 SendQuoteMail.PreviewProps = {
-  downloadLink:
-    'http://localhost:8888/cotizacion/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJxdW90ZV9pZCI6MTI2LCJpYXQiOjE3NTE4MDE0NTYsImV4cCI6MTc1MTg4Nzg1Nn0.z2o42-7N2SC_uLMZ6JVcmHy1dZpc_E-uH2r38WiI8-w',
-
-  customer: 'Juan Pérez'
+  quote: {
+    customer_name: 'Juan Pérez',
+    access_token:
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJxdW90ZV9pZCI6MTI2LCJpYXQiOjE3NTE4MDE0NTYsImV4cCI6MTc1MTg4Nzg1Nn0.z2o42-7N2SC_uLMZ6JVcmHy1dZpc_E-uH2r38WiI8-w'
+  }
 }
 
 const main = {
