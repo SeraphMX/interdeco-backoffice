@@ -1,5 +1,8 @@
-import { Input, Select, SelectItem } from '@heroui/react'
+import { addToast, Input, Select, SelectItem } from '@heroui/react'
 import { zodResolver } from '@hookform/resolvers/zod'
+import generator from 'generate-password-ts'
+import { Check, Copy, Eye, EyeOff } from 'lucide-react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSelector } from 'react-redux'
 import { createUserSchema, User } from '../../schemas/user.schema'
@@ -12,6 +15,16 @@ type AddCustomerProps = {
 
 const AddUser = ({ onSuccess }: AddCustomerProps) => {
   const selectedUser = useSelector((state: RootState) => state.users.selectedUser)
+  const [showPassword, setShowPassword] = useState(false)
+  const [copiedPassword, setCopiedPassword] = useState(false)
+
+  const password = generator.generate({
+    length: 10,
+    numbers: true,
+    uppercase: true,
+    lowercase: true,
+    strict: true
+  })
 
   const form = useForm({
     resolver: zodResolver(createUserSchema),
@@ -22,7 +35,7 @@ const AddUser = ({ onSuccess }: AddCustomerProps) => {
       full_name: selectedUser?.full_name || 'Prueba',
       phone: selectedUser?.phone || '1234567890',
       email: selectedUser?.email || 'staff@interdeco.mx',
-      password: '12345678'
+      password: password
     }
   })
 
@@ -50,6 +63,20 @@ const AddUser = ({ onSuccess }: AddCustomerProps) => {
     }
   )
 
+  const handleCopyPassword = () => {
+    setCopiedPassword(true)
+    navigator.clipboard.writeText(form.getValues('password') || '')
+    addToast({
+      title: 'Contraseña copiada',
+      description: 'La contraseña ha sido copiada al portapapeles.',
+      color: 'primary'
+    })
+
+    setTimeout(() => {
+      setCopiedPassword(false)
+    }, 2000)
+  }
+
   return (
     <form id='add-customer-form' onSubmit={handleSave} className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
       <Input
@@ -59,6 +86,7 @@ const AddUser = ({ onSuccess }: AddCustomerProps) => {
         readOnly
         {...register('id')}
         isDisabled
+        className='hidden'
       />
 
       <Select className='max-w-xs' label='Tipo de usuario' size='sm' isInvalid={!!errors.role} {...register('role')} disallowEmptySelection>
@@ -87,13 +115,24 @@ const AddUser = ({ onSuccess }: AddCustomerProps) => {
         errorMessage={errors.phone?.message}
       />
       <Input
+        label='Contraseña'
+        type={showPassword ? 'text' : 'password'}
         size='sm'
-        label='Password'
+        className={selectedUser ? 'hidden' : ''}
         {...register('password')}
         isInvalid={!!errors.password}
-        isClearable
-        maxLength={10}
         errorMessage={errors.password?.message}
+        maxLength={20}
+        endContent={
+          <div className='absolute inset-y-0 right-0 flex items-center '>
+            <button type='button' onClick={() => setShowPassword(!showPassword)} className=' pr-3 flex items-center' tabIndex={-1}>
+              {showPassword ? <EyeOff className='h-5 w-5 text-gray-400' /> : <Eye className='h-5 w-5 text-gray-400' />}
+            </button>
+            <button type='button' onClick={() => handleCopyPassword()} className=' pr-3 flex items-center' tabIndex={-1}>
+              {copiedPassword ? <Check className='h-5 w-5 text-gray-400' /> : <Copy className='h-5 w-5 text-gray-400' />}
+            </button>
+          </div>
+        }
       />
     </form>
   )

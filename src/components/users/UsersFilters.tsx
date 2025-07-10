@@ -17,24 +17,24 @@ const UsersFilters = ({ filters }: QuotesFiltersProps) => {
   //const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
 
   const search = filters?.search
-  const status = filters?.status
+  // const status = filters?.status
 
-  const clearFilters = () => {
-    if (search?.setValue) {
-      search.setValue('')
-    }
+  //   const clearFilters = () => {
+  //     if (search?.setValue) {
+  //       search.setValue('')
+  //     }
 
-    if (status?.setValue) {
-      status.setValue([])
-    }
-  }
+  //     if (status?.setValue) {
+  //       status.setValue([])
+  //     }
+  //   }
 
   return (
     <section className='flex flex-wrap flex-grow gap-4 '>
       <Input
         isClearable
         className='w-full sm:max-w-[300px]'
-        placeholder='Buscar por cliente...'
+        placeholder='Buscar usuario...'
         startContent={<Search className='text-gray-400' size={20} />}
         value={search?.value || ''}
         onClear={() => search?.setValue && search.setValue('')}
