@@ -58,6 +58,8 @@ export interface Quote {
   status: QuoteStatus
   access_token?: string | null // Para autenticación en API
   history?: QuoteLogItem[] // Historial de acciones
+  expiration_date?: string | null // Fecha de expiración
+  daysToExpire?: number // Días restantes para expirar
 }
 
 export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'open' | 'archived' | 'restored'
