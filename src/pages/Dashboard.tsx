@@ -3,6 +3,8 @@ import { FileText, Package, TrendingUp, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import QuoteAmountChart from '../components/dashboard/charts/QuoteAmountChart'
+import QuoteStatusChart from '../components/dashboard/charts/QuoteStatusChart'
 import QuoteSummary from '../components/dashboard/QuoteSummary'
 import { RootState } from '../store'
 import { formatCurrency } from '../utils/currency'
@@ -43,6 +45,10 @@ const Dashboard = () => {
       ...quote,
       daysToExpire: Math.floor(Math.random() * 3) + 1 // 1-3 días
     }))
+  }
+
+  const handleQuoteTabTitleChange = (subtitle: string) => {
+    setQuoteTabSubtitle(subtitle)
   }
 
   const expiringQuotes = getExpiringQuotes()
@@ -105,7 +111,7 @@ const Dashboard = () => {
               <Tab key='ultimas' title='Últimas'></Tab>
               <Tab key='expirando' title='Próximas a Expirar'></Tab>
               <Tab key='status' title='Estado'></Tab>
-              <Tab key='montos' title='Montos'></Tab>
+              <Tab key='total' title='Total cotizado'></Tab>
             </Tabs>
           </CardHeader>
           <CardBody className='space-y-4  overflow-y-auto'>
@@ -139,6 +145,9 @@ const Dashboard = () => {
                   )}
                 </div>
               )}
+
+              {selectedQuoteTab === 'status' && <QuoteStatusChart onTitleChange={handleQuoteTabTitleChange} />}
+              {selectedQuoteTab === 'total' && <QuoteAmountChart onTitleChange={handleQuoteTabTitleChange} />}
             </div>
           </CardBody>
         </Card>
@@ -163,7 +172,7 @@ const Dashboard = () => {
               }}
             >
               <Tab key='mas-utilizados' title='Más Utilizados'></Tab>
-              <Tab key='categorias-proveedores' title='Cat. x Prov.'></Tab>
+              <Tab key='categorias-proveedores' title='Categorías por proveedor'></Tab>
               <Tab key='distribucion' title='Distribución'></Tab>
             </Tabs>
 
