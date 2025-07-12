@@ -1,16 +1,19 @@
 import { Chip, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react'
+import { useSelector } from 'react-redux'
 import { quoteService } from '../../services/quoteService'
-import { Quote, quoteStatus, uiColors } from '../../types'
+import { RootState } from '../../store'
+import { Quote, QuoteStatus, quoteStatus, uiColors } from '../../types'
 
 interface QuoteStatusProps {
   quote: Quote
   onSuccess?: (quote: Quote) => void
 }
 
-const QuoteStatus = ({ quote, onSuccess }: QuoteStatusProps) => {
-  const handleSetStatus = async (quote: Quote, status: string) => {
+const QuoteStatusChip = ({ quote, onSuccess }: QuoteStatusProps) => {
+  const { user } = useSelector((state: RootState) => state.auth)
+  const handleSetStatus = async (quote: Quote, status: QuoteStatus) => {
     if (quote.id != null) {
-      const result = await quoteService.setQuoteStatus(quote.id, status)
+      const result = await quoteService.setQuoteStatus(quote.id, status, user?.id)
       if (result.success && result.quote) {
         onSuccess?.(result.quote)
       } else {
@@ -20,6 +23,15 @@ const QuoteStatus = ({ quote, onSuccess }: QuoteStatusProps) => {
       console.error('Quote ID is null or undefined.')
     }
   }
+
+  if (quote.status !== 'sent') {
+    return (
+      <Chip className='capitalize' variant='bordered' color={quoteStatus.find((s) => s.key === quote.status)?.color as uiColors}>
+        {quoteStatus.find((s) => s.key === quote.status)?.label}
+      </Chip>
+    )
+  }
+
   return (
     <Dropdown>
       <DropdownTrigger>
@@ -37,7 +49,7 @@ const QuoteStatus = ({ quote, onSuccess }: QuoteStatusProps) => {
         onSelectionChange={(key) => {
           const selectedKey = Array.from(key)[0]
           if (selectedKey) {
-            handleSetStatus(quote, selectedKey.toString())
+            handleSetStatus(quote, selectedKey.toString() as QuoteStatus)
           }
         }}
       >
@@ -52,4 +64,4 @@ const QuoteStatus = ({ quote, onSuccess }: QuoteStatusProps) => {
   )
 }
 
-export default QuoteStatus
+export default QuoteStatusChip

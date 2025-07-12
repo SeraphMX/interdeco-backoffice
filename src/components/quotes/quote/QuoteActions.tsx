@@ -25,6 +25,7 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
   const navigate = useNavigate()
 
   const quote = useSelector((state: RootState) => state.quote)
+  const { user } = useSelector((state: RootState) => state.auth)
 
   const {
     isOpen: isOpenConfirmDeleteQuote,
@@ -48,7 +49,7 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
 
   const handleSaveQuote = async () => {
     if (!quote.data.id) {
-      const savedQuote = await quoteService.saveQuote(quote.data)
+      const savedQuote = await quoteService.saveQuote(quote.data, user?.id)
 
       if (savedQuote.success && savedQuote.quote) {
         dispatch(

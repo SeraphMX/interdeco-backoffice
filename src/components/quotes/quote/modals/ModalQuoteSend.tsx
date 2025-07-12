@@ -15,6 +15,7 @@ interface ModalSelectCustomerProps {
 }
 
 const ModalQuoteSend = ({ isOpen, onOpenChange, onConfirm }: ModalSelectCustomerProps) => {
+  const { user } = useSelector((state: RootState) => state.auth)
   const rxQuote = useSelector((state: RootState) => state.quote)
   const [sendType, setSendType] = useState<'email' | 'whatsapp'>('email')
   const [isLoading, setIsLoading] = useState(false)
@@ -35,7 +36,7 @@ const ModalQuoteSend = ({ isOpen, onOpenChange, onConfirm }: ModalSelectCustomer
     setIsLoading(true)
     console.log('Enviar por correo:', data)
 
-    const response = await quoteService.sendQuoteEmail(data.email, rxQuote.data)
+    const response = await quoteService.sendQuoteEmail(data.email, rxQuote.data, user?.id)
     console.log('Respuesta del envío por correo:', response)
 
     if (response.success) {

@@ -1,6 +1,5 @@
 import {
   Button,
-  Chip,
   Dropdown,
   DropdownItem,
   DropdownMenu,
@@ -22,11 +21,11 @@ import { useNavigate } from 'react-router-dom'
 import { quoteService } from '../../services/quoteService'
 import { RootState } from '../../store'
 import { clearQuote, setQuote } from '../../store/slices/quoteSlice'
-import { Quote, quoteStatus, uiColors } from '../../types'
+import { Quote } from '../../types'
 import { formatCurrency } from '../../utils/currency'
 import { formatDate } from '../../utils/date'
 import { getQuoteID } from '../../utils/strings'
-import QuoteStatus from '../shared/QuoteStatus'
+import QuoteStatusChip from '../shared/QuoteStatusChip'
 import ModalConfirmDeleteQuote from './modals/ModalConfirmDeleteQuote'
 import ModalConfirmOpenQuote from './modals/ModalConfirmOpenQuote'
 import ModalQuoteHistory from './quote/modals/ModalQuoteHistory'
@@ -39,6 +38,7 @@ interface QuotesTableProps {
 
 const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: QuotesTableProps) => {
   const navigate = useNavigate()
+  const { user } = useSelector((state: RootState) => state.auth)
   const rxQuotes = useSelector((state: RootState) => state.quotes.items)
   const rxQuote = useSelector((state: RootState) => state.quote)
   const loading = useSelector((state: RootState) => state.productos.loading)
@@ -136,7 +136,7 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
   }
 
   const handleCloneQuote = (quote: Quote) => {
-    quoteService.cloneQuote(quote)
+    quoteService.cloneQuote(quote, user?.id)
     //navigate('/cotizaciones/nueva')
   }
 
@@ -199,17 +199,7 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
                 <TableCell>{quote.total_items}</TableCell>
                 <TableCell>{formatCurrency(quote.total)}</TableCell>
                 <TableCell>
-                  {quote.status === 'sent' ? (
-                    <QuoteStatus quote={quote} onSuccess={onSuccessSetStatus} />
-                  ) : (
-                    <Chip
-                      className='capitalize'
-                      variant='bordered'
-                      color={quoteStatus.find((s) => s.key === quote.status)?.color as uiColors}
-                    >
-                      {quoteStatus.find((s) => s.key === quote.status)?.label}
-                    </Chip>
-                  )}
+                  <QuoteStatusChip quote={quote} onSuccess={onSuccessSetStatus} />
                 </TableCell>
                 <TableCell>
                   <Dropdown placement='left'>

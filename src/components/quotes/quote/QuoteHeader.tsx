@@ -7,7 +7,7 @@ import { RootState } from '../../../store'
 import { setQuoteStatus } from '../../../store/slices/quoteSlice'
 import { Quote } from '../../../types'
 import { getQuoteID } from '../../../utils/strings'
-import QuoteStatus from '../../shared/QuoteStatus'
+import QuoteStatusChip from '../../shared/QuoteStatusChip'
 import QuoteActions from './QuoteActions'
 import QuoteCustomerData from './QuoteCustomerData'
 
@@ -38,7 +38,7 @@ const QuoteHeader = () => {
           <h1 className='text-xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2'>
             {quote.data.id ? `Cotización #${getQuoteID(quote.data)}` : 'Nueva Cotización'}
 
-            {quote.data.id && <QuoteStatus quote={quote.data} onSuccess={onSuccessSetStatus} />}
+            {quote.data.id && <QuoteStatusChip quote={quote.data} onSuccess={onSuccessSetStatus} />}
           </h1>
         </div>
       )}

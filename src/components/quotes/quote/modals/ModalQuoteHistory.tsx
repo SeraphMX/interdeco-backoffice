@@ -8,7 +8,7 @@ interface ModalPaymentProps {
 
 const ModalQuoteHistory = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='2xl'>
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange} size='3xl'>
       <ModalContent>
         {(onClose) => (
           <>

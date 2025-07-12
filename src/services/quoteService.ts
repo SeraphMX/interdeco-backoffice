@@ -44,7 +44,7 @@ export const quoteService = {
       discountType
     }
   },
-  async saveQuote(quote: Quote): Promise<{ success: boolean; quote?: Quote; error?: string; url?: string }> {
+  async saveQuote(quote: Quote, userId?: string): Promise<{ success: boolean; quote?: Quote; error?: string; url?: string }> {
     try {
       // 1. Insertar la cotización principal
       const { data: quoteResult, error: insertQuoteError } = await supabase
@@ -96,7 +96,7 @@ export const quoteService = {
       }
 
       const { access_token } = await response.json()
-      await this.logQuoteAction(quoteResult, 'created')
+      await this.logQuoteAction(quoteResult, 'created', userId)
 
       return {
         success: true,
@@ -106,7 +106,7 @@ export const quoteService = {
       return { success: false, error: (e as Error).message }
     }
   },
-  async cloneQuote(quote: Quote): Promise<{ success: boolean; quote?: Quote; error?: string }> {
+  async cloneQuote(quote: Quote, userId?: string): Promise<{ success: boolean; quote?: Quote; error?: string }> {
     try {
       if (!quote.id) {
         throw new Error('La cotización debe tener un ID para ser clonada.')
@@ -143,12 +143,12 @@ export const quoteService = {
       }
 
       // Guardar la cotización clonada
-      const result = await this.saveQuote(clonedQuote)
+      const result = await this.saveQuote(clonedQuote, userId)
       if (!result.success) {
         throw new Error(result.error || 'Error al guardar la cotización clonada.')
       }
 
-      await this.logQuoteAction(quote, 'cloned')
+      await this.logQuoteAction(quote, 'cloned', userId)
 
       return { success: true, quote: result.quote }
     } catch (e) {
@@ -160,7 +160,7 @@ export const quoteService = {
       return { success: false, error: (e as Error).message }
     }
   },
-  async updateQuote(quote: Quote): Promise<{ success: boolean; quote?: Quote; error?: string }> {
+  async updateQuote(quote: Quote, userId?: string): Promise<{ success: boolean; quote?: Quote; error?: string }> {
     try {
       if (!quote.id) {
         throw new Error('La cotización debe tener un ID para ser actualizada.')
@@ -203,6 +203,9 @@ export const quoteService = {
       const { error: insertItemsError } = await supabase.from('quote_items').insert(newItems)
 
       if (insertItemsError) throw insertItemsError
+
+      // 4. Registrar la acción de actualización
+      await this.logQuoteAction(updatedQuote, 'updated', userId)
 
       return {
         success: true,
@@ -261,7 +264,11 @@ export const quoteService = {
       return { success: false, error: (e as Error).message }
     }
   },
-  async setQuoteStatus(quoteId: number, status: QuoteStatus): Promise<{ success: boolean; quote?: Quote; error?: string }> {
+  async setQuoteStatus(
+    quoteId: number,
+    status: QuoteStatus,
+    userId?: string
+  ): Promise<{ success: boolean; quote?: Quote; error?: string }> {
     try {
       if (!quoteId) {
         throw new Error('El ID de la cotización es requerido para actualizar el estado.')
@@ -293,7 +300,7 @@ export const quoteService = {
       }
 
       // 4. Registrar el log
-      await this.logQuoteAction(updatedQuote, action)
+      await this.logQuoteAction(updatedQuote, action, userId)
 
       return {
         success: true,
@@ -309,7 +316,7 @@ export const quoteService = {
       return { success: false, error: (e as Error).message }
     }
   },
-  async sendQuoteEmail(email: string, quote: Quote): Promise<{ success: boolean; error?: string }> {
+  async sendQuoteEmail(email: string, quote: Quote, userId?: string): Promise<{ success: boolean; error?: string }> {
     try {
       if (!quote || !email) {
         throw new Error('El ID de la cotización y el correo electrónico son requeridos para enviar la cotización.')
@@ -327,7 +334,7 @@ export const quoteService = {
         throw new Error('Error al enviar el correo electrónico de la cotización.')
       }
 
-      await this.logQuoteAction(quote, 'sent_mail')
+      await this.logQuoteAction(quote, 'sent_mail', userId)
 
       addToast({
         title: 'Correo enviado',

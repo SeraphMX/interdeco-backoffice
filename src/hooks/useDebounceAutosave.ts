@@ -1,13 +1,15 @@
 // hooks/useDebouncedAutoSave.ts
 import { debounce, isEqual, omit } from 'lodash'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { quoteService } from '../services/quoteService'
+import { RootState } from '../store'
 import { setQuote } from '../store/slices/quoteSlice'
 import { Quote } from '../types'
 
 export function useDebouncedAutoSave(quote: Quote, delay = 1000) {
   const dispatch = useDispatch()
+  const { user } = useSelector((state: RootState) => state.auth)
   const previousQuoteRef = useRef<Quote | undefined>()
   const [isSaving, setIsSaving] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
@@ -30,7 +32,7 @@ export function useDebouncedAutoSave(quote: Quote, delay = 1000) {
     setIsSaving(true)
     setIsSaved(false)
 
-    const result = await quoteService.updateQuote(quoteToSave)
+    const result = await quoteService.updateQuote(quoteToSave, user?.id)
 
     ignoreNextEffectRef.current = true
     dispatch(setQuote({ ...quoteToSave, last_updated: result.quote?.last_updated }))
