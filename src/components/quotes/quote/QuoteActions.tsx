@@ -142,7 +142,7 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
   const renderPublicActions = () => (
     <>
       {quote.isPublicAccess && isFooter && (
-        <ActionButton icon={<DollarSign />} label='Pagar' color='primary' onClick={onOpenPaymentModal} />
+        <ActionButton icon={<DollarSign />} label='Pagar' color='primary' onClick={onOpenPaymentModal} tooltip={'¿Cómo pagar?'} />
       )}
     </>
   )
@@ -190,7 +190,13 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
     <>
       <ActionButton icon={<FileSearch />} label='Ver PDF' color='secondary' onClick={handlePreviewQuote} />
       {quote.isPublicAccess && (
-        <ActionButton icon={<FontAwesomeIcon icon={faWhatsapp} size='2x' />} label='Mensaje' color='success' onClick={handleSendMessage} />
+        <ActionButton
+          icon={<FontAwesomeIcon icon={faWhatsapp} size='2x' />}
+          label='Mensaje'
+          color='success'
+          onClick={handleSendMessage}
+          tooltip={'¿Tienes dudas? Envía un mensaje'}
+        />
       )}
     </>
   )
