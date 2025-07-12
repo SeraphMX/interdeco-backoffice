@@ -10,6 +10,8 @@ export interface Cliente {
 
 export type UserRole = 'admin' | 'staff'
 
+export type Period = 'day' | 'week' | 'month'
+
 export interface QuoteItem {
   product_id?: number // Para relación con DB
   product?: Product | undefined // Para datos completos (undefined cuando no está cargado)
