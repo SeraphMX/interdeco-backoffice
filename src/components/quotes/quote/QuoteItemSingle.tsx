@@ -20,6 +20,7 @@ interface QuoteItemProps {
 }
 
 const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, itemVariants, isLastItem, scrollRef }: QuoteItemProps) => {
+  const { user } = useSelector((state: RootState) => state.auth)
   const rxQuote = useSelector((state: RootState) => state.quote)
   const rxCategories = useSelector((state: RootState) => state.catalog.categories)
 
@@ -69,9 +70,11 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
           <section className='flex items-center gap-2'>
             {rxQuote.data.status === 'open' && (
               <>
-                <Button isIconOnly color='success' variant='light' aria-label='Agregar descuento' onPress={() => onSetDiscount(item)}>
-                  <Tag size={18} />
-                </Button>
+                {user?.role === 'admin' && (
+                  <Button isIconOnly color='success' variant='light' aria-label='Agregar descuento' onPress={() => onSetDiscount(item)}>
+                    <Tag size={18} />
+                  </Button>
+                )}
 
                 <NumberInput
                   className='w-20'
