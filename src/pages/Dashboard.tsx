@@ -3,9 +3,13 @@ import { FileText, Package, TrendingUp, Users } from 'lucide-react'
 import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import CategoryProviderChart from '../components/dashboard/charts/CategoryProviderChart'
+import DistributionChart from '../components/dashboard/charts/DistributionChart'
+import MostUsedChart from '../components/dashboard/charts/MostUsedChart'
 import QuoteAmountChart from '../components/dashboard/charts/QuoteAmountChart'
 import QuoteStatusChart from '../components/dashboard/charts/QuoteStatusChart'
 import QuoteSummary from '../components/dashboard/QuoteSummary'
+import { useProductsMetrics } from '../hooks/useProductsMetrics'
 import { RootState } from '../store'
 import { formatCurrency } from '../utils/currency'
 
@@ -20,6 +24,10 @@ const Dashboard = () => {
   const [chartSubtitle, setChartSubtitle] = useState('Últimos 30 días')
   const [selectedQuoteTab, setSelectedQuoteTab] = useState('ultimas')
   const [quoteTabSubtitle, setQuoteTabSubtitle] = useState('Las cotizaciones más recientes')
+
+  const { products, loading, error } = useProductsMetrics()
+
+  console.log(products)
 
   const stats = [
     { title: 'Clientes', value: clientes.length, icon: Users, color: 'bg-blue-500' },
@@ -49,6 +57,11 @@ const Dashboard = () => {
 
   const handleQuoteTabTitleChange = (subtitle: string) => {
     setQuoteTabSubtitle(subtitle)
+  }
+
+  const handleTitleChange = (title: string, subtitle: string) => {
+    setChartTitle(title)
+    setChartSubtitle(subtitle)
   }
 
   const expiringQuotes = getExpiringQuotes()
@@ -147,23 +160,24 @@ const Dashboard = () => {
               )}
 
               {selectedQuoteTab === 'status' && <QuoteStatusChart onTitleChange={handleQuoteTabTitleChange} />}
-              {selectedQuoteTab === 'total' && <QuoteAmountChart onTitleChange={handleQuoteTabTitleChange} />}
+              {selectedQuoteTab === 'total' && <QuoteAmountChart />}
             </div>
           </CardBody>
         </Card>
 
         {/* Gráficos con Tabs */}
         <Card className='shadow-medium'>
-          <CardHeader className='pb-4'>
-            <h2 className='text-xl font-bold text-gray-900'>{chartTitle}</h2>
-            <p className='text-sm text-gray-500 mt-1'>{chartSubtitle}</p>
-          </CardHeader>
-          <CardBody>
+          <CardHeader className='flex flex-col items-start pb-1'>
+            <div className=''>
+              <h2 className='text-xl font-bold text-gray-900'>Productos</h2>
+              <p className='text-sm text-gray-500 mt-1'>{chartSubtitle}</p>
+            </div>
             <Tabs
               selectedKey={selectedChart}
               onSelectionChange={(key) => setSelectedChart(key as string)}
               color='primary'
               variant='underlined'
+              fullWidth
               classNames={{
                 tabList: 'gap-6 w-full relative rounded-none p-0 border-b border-divider',
                 cursor: 'w-full bg-primary',
@@ -175,8 +189,13 @@ const Dashboard = () => {
               <Tab key='categorias-proveedores' title='Categorías por proveedor'></Tab>
               <Tab key='distribucion' title='Distribución'></Tab>
             </Tabs>
-
-            <div className='mt-6'></div>
+          </CardHeader>
+          <CardBody>
+            <div className=' flex-grow min-h-0 flex flex-col gap-6'>
+              {selectedChart === 'mas-utilizados' && <MostUsedChart onTitleChange={handleTitleChange} data={products.top_products} />}
+              {selectedChart === 'categorias-proveedores' && <CategoryProviderChart onTitleChange={handleTitleChange} />}
+              {selectedChart === 'distribucion' && <DistributionChart onTitleChange={handleTitleChange} />}
+            </div>
           </CardBody>
         </Card>
       </div>
