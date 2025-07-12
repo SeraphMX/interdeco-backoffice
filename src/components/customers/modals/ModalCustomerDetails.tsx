@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { customerService } from '../../../services/customerService'
 import { RootState } from '../../../store'
 import { clearSelectedCustomer } from '../../../store/slices/customersSlice'
-import { setSelectedCustomer } from '../../../store/slices/quoteSlice'
+import { clearQuote, setItemsLoaded, setSelectedCustomer } from '../../../store/slices/quoteSlice'
 import CustomerDetails from '../CustomerDetails'
 import CustomerHistory from '../CustomerHistory'
 import ModalCustomerConfirmDelete from './ModalCustomerConfirmDelete'
@@ -34,6 +34,8 @@ const ModalCustomerDetails = ({ isOpen, onOpenChange, onClose }: ModalSelectCust
 
   const handleNewQuote = () => {
     if (customer) {
+      dispatch(clearQuote())
+      dispatch(setItemsLoaded(true))
       dispatch(setSelectedCustomer(customer))
       navigate('/cotizaciones/nueva')
     }
