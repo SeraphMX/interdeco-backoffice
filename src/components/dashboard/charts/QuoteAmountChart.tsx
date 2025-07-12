@@ -2,7 +2,7 @@ import { Button } from '@heroui/react'
 import { BarElement, CategoryScale, Chart as ChartJS, CoreScaleOptions, Legend, LinearScale, Scale, Title, Tooltip } from 'chart.js'
 import { format, isSameDay, isSameMonth, isSameWeek, parseISO, startOfWeek, subDays, subMonths, subWeeks } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Bar } from 'react-chartjs-2'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../../../store'
@@ -12,14 +12,11 @@ import { formatCurrency } from '../../../utils/currency'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
-interface QuoteAmountChartProps {
-  onTitleChange: (title: string, subtitle: string) => void
-}
-
-const QuoteAmountChart = ({ onTitleChange }: QuoteAmountChartProps) => {
+const QuoteAmountChart = () => {
   const dispatch = useDispatch()
   const cotizaciones = useSelector((state: RootState) => state.quotes.items)
   const selectedPeriod = useSelector((state: RootState) => state.dashboard.selectedPeriod)
+  const [legendPeriod, setLegendPeriod] = useState('')
 
   // Agrupa y suma montos reales por período
   const getPeriodData = () => {
@@ -132,21 +129,21 @@ const QuoteAmountChart = ({ onTitleChange }: QuoteAmountChartProps) => {
 
   const handlePeriodChange = (period: Period) => {
     dispatch(setSelectedPeriod(period))
-    updateTitle(period)
+    updateLegend(period)
   }
 
-  const updateTitle = (period: Period) => {
+  const updateLegend = (period: Period) => {
     const periodLabels = {
       day: 'Últimos 7 días',
       week: 'Últimas 4 semanas',
       month: 'Últimos 6 meses'
     }
-    onTitleChange('Montos Cotizados por Período', periodLabels[period])
+    setLegendPeriod(periodLabels[period])
   }
 
   useEffect(() => {
-    updateTitle(selectedPeriod)
-  }, [selectedPeriod, onTitleChange])
+    updateLegend(selectedPeriod)
+  }, [selectedPeriod])
 
   const totalAmount = periodData.reduce((sum, item) => sum + item.amount, 0)
   const averageAmount = totalAmount / periodData.length
@@ -155,32 +152,37 @@ const QuoteAmountChart = ({ onTitleChange }: QuoteAmountChartProps) => {
   return (
     <>
       {/* Botones para cambiar período */}
-      <div className='flex gap-2 mb-4 flex-wrap'>
-        <Button
-          size='sm'
-          variant={selectedPeriod === 'day' ? 'solid' : 'bordered'}
-          color='primary'
-          onPress={() => handlePeriodChange('day')}
-        >
-          Días
-        </Button>
-        <Button
-          size='sm'
-          variant={selectedPeriod === 'week' ? 'solid' : 'bordered'}
-          color='primary'
-          onPress={() => handlePeriodChange('week')}
-        >
-          Semanas
-        </Button>
-        <Button
-          size='sm'
-          variant={selectedPeriod === 'month' ? 'solid' : 'bordered'}
-          color='primary'
-          onPress={() => handlePeriodChange('month')}
-        >
-          Meses
-        </Button>
-      </div>
+      <header className='flex items-center justify-between '>
+        <div className='flex gap-2 mb-4 flex-wrap'>
+          <Button
+            size='sm'
+            variant={selectedPeriod === 'day' ? 'solid' : 'bordered'}
+            color='primary'
+            onPress={() => handlePeriodChange('day')}
+          >
+            Días
+          </Button>
+          <Button
+            size='sm'
+            variant={selectedPeriod === 'week' ? 'solid' : 'bordered'}
+            color='primary'
+            onPress={() => handlePeriodChange('week')}
+          >
+            Semanas
+          </Button>
+          <Button
+            size='sm'
+            variant={selectedPeriod === 'month' ? 'solid' : 'bordered'}
+            color='primary'
+            onPress={() => handlePeriodChange('month')}
+          >
+            Meses
+          </Button>
+        </div>
+        <div>
+          <p className='text-sm text-gray-500 mt-1'>{legendPeriod}</p>
+        </div>
+      </header>
 
       <div className='h-[300px] mb-4'>
         <Bar data={chartData} options={chartOptions} />
