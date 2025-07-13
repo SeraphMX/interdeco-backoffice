@@ -65,7 +65,7 @@ export const QuotePDF = ({ quote }: { quote: Quote }) => {
                 <Text style={[styles.cell, styles.leftAlign]}>{item.totalQuantity.toFixed(2)}</Text>
                 <Text style={styles.cellDescription}>
                   <Text style={{ fontWeight: 'bold' }}>{item.product.sku} </Text>
-                  {item.product.description}{' '}
+                  {item.product.spec} {item.product.description}{' '}
                   {item.packagesRequired &&
                     item.packagesRequired > 1 &&
                     item.packagesRequired &&
