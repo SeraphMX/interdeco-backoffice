@@ -39,7 +39,7 @@ const ModalPayment = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
                   <InputClipboard label='Anticipo mínimo' value={formatCurrency(rxQuote.total * 0.6)} />
                   <InputClipboard label='Pago total' value={formatCurrency(rxQuote.total)} />
                 </div>
-                <InputClipboard label='Concepto de pago' value={`Anticipo de cotización #${getQuoteID(rxQuote)}`} />
+                <InputClipboard label='Concepto de pago' value={`Cotización #${getQuoteID(rxQuote)}`} />
               </section>
             </ModalBody>
             <ModalFooter>
