@@ -24,9 +24,9 @@ const Dashboard = () => {
   const quotesTotal = cotizaciones.reduce((acc, curr) => acc + curr.total, 0)
 
   const stats = [
-    { title: 'Cotizaciones', value: cotizaciones.length, icon: FileText, color: 'bg-purple-500' },
     { title: 'Clientes', value: clientes.length, icon: Users, color: 'bg-blue-500' },
     { title: 'Productos', value: productos.length, icon: Package, color: 'bg-green-500' },
+    { title: 'Cotizaciones', value: cotizaciones.length, icon: FileText, color: 'bg-purple-500' },
     {
       title: 'Total cotizado',
       value: formatCurrency(quotesTotal, 'short', 'en', 'MXN'),
@@ -61,12 +61,12 @@ const Dashboard = () => {
       {/* Stats Cards */}
       <div className='grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6'>
         {stats.map((stat) => (
-          <div key={stat.title} className='bg-white rounded-lg shadow p-6'>
+          <div key={stat.title} className='bg-white rounded-lg shadow p-3 md:p-4'>
             <div className='flex items-center'>
-              <div className={`${stat.color} p-3 rounded-lg`}>
+              <div className={`${stat.color} p-3 sm:p-4 rounded-lg`}>
                 <stat.icon className='h-6 w-6 text-white' />
               </div>
-              <div className='ml-4'>
+              <div className='ml-3'>
                 <p className='text-sm font-medium text-gray-500'>{stat.title}</p>
                 <p className='text-lg font-semibold text-gray-900'>{stat.value}</p>
               </div>
@@ -111,9 +111,9 @@ const Dashboard = () => {
               }}
             >
               <Tab key='ultimas' title='Últimas'></Tab>
-              <Tab key='expirando' title='Próximas a Expirar'></Tab>
+              <Tab key='expirando' title='Expirando'></Tab>
               <Tab key='status' title='Estado'></Tab>
-              <Tab key='total' title='Total cotizado'></Tab>
+              <Tab key='total' title='Historial'></Tab>
             </Tabs>
           </CardHeader>
           <CardBody className='space-y-4  overflow-y-auto'>
