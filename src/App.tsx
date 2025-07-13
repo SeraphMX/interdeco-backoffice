@@ -12,6 +12,7 @@ import { default as Cotizacion, default as Quote } from './pages/Cotizacion'
 import Cotizaciones from './pages/Cotizaciones'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
+import ResetPassword from './pages/ResetPassword'
 import Users from './pages/Users'
 import { SessionBootstrapper } from './SessionBoostraper'
 import { store } from './store'
@@ -47,12 +48,40 @@ function App() {
                     </ProtectedRoute>
                   }
                 >
-                  <Route path='/' element={<Dashboard />} />
-                  <Route path='/clientes' element={<Clientes />} />
-                  <Route path='/catalogo' element={<Catalogo />} />
+                  <Route
+                    path='/'
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path='/clientes'
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <Clientes />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path='/catalogo'
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <Catalogo />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path='/cotizaciones' element={<Cotizaciones />} />
                   <Route path='/cotizaciones/nueva' element={<Quote />} />
-                  <Route path='/usuarios' element={<Users />} />
+                  <Route
+                    path='/usuarios'
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <Users />
+                      </ProtectedRoute>
+                    }
+                  />
                 </Route>
 
                 <Route path='/cotizacion' element={<PublicRoute />}>
@@ -60,6 +89,7 @@ function App() {
                 </Route>
 
                 <Route path='/cotizacion/preview' element={<QuotePreviewPage />} />
+                <Route path='/cuenta/reset-password' element={<ResetPassword />} />
               </Routes>
             )}
           </Suspense>

@@ -6,10 +6,10 @@ import { RootState } from '../store'
 
 interface ProtectedRouteProps {
   children?: React.ReactNode
-  requiredRole?: 'admin' | 'staff'
+  allowedRoles?: Array<'admin' | 'staff'>
 }
 
-const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { user, isLoading } = useSelector((state: RootState) => state.auth)
   const location = useLocation()
 
@@ -27,8 +27,8 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     return <Navigate to='/login' state={{ from: location }} replace />
   }
 
-  if (requiredRole && user.role !== requiredRole && user.role !== 'admin') {
-    return <Navigate to='/' replace />
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to='/cotizaciones' replace />
   }
 
   if (children) {
