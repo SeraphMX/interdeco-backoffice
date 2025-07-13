@@ -40,7 +40,7 @@ export const QuotePDF = ({ quote }: { quote: Quote }) => {
     <Document>
       <Page size='LETTER' style={styles.page}>
         {/* ENCABEZADO */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
           <Image style={styles.logo} src='/branding/logo-interdeco-full.png' />
 
           <View style={(styles.header, { alignItems: 'flex-end' })}>
@@ -64,8 +64,8 @@ export const QuotePDF = ({ quote }: { quote: Quote }) => {
           if (!item.product) return null // Asegurarse de que el producto exista
           const unitPrice = (item.product.price ?? 0) * (1 + (item.product.utility ?? 0) / 100)
           return (
-            <>
-              <View key={index} style={item.discount ? styles.row : [styles.tableRow, styles.row]}>
+            <View key={index}>
+              <View style={item.discount ? styles.row : [styles.tableRow, styles.row]}>
                 <Text style={[styles.cellQty]}>{item.totalQuantity.toFixed(2)}</Text>
                 <Text style={styles.cellDescription}>
                   <Text style={{ fontWeight: 'bold' }}>{item.product.sku} </Text>
@@ -102,7 +102,7 @@ export const QuotePDF = ({ quote }: { quote: Quote }) => {
                   </View>
                 </>
               )}
-            </>
+            </View>
           )
         })}
 
