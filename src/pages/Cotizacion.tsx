@@ -45,7 +45,7 @@ const Cotizacion = () => {
         dispatch(setQuote(data.quote))
 
         if (!user) {
-          quoteService.logQuoteAction(data.quote, 'opened')
+          quoteService.setQuoteStatus(data.quote.id, 'opened')
         }
       } catch (err) {
         setError((err as Error).message)

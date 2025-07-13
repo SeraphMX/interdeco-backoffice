@@ -20,7 +20,7 @@ export function useDebouncedAutoSave(quote: Quote, delay = 1000) {
     if (!quoteToSave?.id) return
 
     const stripVolatileFields = (q: Quote) => {
-      return omit(q, ['last_updated', 'access_token'])
+      return omit(q, ['last_updated', 'access_token', 'status'])
     }
 
     if (isEqual(stripVolatileFields(quoteToSave), stripVolatileFields(previousQuoteRef.current || ({} as Quote)))) {

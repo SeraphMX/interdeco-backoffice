@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { addToast, useDisclosure } from '@heroui/react'
 import { pdf } from '@react-pdf/renderer'
 import { saveAs } from 'file-saver'
-import { Archive, ArchiveRestore, DollarSign, FileDown, FileSearch, MailPlus, Save, Trash2, X } from 'lucide-react'
+import { Archive, ArchiveRestore, DollarSign, FileDown, FileSearch, Save, Send, Trash2, X } from 'lucide-react'
 import { isBrowser, isMobile } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
@@ -154,7 +154,12 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
 
     return (
       <>
-        {quote.data.status !== 'sent' && <ActionButton icon={<MailPlus />} label='Enviar' color='secondary' onClick={onOpenSendQuote} />}
+        <ActionButton
+          icon={<Send />}
+          label={quote.data.status !== 'sent' ? 'Enviar' : 'Reenviar'}
+          color='secondary'
+          onClick={onOpenSendQuote}
+        />
         {quote.data.status === 'open' && (
           <ActionButton icon={<Trash2 />} label='Eliminar' color='danger' onClick={onOpenConfirmDeleteQuote} />
         )}

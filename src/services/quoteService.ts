@@ -265,8 +265,8 @@ export const quoteService = {
     }
   },
   async setQuoteStatus(
-    quoteId: number,
-    status: QuoteStatus,
+    quoteId: number | null,
+    status: QuoteStatus | 'sent_mail' | 'sent_whatsapp',
     userId?: string
   ): Promise<{ success: boolean; quote?: Quote; error?: string }> {
     try {
@@ -281,7 +281,18 @@ export const quoteService = {
 
       const previousStatus = previousQuote.status
 
-      // 2. Actualizar el estado de la cotización
+      // 2. Determinar la acción a registrar
+      let action = status
+      if (previousStatus === 'archived' && status === 'open') {
+        action = 'restored'
+      } else {
+        if (status.includes('sent')) {
+          action = status
+          status = 'sent'
+        }
+      }
+
+      // 3. Actualizar el estado de la cotización
       const { data: updatedQuote, error: updateError } = await supabase
         .from('quotes')
         .update({ status })
@@ -290,14 +301,6 @@ export const quoteService = {
         .single()
 
       if (updateError) throw updateError
-
-      // 3. Determinar la acción a registrar
-      let action = status
-      if (previousStatus === 'archived' && status === 'open') {
-        action = 'restored'
-      } else {
-        action = status
-      }
 
       // 4. Registrar el log
       await this.logQuoteAction(updatedQuote, action, userId)
@@ -334,7 +337,7 @@ export const quoteService = {
         throw new Error('Error al enviar el correo electrónico de la cotización.')
       }
 
-      await this.logQuoteAction(quote, 'sent_mail', userId)
+      await this.setQuoteStatus(quote.id ?? null, 'sent_mail', userId)
 
       addToast({
         title: 'Correo enviado',

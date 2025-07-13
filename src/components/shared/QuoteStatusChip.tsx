@@ -24,7 +24,7 @@ const QuoteStatusChip = ({ quote, onSuccess }: QuoteStatusProps) => {
     }
   }
 
-  if (quote.status !== 'sent') {
+  if (quote.status !== 'sent' && quote.status !== 'accepted') {
     return (
       <Chip className='capitalize' variant='bordered' color={quoteStatus.find((s) => s.key === quote.status)?.color as uiColors}>
         {quoteStatus.find((s) => s.key === quote.status)?.label}
@@ -53,8 +53,13 @@ const QuoteStatusChip = ({ quote, onSuccess }: QuoteStatusProps) => {
           }
         }}
       >
-        <DropdownItem key='accepted' color='success'>
-          Aceptada
+        {quote.status !== 'accepted' ? (
+          <DropdownItem key='accepted' color='primary'>
+            Anticipo recibido
+          </DropdownItem>
+        ) : null}
+        <DropdownItem key='paid' color='success'>
+          Marcar como pagada
         </DropdownItem>
         <DropdownItem key='rejected' className='text-danger' color='danger'>
           Rechazada
