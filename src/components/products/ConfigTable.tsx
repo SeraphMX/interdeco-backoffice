@@ -15,7 +15,7 @@ import {
   useDisclosure
 } from '@heroui/react'
 import { EllipsisVertical } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Category, MeasureUnit, Provider } from '../../schemas/catalog.schema'
 import { productService } from '../../services/productService'
@@ -42,6 +42,8 @@ const ConfigTable = ({ type, items }: ConfigTableProps) => {
   const dispatch = useDispatch()
   const products = useSelector((state: RootState) => state.productos.items)
   const [itemToDelete, setItemToDelete] = useState<Provider | Category | MeasureUnit | null>(null)
+  const tableRef = useRef<HTMLDivElement | null>(null)
+  const prevItems = useRef(items)
 
   const { isOpen, onOpenChange, onOpen } = useDisclosure()
   const [sortDescriptor, setSortDescriptor] = useState<SortDescriptor>({ column: 'products', direction: 'descending' })
@@ -110,9 +112,32 @@ const ConfigTable = ({ type, items }: ConfigTableProps) => {
     }
   }
 
+  useEffect(() => {
+    const prevLength = prevItems.current.length
+    const currLength = items.length
+
+    setSortDescriptor({ column: 'products', direction: 'descending' })
+
+    if (currLength > prevLength && tableRef.current) {
+      const scrollContainer = tableRef.current.parentElement
+      if (scrollContainer) {
+        setTimeout(() => {
+          scrollContainer.scrollTo({
+            top: scrollContainer.scrollHeight,
+            behavior: 'smooth'
+          })
+        }, 500)
+      }
+    }
+
+    // Actualiza el ref con el nuevo array para la próxima comparación
+    prevItems.current = items
+  }, [items])
+
   return (
     <>
       <Table
+        ref={tableRef}
         aria-label='Configuración'
         selectionMode='single'
         isHeaderSticky
