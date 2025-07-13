@@ -31,9 +31,10 @@ const ModalPayment = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
                     fullWidth
                     readOnly
                     variant='bordered'
-                    classNames={{ inputWrapper: 'border-none shadow-none' }}
+                    classNames={{ inputWrapper: 'border-none shadow-none ' }}
+                    className='w-3/5'
                   />
-                  <InputClipboard label='Cantidad' value={formatCurrency(rxQuote.total * 0.6)} />
+                  <InputClipboard label='Cantidad sugerida' value={formatCurrency(rxQuote.total * 0.6)} />
                 </div>
                 <InputClipboard label='Titular' value='Sandra Briseño Hidalgo' />
                 <InputClipboard label='Número de cuenta' value='0438767692' />
