@@ -84,7 +84,7 @@ export const QuotePDF = ({ quote }: { quote: Quote }) => {
               {item.discount && (
                 <>
                   <View key={`dis-${index}`} style={styles.row}>
-                    <Text style={[styles.cell, styles.leftAlign]}></Text>
+                    <Text style={[styles.cellQty, styles.leftAlign]}></Text>
                     <Text style={styles.cellDescription}>Descuento {item.discountType === 'percentage' && `${item.discount}%`}</Text>
                     <Text style={[styles.cell, styles.rightAlign]}></Text>
                     <Text style={[styles.cell, styles.rightAlign]}>
