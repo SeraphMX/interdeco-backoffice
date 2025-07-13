@@ -43,7 +43,9 @@ export const QuotePDF = ({ quote }: { quote: Quote }) => {
         <View style={styles.header}>
           <Text style={styles.title}>Cotización #{getQuoteID(quote)}</Text>
           {quote.customer_name && <Text>Cliente: {quote.customer_name}</Text>}
-          <Text>Fecha: {quote.created_at ? formatDate(quote.created_at) : formatDate(new Date(), { style: 'fullDay' })}</Text>
+          <Text>
+            Fecha: {quote.created_at ? formatDate(quote.created_at, { style: 'fullDay' }) : formatDate(new Date(), { style: 'fullDay' })}
+          </Text>
         </View>
 
         {/* CUERPO DE PRODUCTOS */}
@@ -58,65 +60,90 @@ export const QuotePDF = ({ quote }: { quote: Quote }) => {
           if (!item.product) return null // Asegurarse de que el producto exista
           const unitPrice = (item.product.price ?? 0) * (1 + (item.product.utility ?? 0) / 100)
           return (
-            <View key={index} style={[styles.tableRow, styles.row]}>
-              <Text style={[styles.cell, styles.leftAlign]}>{item.totalQuantity.toFixed(2)}</Text>
-              <Text style={styles.cellDescription}>
-                <Text style={{ fontWeight: 'bold' }}>{item.product.sku} </Text>
-                {item.product.description}{' '}
-                {item.packagesRequired &&
-                  item.packagesRequired > 1 &&
-                  item.packagesRequired &&
-                  item.packagesRequired != item.requiredQuantity &&
-                  `(${item.packagesRequired} paquetes)`}
-              </Text>
-              <Text style={[styles.cell, styles.rightAlign]}>{formatCurrency(unitPrice)}</Text>
-              <Text style={[styles.cell, styles.rightAlign]}>{formatCurrency(item.subtotal)}</Text>
-            </View>
+            <>
+              <View key={index} style={item.discount ? styles.row : [styles.tableRow, styles.row]}>
+                <Text style={[styles.cell, styles.leftAlign]}>{item.totalQuantity.toFixed(2)}</Text>
+                <Text style={styles.cellDescription}>
+                  <Text style={{ fontWeight: 'bold' }}>{item.product.sku} </Text>
+                  {item.product.description}{' '}
+                  {item.packagesRequired &&
+                    item.packagesRequired > 1 &&
+                    item.packagesRequired &&
+                    item.packagesRequired != item.requiredQuantity &&
+                    `(${item.packagesRequired} paquetes)`}
+                </Text>
+                <Text style={[styles.cell, styles.rightAlign]}>{formatCurrency(unitPrice)}</Text>
+                <Text style={item.discount ? [styles.cell, styles.rightAlign] : [styles.cell, styles.rightAlign, { fontWeight: 'bold' }]}>
+                  {formatCurrency(item.discount ? (item.originalSubtotal ?? 0) : (item.subtotal ?? 0))}
+                </Text>
+              </View>
+              {item.discount && (
+                <>
+                  <View key={`dis-${index}`} style={styles.row}>
+                    <Text style={[styles.cell, styles.leftAlign]}></Text>
+                    <Text style={styles.cellDescription}>Descuento {item.discountType === 'percentage' && `${item.discount}%`}</Text>
+                    <Text style={[styles.cell, styles.rightAlign]}></Text>
+                    <Text style={[styles.cell, styles.rightAlign]}>
+                      -
+                      {item.discountType === 'percentage'
+                        ? formatCurrency(((item.originalSubtotal ?? 0) * (item.discount ?? 0)) / 100)
+                        : formatCurrency(item.discount)}
+                    </Text>
+                  </View>
+                  <View key={index} style={[styles.tableRow, styles.row]}>
+                    <Text style={[styles.cell, styles.leftAlign]}></Text>
+                    <Text style={styles.cellDescription}></Text>
+                    <Text style={[styles.cell, styles.rightAlign]}></Text>
+                    <Text style={[styles.cell, styles.rightAlign, { fontWeight: 'bold' }]}>{formatCurrency(item.subtotal)}</Text>
+                  </View>
+                </>
+              )}
+            </>
           )
         })}
 
         {/* RESUMEN DE TOTALES */}
-        <View style={[styles.section, { marginTop: 20 }]}>
-          <View style={styles.row}>
-            <Text style={{ flex: 4 }} />
-            <Text style={[styles.rightAlign, styles.padding4]}>Subtotal:</Text>
-            <Text style={[styles.cell, styles.rightAlign]}>{formatCurrency(subtotal)}</Text>
+        <View style={[styles.section, { marginTop: 5, flexDirection: 'row', justifyContent: 'space-between' }]}>
+          {/* Columna Izquierda: Texto */}
+          <View style={{ marginTop: 10, flex: 2 }}>
+            <Text>Quedamos a sus órdenes por cualquier duda o comentario al respecto.</Text>
+            <Text>Atentamente · Sandra Briseño</Text>
+            <Text>Interdeco · hola@interdeco.mx</Text>
           </View>
-          <View style={styles.row}>
-            <Text style={{ flex: 4 }} />
-            <Text style={[styles.cell, styles.rightAlign]}>IVA ({(ivaRate * 100).toFixed(0)}%):</Text>
-            <Text style={[styles.cell, styles.rightAlign]}>{formatCurrency(taxes)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={{ flex: 4 }} />
-            <Text style={[styles.cell, styles.rightAlign]}>Total:</Text>
-            <Text style={[styles.cell, styles.rightAlign, styles.fontTotal]}>{formatCurrency(quote.total)}</Text>
+
+          {/* Columna Derecha: Totales */}
+          <View style={{ flex: 1, flexGrow: 1 }}>
+            <View style={styles.row}>
+              <Text style={{ flex: 1 }} />
+              <Text style={[styles.rightAlign, styles.padding4]}>Subtotal:</Text>
+              <Text style={[styles.cell, styles.rightAlign]}>{formatCurrency(subtotal)}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={{ flex: 1 }} />
+              <Text style={[styles.cell, styles.rightAlign]}>IVA ({(ivaRate * 100).toFixed(0)}%):</Text>
+              <Text style={[styles.cell, styles.rightAlign]}>{formatCurrency(taxes)}</Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={{ flex: 1 }} />
+              <Text style={[styles.cell, styles.rightAlign]}>Total:</Text>
+              <Text style={[styles.cell, styles.rightAlign, styles.fontTotal]}>{formatCurrency(quote.total)}</Text>
+            </View>
           </View>
         </View>
 
         {/* FOOTER */}
-        <View style={{ marginTop: 40 }}>
-          <Text>Quedamos a sus órdenes por cualquier duda o comentario al respecto.</Text>
-          <Text>Atentamente · Sandra Briseño</Text>
-          <Text>Interdeco · hola@interdeco.mx</Text>
-        </View>
-        <View style={{ marginTop: 20 }}>
-          <Text>Vigencia de la cotización 3 días naturales.</Text>
-          <Text>
+        <View style={{ fontSize: 8 }}>
+          <Text style={{ marginBottom: 5, fontSize: 9 }}>
             Todo trabajo requiere de un 60% de anticipo, el cual se podrá pagar en efectivo, mediante depósito o transferencia electrónica a
             la cuenta de Banorte número 0438767692, con Clabe Interbancaria: 072197004387676926 a nombre de Sandra Montserrat Briseño
             Hidalgo.
           </Text>
-          <Text>Precios sujetos a cambio sin previo aviso y sujetos a existencia.</Text>
-          <Text>Una vez realizado el pedido no se aceptan cambios de material ni cancelaciones.</Text>
-          <Text>Los tiempos de entrega varían dependiendo del material.</Text>
-          <Text>Mejoramos cualquier presupuesto presentado por escrito.</Text>
-          <Text>Trabajo 100% garantizado.</Text>
-          <Text>
-            ***GARANTÍA DEL MEJOR PRECIO: En INTERDECO estamos tan seguros de ser la mejor opción, que te damos la garantía de que si tienes
-            un presupuesto más barato, por escrito, en donde se especifiquen los materiales a utilizar, te igualamos el precio y te
-            regalamos la instalación.***
-          </Text>
+          <Text>• Vigencia de la cotización 7 días naturales.</Text>
+          <Text>• Precios sujetos a cambio sin previo aviso y sujetos a existencia.</Text>
+          <Text>• Una vez realizado el pedido no se aceptan cambios de material ni cancelaciones.</Text>
+          <Text>• Los tiempos de entrega varían dependiendo del material.</Text>
+          <Text>• Mejoramos cualquier presupuesto presentado por escrito.</Text>
+          <Text>• Trabajo 100% garantizado.</Text>
         </View>
       </Page>
     </Document>
