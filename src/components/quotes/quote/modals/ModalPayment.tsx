@@ -24,21 +24,21 @@ const ModalPayment = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
                 electrónica a la siguiente cuenta.
               </p>
               <section>
-                <div className='flex gap-2 mb-4'>
-                  <Input
-                    label='Banco'
-                    value='Banorte'
-                    fullWidth
-                    readOnly
-                    variant='bordered'
-                    classNames={{ inputWrapper: 'border-none shadow-none ' }}
-                    className='w-3/5'
-                  />
-                  <InputClipboard label='Cantidad sugerida' value={formatCurrency(rxQuote.total * 0.6)} />
-                </div>
+                <Input
+                  label='Banco'
+                  value='Banorte'
+                  fullWidth
+                  readOnly
+                  variant='bordered'
+                  classNames={{ inputWrapper: 'border-none shadow-none ' }}
+                />
                 <InputClipboard label='Titular' value='Sandra Briseño Hidalgo' />
                 <InputClipboard label='Número de cuenta' value='0438767692' />
                 <InputClipboard label='Clabe interbancaria' value='072197004387676926' />
+                <div className='flex gap-2'>
+                  <InputClipboard label='Anticipo mínimo' value={formatCurrency(rxQuote.total * 0.6)} />
+                  <InputClipboard label='Pago total' value={formatCurrency(rxQuote.total)} />
+                </div>
                 <InputClipboard label='Concepto de pago' value={`Anticipo de cotización #${getQuoteID(rxQuote)}`} />
               </section>
             </ModalBody>
