@@ -31,11 +31,15 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
     return <Navigate to='/cotizaciones' replace />
   }
 
+  const isScrollable = location.pathname === '/'
+
+  const mainClassName = `container mx-auto px-4 py-8 flex-grow  ${isScrollable ? 'min-h-screen-minus-navbar-scroll lg:min-h-screen-minus-navbar' : 'min-h-screen-minus-navbar'}`
+
   if (children) {
     return (
       <>
         {children}
-        <main className='container mx-auto px-4 py-8 flex-grow min-h-screen-minus-navbar'>
+        <main className={mainClassName}>
           <Outlet />
         </main>
       </>

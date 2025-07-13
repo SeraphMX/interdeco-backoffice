@@ -1,7 +1,7 @@
 const DEFAULT_LOCALE = 'es-MX'
 const DEFAULT_CURRENCY = 'MXN'
 
-type FormatStyle = 'short' | 'long'
+export type FormatStyle = 'short' | 'long'
 
 export function formatCurrency(
   amount: number,
@@ -21,6 +21,8 @@ export function formatCurrency(
       : {
           style: 'currency',
           currency,
+          currencyDisplay: 'narrowSymbol',
+          compactDisplay: 'short',
           notation: 'compact', // → Muestra "1.2 M" en vez de "1,200,000"
           minimumFractionDigits: 0,
           maximumFractionDigits: 1

@@ -21,13 +21,15 @@ const Dashboard = () => {
   const [selectedQuoteTab, setSelectedQuoteTab] = useState('ultimas')
   const [quoteTabSubtitle, setQuoteTabSubtitle] = useState('Las cotizaciones más recientes')
 
+  const quotesTotal = cotizaciones.reduce((acc, curr) => acc + curr.total, 0)
+
   const stats = [
+    { title: 'Cotizaciones', value: cotizaciones.length, icon: FileText, color: 'bg-purple-500' },
     { title: 'Clientes', value: clientes.length, icon: Users, color: 'bg-blue-500' },
     { title: 'Productos', value: productos.length, icon: Package, color: 'bg-green-500' },
-    { title: 'Cotizaciones', value: cotizaciones.length, icon: FileText, color: 'bg-purple-500' },
     {
-      title: 'Total Ventas',
-      value: formatCurrency(cotizaciones.reduce((acc, curr) => acc + curr.total, 0)),
+      title: 'Total cotizado',
+      value: formatCurrency(quotesTotal, 'short', 'en', 'MXN'),
       icon: TrendingUp,
       color: 'bg-orange-500'
     }
@@ -57,7 +59,7 @@ const Dashboard = () => {
       <h1 className='text-3xl font-bold text-gray-900 '>Dashboard</h1>
 
       {/* Stats Cards */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+      <div className='grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6'>
         {stats.map((stat) => (
           <div key={stat.title} className='bg-white rounded-lg shadow p-6'>
             <div className='flex items-center'>
@@ -73,7 +75,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow min-h-0'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:flex-grow lg:min-h-0'>
         {/* Sección de Cotizaciones con Tabs */}
         <Card className='shadow-medium'>
           <CardHeader className='pb-1 flex flex-col'>

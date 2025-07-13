@@ -8,4 +8,9 @@
         height: calc(100vh - 4rem);
         overflow: hidden;
     }
+
+    .min-h-screen-minus-navbar-scroll {
+        height: calc(100vh - 4rem);
+        overflow-y: scroll;
+    }
 }
