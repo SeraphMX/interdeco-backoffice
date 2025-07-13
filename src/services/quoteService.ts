@@ -53,7 +53,8 @@ export const quoteService = {
           customer_id: quote.customer_id || null,
           total: quote.total,
           status: quote.status || 'open',
-          access_token: null
+          access_token: null,
+          user_id: userId
         })
         .select()
         .single()
@@ -265,7 +266,7 @@ export const quoteService = {
     }
   },
   async setQuoteStatus(
-    quoteId: number | null,
+    quoteId: number | null | undefined,
     status: QuoteStatus | 'sent_mail' | 'sent_whatsapp',
     userId?: string
   ): Promise<{ success: boolean; quote?: Quote; error?: string }> {
@@ -355,6 +356,7 @@ export const quoteService = {
       return { success: false, error: (e as Error).message }
     }
   },
+
   async logQuoteAction(quote: Quote, action: string, userId?: string): Promise<{ success: boolean; error?: string }> {
     try {
       if (!quote?.id) {
