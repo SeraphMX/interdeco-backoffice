@@ -34,7 +34,6 @@ const ModalQuoteSend = ({ isOpen, onOpenChange, onConfirm }: ModalSelectCustomer
 
   const handleEmailSubmit = emailForm.handleSubmit(async (data) => {
     setIsLoading(true)
-    console.log('Enviar por correo:', data)
 
     const response = await quoteService.sendQuoteEmail(data.email, rxQuote.data, user?.id)
     console.log('Respuesta del envío por correo:', response)
@@ -44,9 +43,15 @@ const ModalQuoteSend = ({ isOpen, onOpenChange, onConfirm }: ModalSelectCustomer
     }
   })
 
-  const handleWhatsAppSubmit = whatsappForm.handleSubmit((data) => {
-    console.log('Enviar por WhatsApp:', data)
+  const handleWhatsAppSubmit = whatsappForm.handleSubmit(async (data) => {
     onConfirm()
+
+    await quoteService.setQuoteStatus(rxQuote.data.id, 'sent_whatsapp', user?.id)
+
+    const baseUrl = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://localhost:8888'
+    const message = `Hola, te comparto la cotización que hemos creado para ti, si tienes cualquier pregunta no dudes en escribirnos: ${baseUrl}/cotizacion/${rxQuote.data.access_token}`
+
+    window.open(`https://wa.me/52${data.phone}?text=${encodeURIComponent(message)}`, '_blank')
   })
 
   useEffect(() => {
