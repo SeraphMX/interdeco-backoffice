@@ -19,6 +19,7 @@ const styles = StyleSheet.create({
   section: { marginBottom: 10 },
   row: { flexDirection: 'row' },
   cell: { width: 80, padding: 4 },
+  cellQty: { width: 60, padding: 4, marginRight: 4, textAlign: 'right' },
   cellDescription: { flex: 1, padding: 4 },
   padding4: { padding: 4 },
   fontTotal: { fontSize: 11, fontWeight: 'bold' },
@@ -50,7 +51,7 @@ export const QuotePDF = ({ quote }: { quote: Quote }) => {
 
         {/* CUERPO DE PRODUCTOS */}
         <View style={[styles.section, styles.tableHeader, styles.row]}>
-          <Text style={[styles.cell, styles.leftAlign]}>Cantidad</Text>
+          <Text style={[styles.cellQty]}>Cantidad</Text>
           <Text style={styles.cellDescription}>Descripción</Text>
           <Text style={[styles.cell, styles.rightAlign]}>Unitario</Text>
           <Text style={[styles.cell, styles.rightAlign]}>Precio</Text>
@@ -62,7 +63,7 @@ export const QuotePDF = ({ quote }: { quote: Quote }) => {
           return (
             <>
               <View key={index} style={item.discount ? styles.row : [styles.tableRow, styles.row]}>
-                <Text style={[styles.cell, styles.leftAlign]}>{item.totalQuantity.toFixed(2)}</Text>
+                <Text style={[styles.cellQty]}>{item.totalQuantity.toFixed(2)}</Text>
                 <Text style={styles.cellDescription}>
                   <Text style={{ fontWeight: 'bold' }}>{item.product.sku} </Text>
                   {item.product.spec} {item.product.description}{' '}
