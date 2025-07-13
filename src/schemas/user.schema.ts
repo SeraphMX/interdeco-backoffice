@@ -32,10 +32,10 @@ export const loginUserForm = z.object({
 })
 export type LoginUserForm = z.infer<typeof loginUserForm>
 
-export const verifyEmail = z.object({
-  email: z.string().email({ message: 'El correo electrónico no es válido' })
+export const resetPasswordMail = z.object({
+  email: z.string().min(1, { message: 'El correo electrónico es requerido' }).email({ message: 'El correo electrónico no es válido' })
 })
-export type VerifyEmail = z.infer<typeof verifyEmail>
+export type VerifyEmail = z.infer<typeof resetPasswordMail>
 
 export const verifyPhone = z.object({
   phone: z.string().min(10, { message: 'Número de teléfono inválido' }).regex(/^\d+$/, { message: 'Número de teléfono inválido' })
