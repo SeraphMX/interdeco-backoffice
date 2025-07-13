@@ -40,13 +40,16 @@ export const QuotePDF = ({ quote }: { quote: Quote }) => {
     <Document>
       <Page size='LETTER' style={styles.page}>
         {/* ENCABEZADO */}
-        <Image style={styles.logo} src='/branding/logo-interdeco-full.png' />
-        <View style={styles.header}>
-          <Text style={styles.title}>Cotización #{getQuoteID(quote)}</Text>
-          {quote.customer_name && <Text>Cliente: {quote.customer_name}</Text>}
-          <Text>
-            Fecha: {quote.created_at ? formatDate(quote.created_at, { style: 'fullDay' }) : formatDate(new Date(), { style: 'fullDay' })}
-          </Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Image style={styles.logo} src='/branding/logo-interdeco-full.png' />
+
+          <View style={(styles.header, { alignItems: 'flex-end' })}>
+            <Text style={[styles.title]}>Cotización #{getQuoteID(quote)}</Text>
+            {quote.customer_name && <Text>Cliente: {quote.customer_name}</Text>}
+            <Text>
+              Fecha: {quote.created_at ? formatDate(quote.created_at, { style: 'fullDay' }) : formatDate(new Date(), { style: 'fullDay' })}
+            </Text>
+          </View>
         </View>
 
         {/* CUERPO DE PRODUCTOS */}
