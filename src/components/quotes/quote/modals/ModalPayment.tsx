@@ -1,6 +1,7 @@
 import { Button, Input, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader } from '@heroui/react'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../../../store'
+import { formatCurrency } from '../../../../utils/currency'
 import { getQuoteID } from '../../../../utils/strings'
 import InputClipboard from '../../../shared/InputClipboard'
 
@@ -22,8 +23,8 @@ const ModalPayment = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
                 Todo trabajo requiere de un 60% de anticipo, el cual se podrá pagar en efectivo, mediante depósito o transferencia
                 electrónica a la siguiente cuenta.
               </p>
-              <div>
-                <div>
+              <section>
+                <div className='flex gap-2 mb-4'>
                   <Input
                     label='Banco'
                     value='Banorte'
@@ -32,12 +33,13 @@ const ModalPayment = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
                     variant='bordered'
                     classNames={{ inputWrapper: 'border-none shadow-none' }}
                   />
-                  <InputClipboard label='Titular' value='Sandra Briseño Hidalgo' />
-                  <InputClipboard label='Número de cuenta' value='0438767692' />
-                  <InputClipboard label='Clabe interbancaria' value='072197004387676926' />
-                  <InputClipboard label='Concepto de pago' value={`Cotización #${getQuoteID(rxQuote)}`} />
+                  <InputClipboard label='Cantidad' value={formatCurrency(rxQuote.total * 0.6)} />
                 </div>
-              </div>
+                <InputClipboard label='Titular' value='Sandra Briseño Hidalgo' />
+                <InputClipboard label='Número de cuenta' value='0438767692' />
+                <InputClipboard label='Clabe interbancaria' value='072197004387676926' />
+                <InputClipboard label='Concepto de pago' value={`Anticipo de cotización #${getQuoteID(rxQuote)}`} />
+              </section>
             </ModalBody>
             <ModalFooter>
               <Button variant='light' color='primary' onPress={onClose}>
