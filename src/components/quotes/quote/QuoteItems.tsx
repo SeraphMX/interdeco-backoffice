@@ -130,7 +130,7 @@ const QuoteItems = ({ scrollRef }: QuoteItemsProps) => {
                 <AnimatePresence>
                   {(quote.data.items ?? []).slice(0, visibleCount).map((item, index, arr) => (
                     <QuoteItemSingle
-                      key={item.product?.id}
+                      key={item.product?.id || index}
                       item={item}
                       onUpdateQuantity={handleUpdateQuantity}
                       onRemoveItem={handleConfirmRemoveItem}

@@ -39,10 +39,11 @@ const ProductsTable = ({
         item.provider_name?.toLowerCase().includes(filterValue.toLowerCase()) ||
         item.spec?.toLowerCase().includes(filterValue.toLowerCase())
 
-      const matchesCategories = selectedCategories.length === 0 || selectedCategories.find((c) => c === item.category.toString())
-      const matchesProviders = selectedProviders.length === 0 || selectedProviders.find((p) => p === item.provider.toString())
+      const matchesCategories = selectedCategories.length === 0 || selectedCategories.includes((item.category ?? 0).toString())
 
-      const matchesWithPrice = item.public_price !== undefined && (item.price ?? 0) > 0
+      const matchesProviders = selectedProviders.length === 0 || selectedProviders.includes((item.provider ?? 0).toString())
+
+      const matchesWithPrice = variant !== 'default' ? item.public_price !== undefined && (item.price ?? 0) > 0 : true
       const matchesActive = variant !== 'minimal' || item.is_active
 
       return matchesSearch && matchesProviders && matchesCategories && matchesWithPrice && matchesActive

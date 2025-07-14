@@ -31,7 +31,7 @@ const ProductsTableFooter = ({
                 const category = rxCategories.find((c) => c.id === Number(categoryId))
                 return (
                   <Chip key={categoryId} className={category?.color || 'bg-gray-300'} size='sm' variant='flat'>
-                    {category?.description}
+                    {category?.description || 'Sin categoría'}
                   </Chip>
                 )
               })
@@ -41,7 +41,7 @@ const ProductsTableFooter = ({
             ? formatListWithY(
                 selectedProviders.map((providerId) => {
                   const provider = rxProducts.find((p) => p.provider === Number(providerId))
-                  return provider?.provider_name
+                  return provider?.provider_name || 'Sin proveedor'
                 })
               )
             : ''}

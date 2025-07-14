@@ -29,8 +29,18 @@ const ProductsFilters = ({ filters }: ProductsFiltersProps) => {
   const usedCategoryIds = new Set(rxProducts.map((product) => product.category))
   const filteredCategories = rxCategories.filter((category) => usedCategoryIds.has(category.id ?? -1))
 
+  //Si hay productos sin categoría, agregar una opción "Sin categoría"
+  if (rxProducts.some((p) => p.category === null)) {
+    filteredCategories.push({ id: 0, description: 'Sin categoría', color: 'default-color' })
+  }
+
   const usedProviderIds = new Set(rxProducts.map((product) => product.provider))
   const filteredProviders = rxProviders.filter((provider) => usedProviderIds.has(provider.id ?? -1))
+
+  //Si hay productos sin proveedor, agregar una opción "Sin proveedor"
+  if (rxProducts.some((p) => p.provider === null)) {
+    filteredProviders.push({ id: 0, name: 'Sin proveedor' })
+  }
 
   const clearFilters = () => {
     if (search?.setValue) {
