@@ -1,13 +1,14 @@
-import { Button, Card, CardBody, CardHeader, Tab, Tabs } from '@heroui/react'
+import { Button, Card, CardBody, CardHeader, Select, SelectItem, Tab, Tabs } from '@heroui/react'
 import { FileText, Package, TrendingUp, Users } from 'lucide-react'
 import { useState } from 'react'
+import { isMobile } from 'react-device-detect'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import QuoteAmountChart from '../components/dashboard/charts/QuoteAmountChart'
 import QuoteStatusChart from '../components/dashboard/charts/QuoteStatusChart'
 import QuoteSummary from '../components/dashboard/QuoteSummary'
+import CountUp from '../components/shared/CountUp'
 import { RootState } from '../store'
-import { formatCurrency } from '../utils/currency'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -23,15 +24,24 @@ const Dashboard = () => {
 
   const quotesTotal = cotizaciones.reduce((acc, curr) => acc + curr.total, 0)
 
-  const stats = [
+  interface Stat {
+    title: string
+    value: number
+    icon: React.ElementType
+    color: string
+    type?: 'currency' | 'number' | 'currency-short'
+  }
+
+  const stats: Stat[] = [
     { title: 'Clientes', value: clientes.length, icon: Users, color: 'bg-blue-500' },
     { title: 'Productos', value: productos.length, icon: Package, color: 'bg-green-500' },
     { title: 'Cotizaciones', value: cotizaciones.length, icon: FileText, color: 'bg-purple-500' },
     {
       title: 'Total cotizado',
-      value: formatCurrency(quotesTotal, 'short', 'en', 'MXN'),
+      value: quotesTotal,
       icon: TrendingUp,
-      color: 'bg-orange-500'
+      color: 'bg-orange-500',
+      type: isMobile ? 'currency-short' : 'currency'
     }
   ]
 
@@ -55,8 +65,19 @@ const Dashboard = () => {
 
   const expiringQuotes = getExpiringQuotes()
   return (
-    <div className='space-y-6 flex flex-col h-full '>
-      <h1 className='text-3xl font-bold text-gray-900 '>Dashboard</h1>
+    <section className='space-y-6 flex flex-col h-full '>
+      <header className='flex items-center justify-between '>
+        <h1 className='text-3xl font-bold text-gray-900 '>Dashboard</h1>
+        <div className='w-32 hidden'>
+          //TODO:Manejar periodo de tiempo para las estadisticas
+          <Select className='max-w-xs' defaultSelectedKeys={['days']} disallowEmptySelection>
+            <SelectItem key='days'>Semana</SelectItem>
+            <SelectItem key='weeks'>Mes</SelectItem>
+            <SelectItem key='months'>Año</SelectItem>
+            <SelectItem key='all'>Todo</SelectItem>
+          </Select>
+        </div>
+      </header>
 
       {/* Stats Cards */}
       <div className='grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6'>
@@ -68,14 +89,16 @@ const Dashboard = () => {
               </div>
               <div className='ml-3'>
                 <p className='text-sm font-medium text-gray-500'>{stat.title}</p>
-                <p className='text-lg font-semibold text-gray-900'>{stat.value}</p>
+                <p className='text-lg font-semibold text-gray-900'>
+                  <CountUp value={stat.value} type={stat.type ? stat.type : 'number'} />
+                </p>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:flex-grow lg:min-h-0'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 max-h-[790px] lg:flex-grow lg:min-h-0'>
         {/* Sección de Cotizaciones con Tabs */}
         <Card className='shadow-medium'>
           <CardHeader className='pb-1 flex flex-col'>
@@ -213,7 +236,7 @@ const Dashboard = () => {
           </CardBody>
         </Card>
       </div> */}
-    </div>
+    </section>
   )
 }
 
