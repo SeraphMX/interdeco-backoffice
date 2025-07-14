@@ -22,13 +22,11 @@ const Dashboard = () => {
 
   const [selectedChart, setSelectedChart] = useState('mas-utilizados')
   const [chartTitle, setChartTitle] = useState('Materiales Más Utilizados')
-  const [chartSubtitle, setChartSubtitle] = useState('Últimos 30 días')
+  const [quoteProductsSubtitle, setquoteProductsSubtitle] = useState('Últimos 30 días')
   const [selectedQuoteTab, setSelectedQuoteTab] = useState('ultimas')
   const [quoteTabSubtitle, setQuoteTabSubtitle] = useState('Las cotizaciones más recientes')
 
-  const { products, loading, error } = useProductsMetrics()
-
-  console.log(products)
+  const { loading, error } = useProductsMetrics()
 
   const quotesTotal = cotizaciones.reduce((acc, curr) => acc + curr.total, 0)
 
@@ -73,7 +71,7 @@ const Dashboard = () => {
 
   const handleTitleChange = (title: string, subtitle: string) => {
     setChartTitle(title)
-    setChartSubtitle(subtitle)
+    setquoteProductsSubtitle(subtitle)
   }
 
   const expiringQuotes = getExpiringQuotes()
@@ -111,9 +109,9 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 max-h-[790px] lg:flex-grow lg:min-h-0'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:flex-grow lg:min-h-0'>
         {/* Sección de Cotizaciones con Tabs */}
-        <Card className='shadow-medium'>
+        <Card className='shadow-medium max-h-[590px] sm:max-h-max'>
           <CardHeader className='pb-1 flex flex-col'>
             <div className='flex items-center justify-between w-full'>
               <div>
@@ -195,7 +193,7 @@ const Dashboard = () => {
           <CardHeader className='flex flex-col items-start pb-1'>
             <div className=''>
               <h2 className='text-xl font-bold text-gray-900'>Productos</h2>
-              <p className='text-sm text-gray-500 mt-1'>{chartSubtitle}</p>
+              <p className='text-sm text-gray-500 mt-1'>{quoteProductsSubtitle}</p>
             </div>
             <Tabs
               selectedKey={selectedChart}
@@ -217,7 +215,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardBody>
             <div className=' flex-grow min-h-0 flex flex-col gap-6'>
-              {selectedChart === 'mas-utilizados' && <MostUsedChart onTitleChange={handleTitleChange} data={products.top_products} />}
+              {selectedChart === 'mas-utilizados' && <MostUsedChart onTitleChange={handleTitleChange} />}
               {selectedChart === 'categorias-proveedores' && <CategoryProviderChart onTitleChange={handleTitleChange} />}
               {selectedChart === 'distribucion' && <DistributionChart onTitleChange={handleTitleChange} />}
             </div>

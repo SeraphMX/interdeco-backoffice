@@ -1,7 +1,9 @@
 // hooks/useTopProducts.ts
 import { endOfDay, startOfDay, subDays, subMonths, subYears } from 'date-fns'
 import { useEffect, useMemo, useState } from 'react'
+import { useDispatch } from 'react-redux'
 import { supabase } from '../lib/supabase'
+import { setMetrics } from '../store/slices/dashboardSlice'
 
 interface TopProduct {
   id: number
@@ -14,7 +16,8 @@ interface TopProduct {
 type Period = 'week' | 'month' | 'year' | 'all'
 
 export const useProductsMetrics = () => {
-  const [metrics, setMetrics] = useState([])
+  const dispatch = useDispatch()
+
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [period, setPeriod] = useState<Period>('all')
@@ -57,7 +60,14 @@ export const useProductsMetrics = () => {
         return
       }
 
-      setMetrics(data)
+      dispatch(
+        setMetrics({
+          top_products: data.top_products,
+          distribution_by_category: data.distribution_by_category,
+          distribution_by_provider: data.distribution_by_provider,
+          stacked_by_category_provider: data.stacked_by_category_provider
+        })
+      )
 
       setLoading(false)
     }
@@ -81,5 +91,5 @@ export const useProductsMetrics = () => {
     }
   }, [from_date, to_date]) // importante: actualizar al cambiar fechas
 
-  return { products: metrics, loading, error, period, setPeriod }
+  return { loading, error, period, setPeriod }
 }

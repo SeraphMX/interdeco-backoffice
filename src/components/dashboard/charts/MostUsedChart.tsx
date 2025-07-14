@@ -2,16 +2,19 @@ import { Button } from '@heroui/react'
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js'
 import { useState } from 'react'
 import { Bar } from 'react-chartjs-2'
+import { useSelector } from 'react-redux'
+import { RootState } from '../../../store'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 interface MostUsedChartProps {
   onTitleChange: (title: string, subtitle: string) => void
-  data: any
 }
 
-const MostUsedChart = ({ data, onTitleChange }: MostUsedChartProps) => {
+const MostUsedChart = ({ onTitleChange }: MostUsedChartProps) => {
   const [selectedDataType, setSelectedDataType] = useState<'material' | 'proveedor' | 'categoria'>('material')
+
+  const data = useSelector((state: RootState) => state.dashboard.top_products)
 
   const getSourceData = () => {
     if (!data || !Array.isArray(data)) return []
@@ -163,7 +166,7 @@ const MostUsedChart = ({ data, onTitleChange }: MostUsedChartProps) => {
         </Button>
       </div>
 
-      <div className='flex-grow min-h-0 mb-4'>
+      <div className='sm:flex-grow min-h-[400px] sm:min-h-0 mb-4'>
         <Bar data={masUtilizadosChartData} options={topProductsChartOptions} />
       </div>
     </>

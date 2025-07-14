@@ -2,6 +2,8 @@ import { Button } from '@heroui/react'
 import { BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js'
 import { useEffect, useState } from 'react'
 import { Bar } from 'react-chartjs-2'
+import { useSelector } from 'react-redux'
+import { RootState } from '../../../store'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
@@ -10,72 +12,51 @@ interface CategoryProviderChartProps {
 }
 
 const CategoryProviderChart = ({ onTitleChange }: CategoryProviderChartProps) => {
-  console.log('chartProviderMopntado')
   const [selectedFilter, setSelectedFilter] = useState<'todos' | 'cotizados'>('cotizados')
 
-  // Datos dummy para productos por categoría (Stacked Bar Chart)
-  const getCategoriasPorProveedorData = () => {
-    // Simular diferentes datasets según el filtro
-    const isAllProducts = selectedFilter === 'todos'
-    const multiplier = isAllProducts ? 1.8 : 1 // Simular más productos en total
+  const categoryProvider = useSelector((state: RootState) => state.dashboard.stacked_by_category_provider)
 
-    return [
-      {
-        categoria: 'Pisos',
-        proveedores: {
-          Interceramic: Math.floor(45 * multiplier),
-          Lamosa: Math.floor(38 * multiplier),
-          Vitromex: Math.floor(25 * multiplier),
-          Corona: Math.floor(22 * multiplier)
-        }
-      },
-      {
-        categoria: 'Azulejos',
-        proveedores: {
-          Interceramic: Math.floor(32 * multiplier),
-          Lamosa: Math.floor(28 * multiplier),
-          Vitromex: Math.floor(35 * multiplier),
-          Corona: Math.floor(15 * multiplier)
-        }
-      },
-      {
-        categoria: 'Sanitarios',
-        proveedores: {
-          FV: Math.floor(40 * multiplier),
-          Helvex: Math.floor(35 * multiplier),
-          Interceramic: Math.floor(20 * multiplier),
-          Corona: Math.floor(18 * multiplier)
-        }
-      },
-      {
-        categoria: 'Persianas',
-        proveedores: {
-          'Hunter Douglas': Math.floor(55 * multiplier),
-          Luxaflex: Math.floor(30 * multiplier),
-          'Sheer Elegance': Math.floor(25 * multiplier)
-        }
-      },
-      {
-        categoria: 'Cortinas',
-        proveedores: {
-          'Sheer Elegance': Math.floor(45 * multiplier),
-          'Hunter Douglas': Math.floor(35 * multiplier),
-          Luxaflex: Math.floor(20 * multiplier)
-        }
+  console.log('CategoryProvider data:', categoryProvider)
+
+  const transformData = () => {
+    const type = selectedFilter === 'todos' ? 'all_products' : 'quote_items'
+
+    const found = categoryProvider.find((item) => item.type === type)
+    if (!found) return []
+
+    return found.data.map((entry: any) => {
+      const proveedores: Record<string, number> = {}
+      for (const serie of entry.series) {
+        proveedores[serie.provider] = serie.total
       }
-    ]
+
+      return {
+        categoria: entry.category,
+        proveedores
+      }
+    })
   }
 
-  const categoriasPorProveedorDummy = getCategoriasPorProveedorData()
+  const categoriasPorProveedorData = transformData()
 
   // Configuración del Stacked Bar Chart
   const stackedChartData = {
-    labels: categoriasPorProveedorDummy.map((c) => c.categoria),
-    datasets: Object.keys(categoriasPorProveedorDummy[0].proveedores).map((proveedor, index) => {
+    labels: categoriasPorProveedorData.map((c) => c.categoria),
+    datasets: Object.keys(
+      categoriasPorProveedorData.reduce(
+        (acc, curr) => {
+          Object.keys(curr.proveedores).forEach((prov) => {
+            acc[prov] = true
+          })
+          return acc
+        },
+        {} as Record<string, boolean>
+      )
+    ).map((proveedor, index) => {
       const colors = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', '#6B7280']
       return {
         label: proveedor,
-        data: categoriasPorProveedorDummy.map((c) => c.proveedores[proveedor as keyof typeof c.proveedores] || 0),
+        data: categoriasPorProveedorData.map((c) => c.proveedores[proveedor] || 0),
         backgroundColor: colors[index % colors.length],
         borderColor: colors[index % colors.length],
         borderWidth: 1,
@@ -162,14 +143,11 @@ const CategoryProviderChart = ({ onTitleChange }: CategoryProviderChartProps) =>
         <div className='text-sm text-gray-600'>
           <p>
             <strong>Total de productos:</strong>{' '}
-            {categoriasPorProveedorDummy.reduce((acc, cat) => acc + Object.values(cat.proveedores).reduce((sum, val) => sum + val, 0), 0)}{' '}
+            {categoriasPorProveedorData.reduce((acc, cat) => acc + Object.values(cat.proveedores).reduce((sum, val) => sum + val, 0), 0)}{' '}
             productos
           </p>
           <p className='mt-1'>
-            <strong>Categorías activas:</strong> {categoriasPorProveedorDummy.length}
-          </p>
-          <p className='mt-1'>
-            <strong>Filtro aplicado:</strong> {selectedFilter === 'todos' ? 'Todos los productos' : 'Solo productos cotizados'}
+            <strong>Categorías activas:</strong> {categoriasPorProveedorData.length}
           </p>
         </div>
       </div>
