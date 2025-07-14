@@ -11,12 +11,33 @@ interface ProviderDistribution {
   data: { provider: string; total: number }[]
 }
 
+interface TopProducts {
+  type: 'products' | 'categories' | 'providers'
+  data: {
+    id: number
+    name: string
+    quotes: number
+    total: number
+  }[]
+}
+
+interface StackedByCategoryProvider {
+  type: 'all_products' | 'quote_items'
+  data: {
+    category: string
+    series: {
+      provider: string
+      total: number
+    }[]
+  }[]
+}
+
 interface DashboardState {
   selectedPeriod: Period
-  top_products: any[]
+  top_products: TopProducts[]
   distribution_by_category: CategoryDistribution[]
   distribution_by_provider: ProviderDistribution[]
-  stacked_by_category_provider: any[]
+  stacked_by_category_provider: StackedByCategoryProvider[]
 }
 
 const initialState: DashboardState = {
