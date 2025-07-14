@@ -22,7 +22,7 @@ const Dashboard = () => {
 
   const [selectedChart, setSelectedChart] = useState('mas-utilizados')
   const [chartTitle, setChartTitle] = useState('Materiales Más Utilizados')
-  const [quoteProductsSubtitle, setquoteProductsSubtitle] = useState('Últimos 30 días')
+  const [quoteProductsSubtitle, setquoteProductsSubtitle] = useState('Los productos mas utilizados en las cotizaciones')
   const [selectedQuoteTab, setSelectedQuoteTab] = useState('ultimas')
   const [quoteTabSubtitle, setQuoteTabSubtitle] = useState('Las cotizaciones más recientes')
 
@@ -197,7 +197,9 @@ const Dashboard = () => {
             </div>
             <Tabs
               selectedKey={selectedChart}
-              onSelectionChange={(key) => setSelectedChart(key as string)}
+              onSelectionChange={(key) => {
+                setSelectedChart(key as string)
+              }}
               color='primary'
               variant='underlined'
               fullWidth
@@ -209,8 +211,8 @@ const Dashboard = () => {
               }}
             >
               <Tab key='mas-utilizados' title='Más Utilizados'></Tab>
-              <Tab key='categorias-proveedores' title='Categorías por proveedor'></Tab>
               <Tab key='distribucion' title='Distribución'></Tab>
+              <Tab key='categorias-proveedores' title='Categorías por proveedor'></Tab>
             </Tabs>
           </CardHeader>
           <CardBody>

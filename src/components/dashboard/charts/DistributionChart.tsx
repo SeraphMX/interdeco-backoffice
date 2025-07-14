@@ -11,7 +11,7 @@ ChartJS.register(Title, Tooltip, Legend, ArcElement)
 interface DistributionChartProps {
   onTitleChange: (title: string, subtitle: string) => void
 }
-
+//TODO: Arreglar tipado
 const DistributionChart = ({ onTitleChange }: DistributionChartProps) => {
   const [selectedDistribution, setSelectedDistribution] = useState<'categorias' | 'proveedores'>('categorias')
   const [selectedFilter, setSelectedFilter] = useState<'todos' | 'cotizados'>('cotizados')

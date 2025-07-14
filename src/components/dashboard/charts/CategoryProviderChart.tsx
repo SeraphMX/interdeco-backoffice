@@ -11,6 +11,7 @@ interface CategoryProviderChartProps {
   onTitleChange: (title: string, subtitle: string) => void
 }
 
+//TODO: Arreglar tipado
 const CategoryProviderChart = ({ onTitleChange }: CategoryProviderChartProps) => {
   const [selectedFilter, setSelectedFilter] = useState<'todos' | 'cotizados'>('cotizados')
 

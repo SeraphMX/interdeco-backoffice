@@ -5,6 +5,7 @@ import { Bar } from 'react-chartjs-2'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../../store'
 
+//TODO:Arreglar tipado
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 interface MostUsedChartProps {
@@ -133,8 +134,8 @@ const MostUsedChart = ({ onTitleChange }: MostUsedChartProps) => {
 
   const handleDataTypeChange = (type: 'material' | 'proveedor' | 'categoria') => {
     setSelectedDataType(type)
-    const title = `${type === 'material' ? 'Materiales' : type === 'proveedor' ? 'Proveedores' : 'Categorías'} Más Utilizados`
-    onTitleChange(title, 'Últimos 30 días')
+    const title = `${type === 'material' ? 'Materiales' : type === 'proveedor' ? 'Proveedores' : 'Categorías'} más ${type === 'categoria' ? 'utilizadas' : 'utilizados'}`
+    onTitleChange('Últimos 30 díasa', title)
   }
 
   return (
