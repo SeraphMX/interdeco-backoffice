@@ -109,7 +109,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:flex-grow lg:min-h-0'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:flex-grow lg:min-h-0 pb-6 lg:pb-0'>
         {/* Sección de Cotizaciones con Tabs */}
         <Card className='shadow-medium max-h-[590px] sm:max-h-max'>
           <CardHeader className='pb-1 flex flex-col'>

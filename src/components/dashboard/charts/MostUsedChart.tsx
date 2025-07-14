@@ -13,14 +13,14 @@ interface MostUsedChartProps {
 }
 
 const MostUsedChart = ({ onTitleChange }: MostUsedChartProps) => {
-  const [selectedDataType, setSelectedDataType] = useState<'material' | 'proveedor' | 'categoria'>('material')
+  const [selectedDataType, setSelectedDataType] = useState<'producto' | 'proveedor' | 'categoria'>('producto')
 
   const data = useSelector((state: RootState) => state.dashboard.top_products)
 
   const getSourceData = () => {
     if (!data || !Array.isArray(data)) return []
     switch (selectedDataType) {
-      case 'material':
+      case 'producto':
         return data.find((d: any) => d.type === 'products')?.data ?? []
       case 'categoria':
         return data.find((d: any) => d.type === 'categories')?.data ?? []
@@ -73,7 +73,7 @@ const MostUsedChart = ({ onTitleChange }: MostUsedChartProps) => {
     labels: topProductsData.labels,
     datasets: [
       {
-        label: `${selectedDataType === 'material' ? 'Materiales' : selectedDataType === 'proveedor' ? 'Proveedores' : 'Categorías'} más utilizados`,
+        label: `${selectedDataType === 'producto' ? 'Productos' : selectedDataType === 'proveedor' ? 'Proveedores' : 'Categorías'} más utilizados`,
         data: topProductsData.data,
         backgroundColor: topProductsData.colors,
         borderColor: topProductsData.colors.map((color) => color.replace('0.8', '1')),
@@ -132,9 +132,9 @@ const MostUsedChart = ({ onTitleChange }: MostUsedChartProps) => {
     }
   }
 
-  const handleDataTypeChange = (type: 'material' | 'proveedor' | 'categoria') => {
+  const handleDataTypeChange = (type: 'producto' | 'proveedor' | 'categoria') => {
     setSelectedDataType(type)
-    const title = `${type === 'material' ? 'Materiales' : type === 'proveedor' ? 'Proveedores' : 'Categorías'} más ${type === 'categoria' ? 'utilizadas' : 'utilizados'}`
+    const title = `${type === 'producto' ? 'Productos' : type === 'proveedor' ? 'Proveedores' : 'Categorías'} más ${type === 'categoria' ? 'utilizadas' : 'utilizados'}`
     onTitleChange('Últimos 30 díasa', title)
   }
 
@@ -143,11 +143,11 @@ const MostUsedChart = ({ onTitleChange }: MostUsedChartProps) => {
       <div className='flex gap-2 flex-wrap '>
         <Button
           size='sm'
-          variant={selectedDataType === 'material' ? 'solid' : 'bordered'}
+          variant={selectedDataType === 'producto' ? 'solid' : 'bordered'}
           color='primary'
-          onPress={() => handleDataTypeChange('material')}
+          onPress={() => handleDataTypeChange('producto')}
         >
-          Material
+          Producto
         </Button>
         <Button
           size='sm'

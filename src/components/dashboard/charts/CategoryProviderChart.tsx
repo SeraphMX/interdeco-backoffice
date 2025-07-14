@@ -125,7 +125,7 @@ const CategoryProviderChart = ({ onTitleChange }: CategoryProviderChartProps) =>
           color='secondary'
           onPress={() => handleFilterChange('todos')}
         >
-          Todos los productos
+          Todos
         </Button>
         <Button
           size='sm'
@@ -133,7 +133,7 @@ const CategoryProviderChart = ({ onTitleChange }: CategoryProviderChartProps) =>
           color='secondary'
           onPress={() => handleFilterChange('cotizados')}
         >
-          Productos cotizados
+          Cotizados
         </Button>
       </div>
 
