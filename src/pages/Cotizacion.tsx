@@ -4,18 +4,20 @@ import { useParams } from 'react-router-dom'
 import Quote from '../components/quotes/Quote'
 import { quoteService } from '../services/quoteService'
 import { RootState } from '../store'
-import { setPublicAccess, setQuote } from '../store/slices/quoteSlice'
+import { clearQuote, setItemsLoaded, setPublicAccess, setQuote } from '../store/slices/quoteSlice'
 
 const Cotizacion = () => {
   const { token } = useParams()
   const dispatch = useDispatch()
   const rxQuote = useSelector((state: RootState) => state.quote)
+  const { user } = useSelector((state: RootState) => state.auth)
 
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!token) return
-
+    dispatch(clearQuote())
+    dispatch(setItemsLoaded(false))
     dispatch(setPublicAccess(true))
 
     const baseUrl = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://localhost:8888'
@@ -38,16 +40,20 @@ const Cotizacion = () => {
 
         console.log('Cotización verificada desde el servidor:', data)
 
+        console.log(data)
+
         dispatch(setQuote(data.quote))
 
-        quoteService.logQuoteAction(data.quote, 'opened')
+        if (!user) {
+          quoteService.setQuoteStatus(data.quote.id, 'opened')
+        }
       } catch (err) {
         setError((err as Error).message)
       }
     }
 
     verify()
-  }, [token, dispatch])
+  }, [token, dispatch, user])
 
   if (error) return <div className='p-4 text-red-600'>Error: {error}</div>
 

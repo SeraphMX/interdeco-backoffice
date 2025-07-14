@@ -6,10 +6,10 @@ import { RootState } from '../store'
 
 interface ProtectedRouteProps {
   children?: React.ReactNode
-  requiredRole?: 'admin' | 'staff'
+  allowedRoles?: Array<'admin' | 'staff'>
 }
 
-const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { user, isLoading } = useSelector((state: RootState) => state.auth)
   const location = useLocation()
 
@@ -27,15 +27,19 @@ const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
     return <Navigate to='/login' state={{ from: location }} replace />
   }
 
-  if (requiredRole && user.role !== requiredRole && user.role !== 'admin') {
-    return <Navigate to='/' replace />
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to='/cotizaciones' replace />
   }
+
+  const isScrollable = location.pathname === '/'
+
+  const mainClassName = `container mx-auto px-4 py-8 flex-grow  ${isScrollable ? 'min-h-screen-minus-navbar-scroll lg:min-h-screen-minus-navbar' : 'min-h-screen-minus-navbar'}`
 
   if (children) {
     return (
       <>
         {children}
-        <main className='container mx-auto px-4 py-8 flex-grow min-h-screen-minus-navbar'>
+        <main className={mainClassName}>
           <Outlet />
         </main>
       </>

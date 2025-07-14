@@ -4,7 +4,7 @@ import { isMobile } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { useDebouncedAutoSave } from '../../../hooks/useDebounceAutosave'
 import { RootState } from '../../../store'
-import { clearItems } from '../../../store/slices/quoteSlice'
+import { clearItems, setQuoteTotal } from '../../../store/slices/quoteSlice'
 import { formatDate, parseISOtoRelative } from '../../../utils/date'
 import ModalAddProduct from '../modals/ModalAddProduct'
 import ModalConfirmClear from '../modals/ModalConfirmClear'
@@ -17,6 +17,7 @@ const QuoteItemsFooter = () => {
   const { isOpen: isOpenConfirmClear, onOpen: onOpenConfirmClear, onOpenChange: onOpenChangeConfirmClear } = useDisclosure()
 
   const handleClearItems = () => {
+    dispatch(setQuoteTotal(0))
     dispatch(clearItems())
     onOpenChangeConfirmClear()
   }

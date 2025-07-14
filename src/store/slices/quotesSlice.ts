@@ -25,9 +25,12 @@ const clientsSlice = createSlice({
     },
     removeQuote(state, action: PayloadAction<Quote>) {
       state.items = state.items.filter((client) => client.id !== action.payload.id)
+    },
+    clearQuotes() {
+      return initialState
     }
   }
 })
 
-export const { setQuotes, addQuote, updateQuote, removeQuote } = clientsSlice.actions
+export const { setQuotes, addQuote, updateQuote, removeQuote, clearQuotes } = clientsSlice.actions
 export default clientsSlice.reducer

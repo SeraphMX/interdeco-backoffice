@@ -4,10 +4,10 @@ import { MobileView } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { RootState } from '../../../store'
-import { setQuoteStatus } from '../../../store/slices/quoteSlice'
+import { clearQuote, setQuoteStatus } from '../../../store/slices/quoteSlice'
 import { Quote } from '../../../types'
 import { getQuoteID } from '../../../utils/strings'
-import QuoteStatus from '../../shared/QuoteStatus'
+import QuoteStatusChip from '../../shared/QuoteStatusChip'
 import QuoteActions from './QuoteActions'
 import QuoteCustomerData from './QuoteCustomerData'
 
@@ -18,6 +18,13 @@ const QuoteHeader = () => {
 
   const onSuccessSetStatus = async (quote: Quote) => {
     dispatch(setQuoteStatus(quote.status))
+  }
+
+  const handleBack = () => {
+    if (quote.data.status !== 'open') {
+      dispatch(clearQuote())
+    }
+    navigate(-1)
   }
   return (
     <header className={`flex justify-between items-center gap-4 flex-col sm:flex-row`}>
@@ -32,13 +39,13 @@ const QuoteHeader = () => {
         </section>
       ) : (
         <div className='flex items-center gap-2'>
-          <Button isIconOnly variant='light' onPress={() => navigate(-1)}>
+          <Button isIconOnly variant='light' onPress={handleBack}>
             <ArrowLeft size={24} />
           </Button>
           <h1 className='text-xl sm:text-3xl font-bold text-gray-900 flex items-center gap-2'>
             {quote.data.id ? `Cotización #${getQuoteID(quote.data)}` : 'Nueva Cotización'}
 
-            {quote.data.id && <QuoteStatus quote={quote.data} onSuccess={onSuccessSetStatus} />}
+            {quote.data.id && <QuoteStatusChip quote={quote.data} onSuccess={onSuccessSetStatus} />}
           </h1>
         </div>
       )}

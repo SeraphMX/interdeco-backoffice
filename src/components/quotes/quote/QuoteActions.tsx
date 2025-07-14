@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { addToast, useDisclosure } from '@heroui/react'
 import { pdf } from '@react-pdf/renderer'
 import { saveAs } from 'file-saver'
-import { Archive, ArchiveRestore, DollarSign, FileDown, FileSearch, MailPlus, Save, Trash2, X } from 'lucide-react'
+import { Archive, ArchiveRestore, DollarSign, FileDown, FileSearch, Save, Send, Trash2, X } from 'lucide-react'
 import { isBrowser, isMobile } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
@@ -25,6 +25,7 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
   const navigate = useNavigate()
 
   const quote = useSelector((state: RootState) => state.quote)
+  const { user } = useSelector((state: RootState) => state.auth)
 
   const {
     isOpen: isOpenConfirmDeleteQuote,
@@ -48,7 +49,7 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
 
   const handleSaveQuote = async () => {
     if (!quote.data.id) {
-      const savedQuote = await quoteService.saveQuote(quote.data)
+      const savedQuote = await quoteService.saveQuote(quote.data, user?.id)
 
       if (savedQuote.success && savedQuote.quote) {
         dispatch(
@@ -142,7 +143,7 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
   const renderPublicActions = () => (
     <>
       {quote.isPublicAccess && isFooter && (
-        <ActionButton icon={<DollarSign />} label='Pagar' color='primary' onClick={onOpenPaymentModal} />
+        <ActionButton icon={<DollarSign />} label='Pagar' color='primary' onClick={onOpenPaymentModal} tooltip={'¿Cómo pagar?'} />
       )}
     </>
   )
@@ -153,7 +154,12 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
 
     return (
       <>
-        {quote.data.status !== 'sent' && <ActionButton icon={<MailPlus />} label='Enviar' color='secondary' onClick={onOpenSendQuote} />}
+        <ActionButton
+          icon={<Send />}
+          label={quote.data.status !== 'sent' ? 'Enviar' : 'Reenviar'}
+          color='secondary'
+          onClick={onOpenSendQuote}
+        />
         {quote.data.status === 'open' && (
           <ActionButton icon={<Trash2 />} label='Eliminar' color='danger' onClick={onOpenConfirmDeleteQuote} />
         )}
@@ -190,7 +196,13 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
     <>
       <ActionButton icon={<FileSearch />} label='Ver PDF' color='secondary' onClick={handlePreviewQuote} />
       {quote.isPublicAccess && (
-        <ActionButton icon={<FontAwesomeIcon icon={faWhatsapp} size='2x' />} label='Mensaje' color='success' onClick={handleSendMessage} />
+        <ActionButton
+          icon={<FontAwesomeIcon icon={faWhatsapp} size='2x' />}
+          label='Mensaje'
+          color='success'
+          onClick={handleSendMessage}
+          tooltip={'¿Tienes dudas? Envía un mensaje'}
+        />
       )}
     </>
   )

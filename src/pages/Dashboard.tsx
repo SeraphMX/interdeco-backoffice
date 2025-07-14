@@ -1,6 +1,7 @@
-import { Button, Card, CardBody, CardHeader, Tab, Tabs } from '@heroui/react'
+import { Button, Card, CardBody, CardHeader, Select, SelectItem, Tab, Tabs } from '@heroui/react'
 import { FileText, Package, TrendingUp, Users } from 'lucide-react'
 import { useState } from 'react'
+import { isMobile } from 'react-device-detect'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import CategoryProviderChart from '../components/dashboard/charts/CategoryProviderChart'
@@ -9,9 +10,9 @@ import MostUsedChart from '../components/dashboard/charts/MostUsedChart'
 import QuoteAmountChart from '../components/dashboard/charts/QuoteAmountChart'
 import QuoteStatusChart from '../components/dashboard/charts/QuoteStatusChart'
 import QuoteSummary from '../components/dashboard/QuoteSummary'
+import CountUp from '../components/shared/CountUp'
 import { useProductsMetrics } from '../hooks/useProductsMetrics'
 import { RootState } from '../store'
-import { formatCurrency } from '../utils/currency'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -29,15 +30,26 @@ const Dashboard = () => {
 
   console.log(products)
 
-  const stats = [
+  const quotesTotal = cotizaciones.reduce((acc, curr) => acc + curr.total, 0)
+
+  interface Stat {
+    title: string
+    value: number
+    icon: React.ElementType
+    color: string
+    type?: 'currency' | 'number' | 'currency-short'
+  }
+
+  const stats: Stat[] = [
     { title: 'Clientes', value: clientes.length, icon: Users, color: 'bg-blue-500' },
     { title: 'Productos', value: productos.length, icon: Package, color: 'bg-green-500' },
     { title: 'Cotizaciones', value: cotizaciones.length, icon: FileText, color: 'bg-purple-500' },
     {
-      title: 'Total Ventas',
-      value: formatCurrency(cotizaciones.reduce((acc, curr) => acc + curr.total, 0)),
+      title: 'Total cotizado',
+      value: quotesTotal,
       icon: TrendingUp,
-      color: 'bg-orange-500'
+      color: 'bg-orange-500',
+      type: isMobile ? 'currency-short' : 'currency'
     }
   ]
 
@@ -66,27 +78,40 @@ const Dashboard = () => {
 
   const expiringQuotes = getExpiringQuotes()
   return (
-    <div className='space-y-6 flex flex-col h-full '>
-      <h1 className='text-3xl font-bold text-gray-900 '>Dashboard</h1>
+    <section className='space-y-6 flex flex-col h-full '>
+      <header className='flex items-center justify-between '>
+        <h1 className='text-3xl font-bold text-gray-900 '>Dashboard</h1>
+        <div className='w-32 hidden'>
+          //TODO:Manejar periodo de tiempo para las estadisticas
+          <Select className='max-w-xs' defaultSelectedKeys={['days']} disallowEmptySelection>
+            <SelectItem key='days'>Semana</SelectItem>
+            <SelectItem key='weeks'>Mes</SelectItem>
+            <SelectItem key='months'>Año</SelectItem>
+            <SelectItem key='all'>Todo</SelectItem>
+          </Select>
+        </div>
+      </header>
 
       {/* Stats Cards */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+      <div className='grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6'>
         {stats.map((stat) => (
-          <div key={stat.title} className='bg-white rounded-lg shadow p-6'>
+          <div key={stat.title} className='bg-white rounded-lg shadow p-3 md:p-4'>
             <div className='flex items-center'>
-              <div className={`${stat.color} p-3 rounded-lg`}>
+              <div className={`${stat.color} p-3 sm:p-4 rounded-lg`}>
                 <stat.icon className='h-6 w-6 text-white' />
               </div>
-              <div className='ml-4'>
+              <div className='ml-3'>
                 <p className='text-sm font-medium text-gray-500'>{stat.title}</p>
-                <p className='text-lg font-semibold text-gray-900'>{stat.value}</p>
+                <p className='text-lg font-semibold text-gray-900'>
+                  <CountUp value={stat.value} type={stat.type ? stat.type : 'number'} />
+                </p>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow min-h-0'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 max-h-[790px] lg:flex-grow lg:min-h-0'>
         {/* Sección de Cotizaciones con Tabs */}
         <Card className='shadow-medium'>
           <CardHeader className='pb-1 flex flex-col'>
@@ -122,9 +147,9 @@ const Dashboard = () => {
               }}
             >
               <Tab key='ultimas' title='Últimas'></Tab>
-              <Tab key='expirando' title='Próximas a Expirar'></Tab>
+              <Tab key='expirando' title='Expirando'></Tab>
               <Tab key='status' title='Estado'></Tab>
-              <Tab key='total' title='Total cotizado'></Tab>
+              <Tab key='total' title='Historial'></Tab>
             </Tabs>
           </CardHeader>
           <CardBody className='space-y-4  overflow-y-auto'>
@@ -230,7 +255,7 @@ const Dashboard = () => {
           </CardBody>
         </Card>
       </div> */}
-    </div>
+    </section>
   )
 }
 

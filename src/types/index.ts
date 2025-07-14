@@ -62,9 +62,10 @@ export interface Quote {
   history?: QuoteLogItem[] // Historial de acciones
   expiration_date?: string | null // Fecha de expiración
   daysToExpire?: number // Días restantes para expirar
+  user_id?: string
 }
 
-export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'open' | 'archived' | 'restored'
+export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'open' | 'archived' | 'restored' | 'opened'
 
 export interface Product {
   sku: string
@@ -187,10 +188,12 @@ export const userRoles = [
 export const quoteStatus = [
   { key: 'open', label: 'abierta', color: 'primary' },
   { key: 'sent', label: 'enviada', color: 'secondary' },
-  { key: 'accepted', label: 'aceptada', color: 'success' },
+  { key: 'accepted', label: 'anticipo', color: 'primary' },
+  { key: 'paid', label: 'pagada', color: 'success' },
   { key: 'rejected', label: 'rechazada', color: 'danger' },
   { key: 'expired', label: 'expirada', color: 'default' },
-  { key: 'archived', label: 'archivada', color: 'danger' }
+  { key: 'archived', label: 'archivada', color: 'danger' },
+  { key: 'opened', label: 'Vista', color: 'success' }
 ]
 
 export const quoteActions = [
@@ -199,7 +202,8 @@ export const quoteActions = [
   { key: 'sent_whatsapp', label: 'Enviada por WhatsApp ', icon: 'mail-plus', color: 'secondary' },
   { key: 'restored', label: 'Restaurar', icon: 'archive-restore', color: 'primary' },
   { key: 'updated', label: 'Actualización', icon: 'archive-restore', color: 'primary' },
-  { key: 'accepted', label: 'Aceptada', icon: 'check-circle', color: 'success' },
+  { key: 'accepted', label: 'Anticipo recibido', icon: 'check-circle', color: 'primary' },
+  { key: 'paid', label: 'Pago completado', icon: 'check-circle', color: 'success' },
   { key: 'rejected', label: 'Rechazada', icon: 'x-circle', color: 'danger' },
   { key: 'expired', label: 'Expirada', icon: 'clock', color: 'default' },
   { key: 'archived', label: 'Archivada', icon: 'archive', color: 'danger' },

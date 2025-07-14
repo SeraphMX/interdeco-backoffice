@@ -25,12 +25,21 @@ const Navbar = () => {
     navigate('/login', { replace: true })
   }
 
-  const navItems = [
-    { path: '/clientes', icon: ContactRound, label: 'Clientes' },
-    { path: '/catalogo', icon: Book, label: 'Catálogo' },
-    { path: '/cotizaciones', icon: FileText, label: 'Cotizaciones' },
-    { path: '/usuarios', icon: UsersRound, label: 'Usuarios' }
-  ]
+  let navItems = []
+
+  switch (user?.role) {
+    case 'admin':
+      navItems = [
+        { path: '/clientes', icon: ContactRound, label: 'Clientes' },
+        { path: '/catalogo', icon: Book, label: 'Catálogo' },
+        { path: '/cotizaciones', icon: FileText, label: 'Cotizaciones' },
+        { path: '/usuarios', icon: UsersRound, label: 'Usuarios' }
+      ]
+      break
+    default:
+      navItems = navItems = [{ path: '/cotizaciones', icon: FileText, label: 'Cotizaciones' }]
+      break
+  }
 
   return (
     <nav className='bg-white text-gray-700 shadow'>

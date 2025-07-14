@@ -8,6 +8,7 @@ import { formatDate } from '../../utils/date'
 
 const QuoteHistoryTable = () => {
   const rxQuote = useSelector((state: RootState) => state.quote)
+  const rxUsers = useSelector((state: RootState) => state.users)
 
   return (
     <Table
@@ -64,7 +65,9 @@ const QuoteHistoryTable = () => {
                   {quoteActions.find((a) => a.key === historyLog.action)?.label}
                 </Chip>
               </TableCell>
-              <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>{historyLog.user_id ?? 'Público'}</TableCell>
+              <TableCell className='max-w-56 whitespace-nowrap text-ellipsis overflow-hidden'>
+                {rxUsers.items.find((u) => u.id === historyLog.user_id)?.full_name ?? 'Público'}
+              </TableCell>
 
               <TableCell className='flex items-center justify-center gap-2'>
                 {deviceType == 'mobile' ? <TabletSmartphone /> : <Monitor />}
