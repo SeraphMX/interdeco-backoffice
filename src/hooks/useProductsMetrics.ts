@@ -5,14 +5,6 @@ import { useDispatch } from 'react-redux'
 import { supabase } from '../lib/supabase'
 import { setMetrics } from '../store/slices/dashboardSlice'
 
-interface TopProduct {
-  id: number
-  name: string
-  category: string
-  quotes: number
-  total: number
-}
-
 type Period = 'week' | 'month' | 'year' | 'all'
 
 export const useProductsMetrics = () => {
@@ -89,7 +81,7 @@ export const useProductsMetrics = () => {
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [from_date, to_date]) // importante: actualizar al cambiar fechas
+  }, [from_date, to_date, dispatch]) // importante: actualizar al cambiar fechas
 
   return { loading, error, period, setPeriod }
 }
