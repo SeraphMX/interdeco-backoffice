@@ -4,10 +4,14 @@ import { useState } from 'react'
 import { isMobile } from 'react-device-detect'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import CategoryProviderChart from '../components/dashboard/charts/CategoryProviderChart'
+import DistributionChart from '../components/dashboard/charts/DistributionChart'
+import MostUsedChart from '../components/dashboard/charts/MostUsedChart'
 import QuoteAmountChart from '../components/dashboard/charts/QuoteAmountChart'
 import QuoteStatusChart from '../components/dashboard/charts/QuoteStatusChart'
 import QuoteSummary from '../components/dashboard/QuoteSummary'
 import CountUp from '../components/shared/CountUp'
+import { useProductsMetrics } from '../hooks/useProductsMetrics'
 import { RootState } from '../store'
 
 const Dashboard = () => {
@@ -18,9 +22,11 @@ const Dashboard = () => {
 
   const [selectedChart, setSelectedChart] = useState('mas-utilizados')
   const [chartTitle, setChartTitle] = useState('Materiales Más Utilizados')
-  const [chartSubtitle, setChartSubtitle] = useState('Últimos 30 días')
+  const [quoteProductsSubtitle, setquoteProductsSubtitle] = useState('Los productos mas utilizados en las cotizaciones')
   const [selectedQuoteTab, setSelectedQuoteTab] = useState('ultimas')
   const [quoteTabSubtitle, setQuoteTabSubtitle] = useState('Las cotizaciones más recientes')
+
+  const { loading, error } = useProductsMetrics()
 
   const quotesTotal = cotizaciones.reduce((acc, curr) => acc + curr.total, 0)
 
@@ -63,6 +69,11 @@ const Dashboard = () => {
     setQuoteTabSubtitle(subtitle)
   }
 
+  const handleTitleChange = (title: string, subtitle: string) => {
+    setChartTitle(title)
+    setquoteProductsSubtitle(subtitle)
+  }
+
   const expiringQuotes = getExpiringQuotes()
   return (
     <section className='space-y-6 flex flex-col h-full '>
@@ -98,9 +109,9 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 max-h-[790px] lg:flex-grow lg:min-h-0'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:flex-grow lg:min-h-0'>
         {/* Sección de Cotizaciones con Tabs */}
-        <Card className='shadow-medium'>
+        <Card className='shadow-medium max-h-[590px] sm:max-h-max'>
           <CardHeader className='pb-1 flex flex-col'>
             <div className='flex items-center justify-between w-full'>
               <div>
@@ -172,23 +183,26 @@ const Dashboard = () => {
               )}
 
               {selectedQuoteTab === 'status' && <QuoteStatusChart onTitleChange={handleQuoteTabTitleChange} />}
-              {selectedQuoteTab === 'total' && <QuoteAmountChart onTitleChange={handleQuoteTabTitleChange} />}
+              {selectedQuoteTab === 'total' && <QuoteAmountChart />}
             </div>
           </CardBody>
         </Card>
 
         {/* Gráficos con Tabs */}
         <Card className='shadow-medium'>
-          <CardHeader className='pb-4'>
-            <h2 className='text-xl font-bold text-gray-900'>{chartTitle}</h2>
-            <p className='text-sm text-gray-500 mt-1'>{chartSubtitle}</p>
-          </CardHeader>
-          <CardBody>
+          <CardHeader className='flex flex-col items-start pb-1'>
+            <div className=''>
+              <h2 className='text-xl font-bold text-gray-900'>Productos</h2>
+              <p className='text-sm text-gray-500 mt-1'>{quoteProductsSubtitle}</p>
+            </div>
             <Tabs
               selectedKey={selectedChart}
-              onSelectionChange={(key) => setSelectedChart(key as string)}
+              onSelectionChange={(key) => {
+                setSelectedChart(key as string)
+              }}
               color='primary'
               variant='underlined'
+              fullWidth
               classNames={{
                 tabList: 'gap-6 w-full relative rounded-none p-0 border-b border-divider',
                 cursor: 'w-full bg-primary',
@@ -197,11 +211,16 @@ const Dashboard = () => {
               }}
             >
               <Tab key='mas-utilizados' title='Más Utilizados'></Tab>
-              <Tab key='categorias-proveedores' title='Categorías por proveedor'></Tab>
               <Tab key='distribucion' title='Distribución'></Tab>
+              <Tab key='categorias-proveedores' title='Categorías por proveedor'></Tab>
             </Tabs>
-
-            <div className='mt-6'></div>
+          </CardHeader>
+          <CardBody>
+            <div className=' flex-grow min-h-0 flex flex-col gap-6'>
+              {selectedChart === 'mas-utilizados' && <MostUsedChart onTitleChange={handleTitleChange} />}
+              {selectedChart === 'categorias-proveedores' && <CategoryProviderChart onTitleChange={handleTitleChange} />}
+              {selectedChart === 'distribucion' && <DistributionChart onTitleChange={handleTitleChange} />}
+            </div>
           </CardBody>
         </Card>
       </div>
