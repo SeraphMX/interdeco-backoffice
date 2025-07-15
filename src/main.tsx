@@ -7,7 +7,7 @@ import './index.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <HeroUIProvider>
+    <HeroUIProvider locale='es-MX'>
       <App />
       <ToastProvider />
     </HeroUIProvider>

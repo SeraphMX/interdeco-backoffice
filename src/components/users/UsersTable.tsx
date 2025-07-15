@@ -125,7 +125,7 @@ const UsersTable = ({ wrapperHeight, filterValue = '', variant = 'default', onRo
       strict: true
     })
 
-    await userService.passwordChange(user, password)
+    await userService.passwordReset(user, password)
   }
 
   useEffect(() => {

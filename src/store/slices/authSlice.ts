@@ -40,12 +40,16 @@ export const loginUser = createAsyncThunk<User, { email: string; password: strin
 
       const profile = await userService.getUserProfile(user.id)
 
+      console.log('Perfil del usuario:', profile)
+
       return {
         id: user.id,
         email: user.email ?? '',
         full_name: profile.full_name,
         phone: profile.phone,
-        role: profile.role
+        role: profile.role,
+        email_notifications: profile.email_notifications,
+        quotes_expire: profile.quotes_expire
       }
     } catch (error) {
       // Usa el mensaje específico de Supabase si está disponible
@@ -173,7 +177,9 @@ export const restoreSession = createAsyncThunk<
       email: user.email ?? '',
       full_name: profile.full_name,
       phone: profile.phone,
-      role: profile.role
+      role: profile.role,
+      email_notifications: profile.email_notifications,
+      quotes_expire: profile.quotes_expire
     }
   } catch (error) {
     const supabaseMessage = (error as errorResponse)?.message || (error as errorResponse)?.error_description || 'Error al iniciar sesión'
@@ -205,6 +211,8 @@ const authSlice = createSlice({
         state.user.phone = phone || state.user.phone
         state.user.full_name = full_name || state.user.full_name
         state.user.role = role || state.user.role
+        state.user.email_notifications = action.payload.email_notifications ?? state.user.email_notifications
+        state.user.quotes_expire = action.payload.quotes_expire ?? state.user.quotes_expire
       }
       state.authError = null
     },
@@ -225,6 +233,7 @@ const authSlice = createSlice({
         state.authError = null
       })
       .addCase(loginUser.fulfilled, (state, action: PayloadAction<User>) => {
+        console.log('Login exitoso:', action.payload)
         state.isLoading = false
         state.isAuthenticated = true
         state.user = action.payload as User

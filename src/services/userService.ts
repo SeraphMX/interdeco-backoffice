@@ -21,7 +21,7 @@ export const userService = {
    * @param password - La nueva contraseña del usuario.
    * @returns La respuesta del servidor al cambiar la contraseña.
    */
-  async passwordChange(user: User, password: string) {
+  async passwordReset(user: User, password: string) {
     console.log('Cambiando contraseña para el correo:', user.email)
     try {
       const response = await fetch(`${baseUrl}/.netlify/functions/user-password-change`, {
@@ -48,6 +48,51 @@ export const userService = {
       })
 
       return await response.json()
+    } catch (error) {
+      console.error('[passwordReset]:', error)
+      throw new Error('No se pudo cambiar la contraseña. Verifica los datos e intenta nuevamente.')
+    }
+  },
+  async passwordChange(user: User, current_password: string, new_password: string): Promise<boolean> {
+    console.log('Cambiando contraseña para el correo:', user.email)
+    try {
+      const {
+        data: { session },
+        error: sessionError
+      } = await supabase.auth.getSession()
+
+      if (sessionError || !session?.user?.email) {
+        throw new Error('No hay sesión activa o no se pudo obtener el correo')
+      }
+
+      const email = session.user.email
+
+      // ✅ Paso 1: Verificar contraseña actual reautenticando
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: current_password
+      })
+
+      if (signInError) {
+        return false
+      }
+
+      // ✅ Paso 2: Cambiar la contraseña
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: new_password
+      })
+
+      if (updateError) {
+        throw new Error('No se pudo actualizar la contraseña.')
+      }
+
+      addToast({
+        title: 'Contraseña actualizada',
+        description: 'Tu contraseña ha sido actualizada correctamente.',
+        color: 'primary'
+      })
+
+      return true
     } catch (error) {
       console.error('[passwordChange]:', error)
       throw new Error('No se pudo cambiar la contraseña. Verifica los datos e intenta nuevamente.')
@@ -184,11 +229,7 @@ export const userService = {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          id: user.id,
-          email: user.email,
-          full_name: user.full_name
-        })
+        body: JSON.stringify(user)
       })
 
       if (!response.ok) {
@@ -214,6 +255,34 @@ export const userService = {
     } catch (error) {
       console.error('Error al actualizar el usuario:', error)
       throw new Error('No se pudo actualizar el usuario. Verifica los datos e intenta nuevamente.')
+    }
+  },
+  async updateSettings(user: User, settings: { email_notifications?: boolean; quotes_expire?: number }) {
+    try {
+      // Actualizar ajustes en la tabla 'user_profiles'
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update({
+          email_notifications: settings.email_notifications,
+          quotes_expire: settings.quotes_expire
+        })
+        .eq('id', user.id)
+
+      if (profileError) throw profileError
+
+      addToast({
+        title: 'Ajustes actualizados',
+        description: 'Los ajustes del usuario se han actualizado correctamente.',
+        color: 'primary'
+      })
+    } catch (error) {
+      addToast({
+        title: 'Error al actualizar ajustes',
+        description: 'No se pudieron actualizar los ajustes del usuario. Verifica los datos e intenta nuevamente.',
+        color: 'danger'
+      })
+      console.error('Error al actualizar los ajustes del usuario:', error)
+      throw new Error('No se pudieron actualizar los ajustes del usuario. Verifica los datos e intenta nuevamente.')
     }
   },
   async deleteUser(userId: string) {
