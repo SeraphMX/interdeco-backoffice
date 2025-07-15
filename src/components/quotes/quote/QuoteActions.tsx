@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { addToast, useDisclosure } from '@heroui/react'
 import { pdf } from '@react-pdf/renderer'
 import { saveAs } from 'file-saver'
-import { Archive, ArchiveRestore, DollarSign, FileDown, FileSearch, Save, Send, Trash2, X } from 'lucide-react'
+import { Archive, ArchiveRestore, Clock, DollarSign, FileDown, FileSearch, Save, Send, Trash2, X } from 'lucide-react'
 import { isBrowser, isMobile } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
@@ -137,6 +137,10 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
     window.open(url, '_blank') // Abre WhatsApp en una nueva pestaña
   }
 
+  const handleViewHistory = () => {
+    console.log('Ver historial de cotización')
+  }
+
   const isHeader = type === 'header'
   const isFooter = type === 'footer'
 
@@ -154,6 +158,9 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
 
     return (
       <>
+        {isMobile && (
+          <ActionButton icon={<Clock />} label='Historial' color='secondary' tooltip={'Ver historial'} onClick={handleViewHistory} />
+        )}
         <ActionButton
           icon={<Send />}
           label={quote.data.status !== 'sent' ? 'Enviar' : 'Reenviar'}

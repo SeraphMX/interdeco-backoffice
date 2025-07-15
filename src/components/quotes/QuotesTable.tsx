@@ -16,6 +16,7 @@ import {
 } from '@heroui/react'
 import { EllipsisVertical } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { BrowserView, isMobile, MobileView } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { quoteService } from '../../services/quoteService'
@@ -82,12 +83,12 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
 
   const headerColumns = [
     { name: 'ID', uid: 'quote_id', sortable: false },
-    { name: 'FECHA', uid: 'created_at', sortable: true },
-    { name: 'CLIENTE', uid: 'customer_name', sortable: true },
-    { name: 'ITEMS', uid: 'items', sortable: true, align: 'center' },
-    { name: 'TOTAL', uid: 'description', sortable: true, align: 'end' },
-    { name: 'STATUS', uid: 'status', sortable: true },
-    { name: 'ACCIONES', uid: 'actions', sortable: false }
+    { name: 'FECHA', uid: 'created_at', sortable: true, hidden: isMobile ? true : false },
+    { name: 'CLIENTE', uid: 'customer_name', sortable: true, hidden: isMobile ? true : false },
+    { name: 'ITEMS', uid: 'items', sortable: true, align: 'center', hidden: isMobile ? true : false },
+    { name: 'TOTAL', uid: 'description', sortable: true, align: 'end', hidden: isMobile ? true : false },
+    { name: 'STATUS', uid: 'status', sortable: true, hidden: isMobile ? true : false },
+    { name: 'ACCIONES', uid: 'actions', sortable: false, hidden: isMobile ? true : false }
   ]
 
   const handleOpenQuote = (id: number) => {
@@ -170,7 +171,8 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
         onRowAction={(key) => handleOpenQuote(parseInt(key.toString()))}
         //selectedKeys={selectedKeys}
         classNames={{
-          th: 'bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600'
+          th: `bg-teal-500 text-white font-semibold data-[hover=true]:text-foreground-600 ${isMobile && 'hidden'}`,
+          wrapper: isMobile ? 'p-0' : 'p-4'
         }}
         shadow='none'
       >
@@ -180,6 +182,7 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
               key={column.uid}
               allowsSorting={column.sortable}
               align={(column.align as 'center' | 'start' | 'end' | undefined) || 'start'}
+              hidden={column.hidden}
             >
               {column.name}
             </TableColumn>
@@ -189,19 +192,46 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
           {(quote) => {
             return (
               <TableRow key={quote.id}>
-                <TableCell className='w-16'>{quote.created_at && `${getQuoteID(quote)}`}</TableCell>
-                <TableCell className='w-32 whitespace-nowrap text-ellipsis overflow-hidden'>
+                <TableCell
+                  //className='w-16'
+                  className={isMobile ? 'w-full pb-2' : 'w-16'}
+                >
+                  <BrowserView>{quote.created_at && `${getQuoteID(quote)}`}</BrowserView>
+                  <MobileView>
+                    <article
+                      key={quote.id}
+                      className={`flex items-center justify-between rounded-lg p-4 transition-colors bg-gray-50 border-gray-200 hover:bg-gray-100 shadow-sm border `}
+                    >
+                      <div className='flex-1 min-w-0 max-w-[200px]'>
+                        <div className='flex items-center gap-3 mb-2'>
+                          <span className='font-semibold text-gray-900'>#{getQuoteID(quote)}</span>
+                          <QuoteStatusChip quote={quote} onSuccess={onSuccessSetStatus} />
+                        </div>
+                        <p className='font-medium text-gray-700 truncate text-lg text-left '>{quote.customer_name}</p>
+                      </div>
+                      <div className='ml-4 flex items-center gap-2'>
+                        <div className='flex flex-col items-end'>
+                          <p className='font-bold '>{formatCurrency(quote.total)}</p>
+                          <p className='text-sm'>
+                            {quote.total_items ?? 0} item{(quote.total_items ?? 0) > 1 && 's'}
+                          </p>
+                        </div>
+                      </div>
+                    </article>
+                  </MobileView>
+                </TableCell>
+                <TableCell className='w-32 whitespace-nowrap text-ellipsis overflow-hidden' hidden={isMobile}>
                   {formatDate(quote.created_at ?? '', { style: 'short' })}
                 </TableCell>
-                <TableCell>
+                <TableCell hidden={isMobile}>
                   {quote.customer_name ? quote.customer_name : <span className='text-gray-500'>Sin cliente asociado</span>}
                 </TableCell>
-                <TableCell>{quote.total_items}</TableCell>
-                <TableCell>{formatCurrency(quote.total)}</TableCell>
-                <TableCell>
+                <TableCell hidden={isMobile}>{quote.total_items}</TableCell>
+                <TableCell hidden={isMobile}>{formatCurrency(quote.total)}</TableCell>
+                <TableCell hidden={isMobile}>
                   <QuoteStatusChip quote={quote} onSuccess={onSuccessSetStatus} />
                 </TableCell>
-                <TableCell>
+                <TableCell hidden={isMobile}>
                   <Dropdown placement='left'>
                     <DropdownTrigger>
                       <Button variant='light' startContent={<EllipsisVertical />} isIconOnly size='sm'></Button>
