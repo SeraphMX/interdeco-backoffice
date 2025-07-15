@@ -1,4 +1,4 @@
-import { Button, Tooltip, useDisclosure } from '@heroui/react'
+import { Button, Spinner, Tooltip, useDisclosure } from '@heroui/react'
 import { ImportIcon, Plus, Settings } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
@@ -14,6 +14,7 @@ const Catalogo = () => {
   const [filterValue, setFilterValue] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedProviders, setSelectedProviders] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
 
   const wrapperRef = useRef<HTMLDivElement>(null)
   const prevProductRef = useRef<Product | null | undefined>(null)
@@ -27,6 +28,7 @@ const Catalogo = () => {
   const selectedProduct = useSelector((state: RootState) => state.productos.selectedProduct)
 
   useEffect(() => {
+    setLoading(false)
     const currentWrapper = tableWrapperRef.current
 
     const observer = new ResizeObserver((entries) => {
@@ -51,7 +53,8 @@ const Catalogo = () => {
   }, [])
 
   useEffect(() => {
-    console.log(selectedProduct)
+    // if (!selectedProduct) {
+    // }
 
     if (selectedProduct) {
       //form.reset(selectedProduct)
@@ -118,12 +121,18 @@ const Catalogo = () => {
       <ProductEdit />
 
       <div ref={tableWrapperRef} className='flex flex-col flex-1 shadow-small rounded-lg '>
-        <ProductsTable
-          wrapperHeight={tableWrapperHeight}
-          filterValue={filterValue}
-          selectedCategories={selectedCategories}
-          selectedProviders={selectedProviders}
-        />
+        {loading ? (
+          <div className='bg-white/20 backdrop-blur-md w-full h-full flex justify-center items-center'>
+            <Spinner label='Cargando productos...' />
+          </div>
+        ) : (
+          <ProductsTable
+            wrapperHeight={tableWrapperHeight}
+            filterValue={filterValue}
+            selectedCategories={selectedCategories}
+            selectedProviders={selectedProviders}
+          />
+        )}
       </div>
     </div>
   )
