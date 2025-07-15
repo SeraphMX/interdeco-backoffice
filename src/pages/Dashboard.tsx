@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardHeader, Select, SelectItem, Tab, Tabs } from '@heroui/react'
+import { Button, Card, CardBody, CardHeader, Select, SelectItem, Spinner, Tab, Tabs } from '@heroui/react'
 import { FileText, Package, TrendingUp, Users } from 'lucide-react'
 import { useState } from 'react'
 import { isMobile } from 'react-device-detect'
@@ -16,8 +16,8 @@ import { RootState } from '../store'
 
 const Dashboard = () => {
   const navigate = useNavigate()
-  const clientes = useSelector((state: RootState) => state.clientes.items)
-  const cotizaciones = useSelector((state: RootState) => state.quotes.items)
+  const customers = useSelector((state: RootState) => state.clientes.items)
+  const { items: quotes, loading } = useSelector((state: RootState) => state.quotes)
   const productos = useSelector((state: RootState) => state.productos.items)
 
   const [selectedChart, setSelectedChart] = useState('mas-utilizados')
@@ -26,9 +26,9 @@ const Dashboard = () => {
   const [selectedQuoteTab, setSelectedQuoteTab] = useState('ultimas')
   const [quoteTabSubtitle, setQuoteTabSubtitle] = useState('Las cotizaciones más recientes')
 
-  const { loading, error } = useProductsMetrics()
+  useProductsMetrics()
 
-  const quotesTotal = cotizaciones.reduce((acc, curr) => acc + curr.total, 0)
+  const quotesTotal = quotes.reduce((acc, curr) => acc + curr.total, 0)
 
   interface Stat {
     title: string
@@ -39,9 +39,9 @@ const Dashboard = () => {
   }
 
   const stats: Stat[] = [
-    { title: 'Clientes', value: clientes.length, icon: Users, color: 'bg-blue-500' },
+    { title: 'Clientes', value: customers.length, icon: Users, color: 'bg-blue-500' },
     { title: 'Productos', value: productos.length, icon: Package, color: 'bg-green-500' },
-    { title: 'Cotizaciones', value: cotizaciones.length, icon: FileText, color: 'bg-purple-500' },
+    { title: 'Cotizaciones', value: quotes.length, icon: FileText, color: 'bg-purple-500' },
     {
       title: 'Total cotizado',
       value: quotesTotal,
@@ -52,7 +52,7 @@ const Dashboard = () => {
   ]
 
   // Obtener las últimas 5 cotizaciones ordenadas por fecha
-  const lastQuotes = [...cotizaciones.filter((q) => q.status !== 'archived' && q.status !== 'expired')]
+  const lastQuotes = [...quotes.filter((q) => q.status !== 'archived' && q.status !== 'expired')]
     .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     .slice(0, 10)
 
@@ -153,8 +153,9 @@ const Dashboard = () => {
           <CardBody className='space-y-4  overflow-y-auto'>
             <div className=''>
               {selectedQuoteTab === 'ultimas' && (
-                <div className='space-y-4'>
-                  {lastQuotes.length === 0 ? (
+                <div className='space-y-4 text-center'>
+                  {loading && <Spinner className='my-8' size='lg' color='primary' label='Cargando cotizaciones...' />}
+                  {lastQuotes.length === 0 && !loading ? (
                     <div className='text-center py-8 text-gray-500'>
                       <FileText className='mx-auto h-12 w-12 mb-3 opacity-50' />
                       <p>No hay cotizaciones disponibles</p>

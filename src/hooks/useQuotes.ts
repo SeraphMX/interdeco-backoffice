@@ -2,7 +2,8 @@ import { debounce } from 'lodash'
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { supabase } from '../lib/supabase'
-import { setQuotes } from '../store/slices/quotesSlice'
+
+import { setLoading, setQuotes } from '../store/slices/quotesSlice'
 
 export const useQuotes = () => {
   const dispatch = useDispatch()
@@ -16,8 +17,10 @@ export const useQuotes = () => {
         return
       }
       dispatch(setQuotes(data))
+      dispatch(setLoading(false))
     }
 
+    dispatch(setLoading(true))
     const debouncedFetch = debounce(fetchQuotes, 500)
     fetchQuotes()
 
