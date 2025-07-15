@@ -1,4 +1,5 @@
-import { Chip, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react'
+import { Chip, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Spinner } from '@heroui/react'
+import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { quoteService } from '../../services/quoteService'
 import { RootState } from '../../store'
@@ -11,7 +12,11 @@ interface QuoteStatusProps {
 
 const QuoteStatusChip = ({ quote, onSuccess }: QuoteStatusProps) => {
   const { user } = useSelector((state: RootState) => state.auth)
+  const [loading, setLoading] = useState(false)
+
   const handleSetStatus = async (quote: Quote, status: QuoteStatus) => {
+    //console.log('Setting quote status:', status, quote)
+    setLoading(true)
     if (quote.id != null) {
       const result = await quoteService.setQuoteStatus(quote.id, status, user?.id)
       if (result.success && result.quote) {
@@ -24,7 +29,11 @@ const QuoteStatusChip = ({ quote, onSuccess }: QuoteStatusProps) => {
     }
   }
 
-  if (!['sent', 'accepted', 'opened', 'rejected'].includes(quote.status) || !user?.role || user.role !== 'admin') {
+  useEffect(() => {
+    setLoading(false)
+  }, [quote.status])
+
+  if (!['sent', 'accepted', 'opened'].includes(quote.status) || !user?.role || user.role !== 'admin') {
     return (
       <Chip className='capitalize' variant='bordered' color={quoteStatus.find((s) => s.key === quote.status)?.color as uiColors}>
         {quoteStatus.find((s) => s.key === quote.status)?.label}
@@ -34,13 +43,17 @@ const QuoteStatusChip = ({ quote, onSuccess }: QuoteStatusProps) => {
 
   return (
     <Dropdown>
-      <DropdownTrigger>
+      <DropdownTrigger className='flex items-center '>
         <Chip
-          className='capitalize cursor-pointer'
+          className='capitalize cursor-pointer transition-all'
           variant='bordered'
           color={quoteStatus.find((s) => s.key === quote.status)?.color as uiColors}
         >
-          {quoteStatus.find((s) => s.key === quote.status)?.label}
+          {loading ? (
+            <Spinner size='sm' className='mt-1' color={quoteStatus.find((s) => s.key === quote.status)?.color as uiColors} />
+          ) : (
+            quoteStatus.find((s) => s.key === quote.status)?.label
+          )}
         </Chip>
       </DropdownTrigger>
       <DropdownMenu
