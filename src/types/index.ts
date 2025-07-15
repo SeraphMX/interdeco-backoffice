@@ -22,6 +22,7 @@ export interface QuoteItem {
   subtotal: number
   discountType?: 'percentage' | 'fixed'
   discount?: number
+  description?: string // Descripción opcional para el item
 }
 export interface QuoteItemDB {
   id: number
@@ -30,7 +31,6 @@ export interface QuoteItemDB {
   description: string
   required_quantity: number
   packages_required?: number
-
   total_quantity: number
   subtotal: number
   original_subtotal?: number
@@ -62,6 +62,7 @@ export interface Quote {
   history?: QuoteLogItem[] // Historial de acciones
   expiration_date?: string | null // Fecha de expiración
   daysToExpire?: number // Días restantes para expirar
+  user_id?: string
 }
 
 export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'open' | 'archived' | 'restored' | 'opened'

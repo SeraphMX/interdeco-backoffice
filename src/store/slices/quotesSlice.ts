@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { Quote } from '../../types'
 
 export interface QuotesState {
+  loading?: boolean
   items: Quote[]
 }
 
@@ -25,9 +26,15 @@ const clientsSlice = createSlice({
     },
     removeQuote(state, action: PayloadAction<Quote>) {
       state.items = state.items.filter((client) => client.id !== action.payload.id)
+    },
+    clearQuotes() {
+      return initialState
+    },
+    setLoading(state, action: PayloadAction<boolean>) {
+      state.loading = action.payload
     }
   }
 })
 
-export const { setQuotes, addQuote, updateQuote, removeQuote } = clientsSlice.actions
+export const { setQuotes, addQuote, updateQuote, removeQuote, clearQuotes, setLoading } = clientsSlice.actions
 export default clientsSlice.reducer

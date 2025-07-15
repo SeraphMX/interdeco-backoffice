@@ -12,7 +12,6 @@ import { default as Cotizacion, default as Quote } from './pages/Cotizacion'
 import Cotizaciones from './pages/Cotizaciones'
 import Dashboard from './pages/Dashboard'
 import Login from './pages/Login'
-import RecoverPassword from './pages/RecoverPassword'
 import ResetPassword from './pages/ResetPassword'
 import Users from './pages/Users'
 import { SessionBootstrapper } from './SessionBoostraper'
@@ -90,8 +89,7 @@ function App() {
                 </Route>
 
                 <Route path='/cotizacion/preview' element={<QuotePreviewPage />} />
-                <Route path='/cuenta/recover-password' element={<RecoverPassword />} />
-                <Route path='/cuenta/reset-password/:token' element={<ResetPassword />} />
+                <Route path='/cuenta/reset-password' element={<ResetPassword />} />
               </Routes>
             )}
           </Suspense>

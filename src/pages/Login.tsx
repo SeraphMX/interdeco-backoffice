@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { loginUserForm, LoginUserForm } from '../schemas/user.schema'
 import { AppDispatch, RootState } from '../store'
 import { loginUser } from '../store/slices/authSlice'
+import { clearQuotes } from '../store/slices/quotesSlice'
 
 const Login = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -49,6 +50,7 @@ const Login = () => {
 
   useEffect(() => {
     setSelectedUser('admin')
+    dispatch(clearQuotes())
   }, [])
 
   useEffect(() => {

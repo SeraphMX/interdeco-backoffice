@@ -36,6 +36,7 @@ export const useQuote = () => {
           originalSubtotal: item.original_subtotal || 0,
           discount: item.discount || 0,
           discountType: item.discount_type || 'percentage',
+          description: item.description || '',
           id: item.id
         }))
 

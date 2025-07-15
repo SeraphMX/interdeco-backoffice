@@ -4,7 +4,7 @@ import { MobileView } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { RootState } from '../../../store'
-import { clearQuote, setQuoteStatus } from '../../../store/slices/quoteSlice'
+import { setQuoteStatus } from '../../../store/slices/quoteSlice'
 import { Quote } from '../../../types'
 import { getQuoteID } from '../../../utils/strings'
 import QuoteStatusChip from '../../shared/QuoteStatusChip'
@@ -21,9 +21,6 @@ const QuoteHeader = () => {
   }
 
   const handleBack = () => {
-    if (quote.data.status !== 'open') {
-      dispatch(clearQuote())
-    }
     navigate(-1)
   }
   return (

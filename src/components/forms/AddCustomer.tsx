@@ -71,7 +71,15 @@ const AddCustomer = ({ onSuccess }: AddCustomerProps) => {
   }, [customer])
   return (
     <form id='add-customer-form' onSubmit={handleSave} className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-      <Input size='sm' label='ID del cliente' value={customer?.id ? String(customer.id) : ''} readOnly {...register('id')} isDisabled />
+      <Input
+        size='sm'
+        label='ID del cliente'
+        className='hidden'
+        value={customer?.id ? String(customer.id) : ''}
+        readOnly
+        {...register('id')}
+        isDisabled
+      />
 
       <Select
         className='max-w-xs'

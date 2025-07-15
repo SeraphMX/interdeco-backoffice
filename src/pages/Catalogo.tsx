@@ -1,4 +1,5 @@
-import { Button, Tooltip, useDisclosure } from '@heroui/react'
+import { Button, Spinner, Tooltip, useDisclosure } from '@heroui/react'
+import { motion } from 'framer-motion'
 import { ImportIcon, Plus, Settings } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
@@ -14,12 +15,13 @@ const Catalogo = () => {
   const [filterValue, setFilterValue] = useState('')
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedProviders, setSelectedProviders] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
 
   const wrapperRef = useRef<HTMLDivElement>(null)
   const prevProductRef = useRef<Product | null | undefined>(null)
 
   const tableWrapperRef = useRef<HTMLDivElement>(null)
-  const [tableWrapperHeight, setwrapperHeight] = useState(0)
+  const [tableWrapperHeight, setwrapperHeight] = useState(60) // Altura inicial del wrapper de la tabla
 
   const { isOpen: isOpenProductAdd, onOpen: onOpenProductAdd, onOpenChange: onOpenChangeProductAdd } = useDisclosure()
   const { isOpen: isOpenConfig, onOpen: onOpenConfig, onOpenChange: onOpenChangeConfig } = useDisclosure()
@@ -27,6 +29,7 @@ const Catalogo = () => {
   const selectedProduct = useSelector((state: RootState) => state.productos.selectedProduct)
 
   useEffect(() => {
+    setLoading(false)
     const currentWrapper = tableWrapperRef.current
 
     const observer = new ResizeObserver((entries) => {
@@ -43,7 +46,6 @@ const Catalogo = () => {
 
     return () => {
       // Limpieza
-
       if (currentWrapper) {
         observer.unobserve(currentWrapper)
       }
@@ -51,7 +53,8 @@ const Catalogo = () => {
   }, [])
 
   useEffect(() => {
-    console.log(selectedProduct)
+    // if (!selectedProduct) {
+    // }
 
     if (selectedProduct) {
       //form.reset(selectedProduct)
@@ -117,14 +120,26 @@ const Catalogo = () => {
 
       <ProductEdit />
 
-      <div ref={tableWrapperRef} className='flex flex-col flex-1 shadow-small rounded-lg '>
-        <ProductsTable
-          wrapperHeight={tableWrapperHeight}
-          filterValue={filterValue}
-          selectedCategories={selectedCategories}
-          selectedProviders={selectedProviders}
-        />
-      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: 'easeInOut', delay: 0.4, type: 'spring', stiffness: 200, damping: 15 }}
+        ref={tableWrapperRef}
+        className='flex flex-col flex-1 shadow-small rounded-lg '
+      >
+        {loading ? (
+          <div className='bg-white/20 backdrop-blur-md w-full h-full flex justify-center items-center'>
+            <Spinner label='Cargando productos...' />
+          </div>
+        ) : (
+          <ProductsTable
+            wrapperHeight={tableWrapperHeight}
+            filterValue={filterValue}
+            selectedCategories={selectedCategories}
+            selectedProviders={selectedProviders}
+          />
+        )}
+      </motion.div>
     </div>
   )
 }

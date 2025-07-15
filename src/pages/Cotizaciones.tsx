@@ -1,6 +1,8 @@
 import { Button } from '@heroui/react'
+import { motion } from 'framer-motion'
 import { FileInput, Plus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { isMobile } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import QuotesFilters from '../components/quotes/QuotesFilters'
@@ -16,7 +18,7 @@ const Cotizaciones = () => {
 
   const [filterValue, setFilterValue] = useState('')
   const [selectedStatus, setSelectedStatus] = useState<string[]>([])
-  const [tableWrapperHeight, setwrapperHeight] = useState(0)
+  const [tableWrapperHeight, setwrapperHeight] = useState(60)
 
   const handleNewQuote = () => {
     dispatch(clearQuote())
@@ -48,9 +50,15 @@ const Cotizaciones = () => {
     }
   }, [])
 
+  useEffect(() => {
+    if (quote.data.status !== 'open') {
+      dispatch(clearQuote())
+    }
+  }, [quote.data, dispatch])
+
   return (
     <div className='space-y-6 h-full flex flex-col'>
-      <header className='flex justify-between items-center gap-4'>
+      <header className='flex justify-between items-start sm:items-center gap-4'>
         <QuotesFilters
           filters={{
             search: {
@@ -65,9 +73,9 @@ const Cotizaciones = () => {
         />
         <section className='flex items-center gap-2'>
           {(quote.data.items ?? []).length > 0 && (
-            <Button onPress={() => navigate('/cotizaciones/nueva')} color='secondary' variant='ghost'>
+            <Button onPress={() => navigate('/cotizaciones/nueva')} color='secondary' variant='ghost' isIconOnly={isMobile}>
               <FileInput size={20} />
-              Continuar
+              {!isMobile && 'Continuar'}
             </Button>
           )}
 
@@ -78,9 +86,15 @@ const Cotizaciones = () => {
         </section>
       </header>
 
-      <section className='flex-grow overflow-hidden shadow-medium rounded-lg ' ref={tableWrapperRef}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: 'easeInOut', delay: 0.4, type: 'spring', stiffness: 200, damping: 15 }}
+        className='flex-grow overflow-hidden shadow-small rounded-lg '
+        ref={tableWrapperRef}
+      >
         <QuotesTable wrapperHeight={tableWrapperHeight} filterValue={filterValue} selectedStatus={selectedStatus}></QuotesTable>
-      </section>
+      </motion.div>
     </div>
   )
 }

@@ -174,7 +174,7 @@ const ProductEdit = () => {
   }, [selectedProduct])
 
   const onAnimationComplete = (definition: string) => {
-    console.log('onAnimationComplete:', definition, 'Editing:', isEditing)
+    //console.log('onAnimationComplete:', definition, 'Editing:', isEditing)
     if (definition === 'exit') {
       // Aquí actualizas el estado global sólo cuando termina la animación
       if (isEditing) {
@@ -184,8 +184,6 @@ const ProductEdit = () => {
       }
     }
   }
-
-  console.log('selectedProduct en render:', selectedProduct)
 
   return (
     <AnimatePresence mode='wait'>

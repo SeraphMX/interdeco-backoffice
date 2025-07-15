@@ -55,19 +55,22 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
         }
       }}
     >
-      <header className='flex items-center flex-col sm:flex-row justify-between gap-4 p-4 bg-gray-50'>
+      <header className='flex  flex-col sm:items-center sm:flex-row justify-between gap-4 p-4 bg-gray-50'>
         <section>
-          <h3 className='font-medium text-lg flex flex-col sm:flex-row sm:gap-2 items-start'>
-            <span className='font-semibold'>{item.product?.sku}</span> {item.product?.spec}
-            <Chip className={category.color} size='sm' variant='flat'>
-              {category.description}
-            </Chip>
-          </h3>
-          <p className='text-gray-600'>{item.product?.description}</p>
+          {item.product && (
+            <h3 className='font-medium text-lg flex flex-col sm:flex-row sm:gap-2 items-start'>
+              <span className='font-semibold'>{item.product?.sku}</span> {item.product?.spec}
+              <Chip className={category.color} size='sm' variant='flat'>
+                {category.description}
+              </Chip>
+            </h3>
+          )}
+          <p className='text-gray-600'>{item.product?.description || item.description}</p>
+          {!item.product && !rxQuote.isPublicAccess && <p className='text-gray-600 italic text-sm'>Producto eliminado o no disponible</p>}
         </section>
 
         {!rxQuote.isPublicAccess && (
-          <section className='flex items-center gap-2'>
+          <section className='flex items-center gap-2 self-end sm:self-auto'>
             {rxQuote.data.status === 'open' && (
               <>
                 {user?.role === 'admin' && (
@@ -143,10 +146,12 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
                 </div>
               )}
 
-              <div className='flex justify-between'>
-                <dt>Precio por paquete</dt>
-                <dd className='text-gray-600'>{formatCurrency(pricePerPackage)}</dd>
-              </div>
+              {pricePerPackage ? (
+                <div className='flex justify-between'>
+                  <dt>Precio por paquete</dt>
+                  <dd className='text-gray-600'>{formatCurrency(pricePerPackage)}</dd>
+                </div>
+              ) : null}
               <div className='flex justify-between'>
                 <dt className={`${!item.discount && 'font-semibold'}`}>Subtotal</dt>
                 <dd className={`${!item.discount && 'font-medium text-lg'} text-gray-600 `}>

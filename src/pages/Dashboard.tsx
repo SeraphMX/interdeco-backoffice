@@ -1,40 +1,58 @@
-import { Button, Card, CardBody, CardHeader, Tab, Tabs } from '@heroui/react'
+import { Button, Card, CardBody, CardHeader, Select, SelectItem, Spinner, Tab, Tabs } from '@heroui/react'
 import { FileText, Package, TrendingUp, Users } from 'lucide-react'
 import { useState } from 'react'
+import { isMobile } from 'react-device-detect'
 import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import CategoryProviderChart from '../components/dashboard/charts/CategoryProviderChart'
+import DistributionChart from '../components/dashboard/charts/DistributionChart'
+import MostUsedChart from '../components/dashboard/charts/MostUsedChart'
 import QuoteAmountChart from '../components/dashboard/charts/QuoteAmountChart'
 import QuoteStatusChart from '../components/dashboard/charts/QuoteStatusChart'
 import QuoteSummary from '../components/dashboard/QuoteSummary'
+import CountUp from '../components/shared/CountUp'
+import { useProductsMetrics } from '../hooks/useProductsMetrics'
 import { RootState } from '../store'
-import { formatCurrency } from '../utils/currency'
 
 const Dashboard = () => {
   const navigate = useNavigate()
-  const clientes = useSelector((state: RootState) => state.clientes.items)
-  const cotizaciones = useSelector((state: RootState) => state.quotes.items)
+  const customers = useSelector((state: RootState) => state.clientes.items)
+  const { items: quotes, loading } = useSelector((state: RootState) => state.quotes)
   const productos = useSelector((state: RootState) => state.productos.items)
 
   const [selectedChart, setSelectedChart] = useState('mas-utilizados')
   const [chartTitle, setChartTitle] = useState('Materiales Más Utilizados')
-  const [chartSubtitle, setChartSubtitle] = useState('Últimos 30 días')
+  const [quoteProductsSubtitle, setquoteProductsSubtitle] = useState('Los productos mas utilizados en las cotizaciones')
   const [selectedQuoteTab, setSelectedQuoteTab] = useState('ultimas')
   const [quoteTabSubtitle, setQuoteTabSubtitle] = useState('Las cotizaciones más recientes')
 
-  const stats = [
-    { title: 'Clientes', value: clientes.length, icon: Users, color: 'bg-blue-500' },
+  useProductsMetrics()
+
+  const quotesTotal = quotes.reduce((acc, curr) => acc + curr.total, 0)
+
+  interface Stat {
+    title: string
+    value: number
+    icon: React.ElementType
+    color: string
+    type?: 'currency' | 'number' | 'currency-short'
+  }
+
+  const stats: Stat[] = [
+    { title: 'Clientes', value: customers.length, icon: Users, color: 'bg-blue-500' },
     { title: 'Productos', value: productos.length, icon: Package, color: 'bg-green-500' },
-    { title: 'Cotizaciones', value: cotizaciones.length, icon: FileText, color: 'bg-purple-500' },
+    { title: 'Cotizaciones', value: quotes.length, icon: FileText, color: 'bg-purple-500' },
     {
-      title: 'Total Ventas',
-      value: formatCurrency(cotizaciones.reduce((acc, curr) => acc + curr.total, 0)),
+      title: 'Total cotizado',
+      value: quotesTotal,
       icon: TrendingUp,
-      color: 'bg-orange-500'
+      color: 'bg-orange-500',
+      type: isMobile ? 'currency-short' : 'currency'
     }
   ]
 
   // Obtener las últimas 5 cotizaciones ordenadas por fecha
-  const lastQuotes = [...cotizaciones.filter((q) => q.status !== 'archived' && q.status !== 'expired')]
+  const lastQuotes = [...quotes.filter((q) => q.status !== 'archived' && q.status !== 'expired')]
     .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
     .slice(0, 10)
 
@@ -51,31 +69,49 @@ const Dashboard = () => {
     setQuoteTabSubtitle(subtitle)
   }
 
+  const handleTitleChange = (title: string, subtitle: string) => {
+    setChartTitle(title)
+    setquoteProductsSubtitle(subtitle)
+  }
+
   const expiringQuotes = getExpiringQuotes()
   return (
-    <div className='space-y-6 flex flex-col h-full '>
-      <h1 className='text-3xl font-bold text-gray-900 '>Dashboard</h1>
+    <section className='space-y-6 flex flex-col h-full '>
+      <header className='flex items-center justify-between '>
+        <h1 className='text-3xl font-bold text-gray-900 '>Dashboard</h1>
+        <div className='w-32 hidden'>
+          //TODO:Manejar periodo de tiempo para las estadisticas
+          <Select className='max-w-xs' defaultSelectedKeys={['days']} disallowEmptySelection>
+            <SelectItem key='days'>Semana</SelectItem>
+            <SelectItem key='weeks'>Mes</SelectItem>
+            <SelectItem key='months'>Año</SelectItem>
+            <SelectItem key='all'>Todo</SelectItem>
+          </Select>
+        </div>
+      </header>
 
       {/* Stats Cards */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+      <div className='grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6'>
         {stats.map((stat) => (
-          <div key={stat.title} className='bg-white rounded-lg shadow p-6'>
+          <div key={stat.title} className='bg-white rounded-lg shadow p-3 md:p-4'>
             <div className='flex items-center'>
-              <div className={`${stat.color} p-3 rounded-lg`}>
+              <div className={`${stat.color} p-3 sm:p-4 rounded-lg`}>
                 <stat.icon className='h-6 w-6 text-white' />
               </div>
-              <div className='ml-4'>
+              <div className='ml-3'>
                 <p className='text-sm font-medium text-gray-500'>{stat.title}</p>
-                <p className='text-lg font-semibold text-gray-900'>{stat.value}</p>
+                <p className='text-lg font-semibold text-gray-900'>
+                  <CountUp value={stat.value} type={stat.type ? stat.type : 'number'} />
+                </p>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 flex-grow min-h-0'>
+      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:flex-grow lg:min-h-0 pb-6 lg:pb-0'>
         {/* Sección de Cotizaciones con Tabs */}
-        <Card className='shadow-medium'>
+        <Card className='shadow-medium max-h-[590px] sm:max-h-max'>
           <CardHeader className='pb-1 flex flex-col'>
             <div className='flex items-center justify-between w-full'>
               <div>
@@ -109,16 +145,17 @@ const Dashboard = () => {
               }}
             >
               <Tab key='ultimas' title='Últimas'></Tab>
-              <Tab key='expirando' title='Próximas a Expirar'></Tab>
+              <Tab key='expirando' title='Expirando'></Tab>
               <Tab key='status' title='Estado'></Tab>
-              <Tab key='total' title='Total cotizado'></Tab>
+              <Tab key='total' title='Historial'></Tab>
             </Tabs>
           </CardHeader>
           <CardBody className='space-y-4  overflow-y-auto'>
             <div className=''>
               {selectedQuoteTab === 'ultimas' && (
-                <div className='space-y-4'>
-                  {lastQuotes.length === 0 ? (
+                <div className='space-y-4 text-center'>
+                  {loading && <Spinner className='my-8' size='lg' color='primary' label='Cargando cotizaciones...' />}
+                  {lastQuotes.length === 0 && !loading ? (
                     <div className='text-center py-8 text-gray-500'>
                       <FileText className='mx-auto h-12 w-12 mb-3 opacity-50' />
                       <p>No hay cotizaciones disponibles</p>
@@ -147,23 +184,26 @@ const Dashboard = () => {
               )}
 
               {selectedQuoteTab === 'status' && <QuoteStatusChart onTitleChange={handleQuoteTabTitleChange} />}
-              {selectedQuoteTab === 'total' && <QuoteAmountChart onTitleChange={handleQuoteTabTitleChange} />}
+              {selectedQuoteTab === 'total' && <QuoteAmountChart />}
             </div>
           </CardBody>
         </Card>
 
         {/* Gráficos con Tabs */}
         <Card className='shadow-medium'>
-          <CardHeader className='pb-4'>
-            <h2 className='text-xl font-bold text-gray-900'>{chartTitle}</h2>
-            <p className='text-sm text-gray-500 mt-1'>{chartSubtitle}</p>
-          </CardHeader>
-          <CardBody>
+          <CardHeader className='flex flex-col items-start pb-1'>
+            <div className=''>
+              <h2 className='text-xl font-bold text-gray-900'>Productos</h2>
+              <p className='text-sm text-gray-500 mt-1'>{quoteProductsSubtitle}</p>
+            </div>
             <Tabs
               selectedKey={selectedChart}
-              onSelectionChange={(key) => setSelectedChart(key as string)}
+              onSelectionChange={(key) => {
+                setSelectedChart(key as string)
+              }}
               color='primary'
               variant='underlined'
+              fullWidth
               classNames={{
                 tabList: 'gap-6 w-full relative rounded-none p-0 border-b border-divider',
                 cursor: 'w-full bg-primary',
@@ -172,11 +212,16 @@ const Dashboard = () => {
               }}
             >
               <Tab key='mas-utilizados' title='Más Utilizados'></Tab>
-              <Tab key='categorias-proveedores' title='Categorías por proveedor'></Tab>
               <Tab key='distribucion' title='Distribución'></Tab>
+              <Tab key='categorias-proveedores' title='Categorías por proveedor'></Tab>
             </Tabs>
-
-            <div className='mt-6'></div>
+          </CardHeader>
+          <CardBody>
+            <div className=' flex-grow min-h-0 flex flex-col gap-6'>
+              {selectedChart === 'mas-utilizados' && <MostUsedChart onTitleChange={handleTitleChange} />}
+              {selectedChart === 'categorias-proveedores' && <CategoryProviderChart onTitleChange={handleTitleChange} />}
+              {selectedChart === 'distribucion' && <DistributionChart onTitleChange={handleTitleChange} />}
+            </div>
           </CardBody>
         </Card>
       </div>
@@ -211,7 +256,7 @@ const Dashboard = () => {
           </CardBody>
         </Card>
       </div> */}
-    </div>
+    </section>
   )
 }
 

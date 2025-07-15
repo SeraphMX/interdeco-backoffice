@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { addToast, useDisclosure } from '@heroui/react'
 import { pdf } from '@react-pdf/renderer'
 import { saveAs } from 'file-saver'
-import { Archive, ArchiveRestore, DollarSign, FileDown, FileSearch, Save, Send, Trash2, X } from 'lucide-react'
+import { Archive, ArchiveRestore, Clock, DollarSign, FileDown, FileSearch, Save, Send, Trash2, X } from 'lucide-react'
 import { isBrowser, isMobile } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
@@ -121,7 +121,6 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
   }
 
   const handleCloseQuote = () => {
-    dispatch(clearQuote())
     navigate(-1) // Regresa a la página anterior
   }
 
@@ -135,6 +134,10 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
     const message = `Hola, revisé mi cotización: ${quote.data.id && `#${getQuoteID(quote.data)}`}`
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
     window.open(url, '_blank') // Abre WhatsApp en una nueva pestaña
+  }
+
+  const handleViewHistory = () => {
+    console.log('Ver historial de cotización')
   }
 
   const isHeader = type === 'header'
@@ -154,6 +157,9 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
 
     return (
       <>
+        {isMobile && (
+          <ActionButton icon={<Clock />} label='Historial' color='secondary' tooltip={'Ver historial'} onClick={handleViewHistory} />
+        )}
         <ActionButton
           icon={<Send />}
           label={quote.data.status !== 'sent' ? 'Enviar' : 'Reenviar'}
@@ -214,7 +220,9 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
 
   return (
     (quote.data.items ?? []).length > 0 && (
-      <section className={`flex justify-end gap-3 ${!quote.isPublicAccess && 'order-2 sm:order-1'}`}>
+      <section
+        className={`flex justify-center sm:justify-end ${isMobile ? 'gap-2' : 'gap-3'} ${!quote.isPublicAccess && 'order-2 sm:order-1'}`}
+      >
         {/* Guardar cotización (cuando no tiene ID) */}
         {!quote.data.id && <ActionButton icon={<Save />} label='Guardar' color='primary' onClick={handleSaveQuote} />}
 
