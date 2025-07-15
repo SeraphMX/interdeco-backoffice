@@ -1,4 +1,5 @@
 import { Chip } from '@heroui/react'
+import { motion } from 'framer-motion'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../store'
 import { formatListWithY } from '../../utils/strings'
@@ -20,7 +21,10 @@ const ProductsTableFooter = ({
   const rxCategories = useSelector((state: RootState) => state.catalog.categories)
 
   return (
-    <footer
+    <motion.footer
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: 1, type: 'spring', stiffness: 200, damping: 15 }}
       className={`text-sm bg-gray-50  text-gray-700 z-10  ${tableType === 'default' ? 'fixed' : 'hidden'} bottom-0 left-0 right-0 flex justify-center items-center p-1`}
     >
       <section className='container mx-auto px-6 pb-2  flex justify-between items-center'>
@@ -47,7 +51,7 @@ const ProductsTableFooter = ({
             : ''}
         </div>
       </section>
-    </footer>
+    </motion.footer>
   )
 }
 

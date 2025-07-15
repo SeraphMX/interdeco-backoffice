@@ -1,10 +1,16 @@
+import { motion } from 'framer-motion'
 interface ProductsTableFooterProps {
   filteredItemsCount: number
 }
 
 const UsersTableFooter = ({ filteredItemsCount }: ProductsTableFooterProps) => {
   return (
-    <footer className={`text-sm bg-gray-100  text-gray-700 z-10 fixed bottom-0 left-0 right-0 flex justify-center items-center p-1`}>
+    <motion.footer
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2, delay: 1, type: 'spring', stiffness: 200, damping: 15 }}
+      className={`text-sm bg-gray-50  text-gray-700 z-10 fixed bottom-0 left-0 right-0 flex justify-center items-center p-1`}
+    >
       <section className='container mx-auto px-6 pb-2  flex justify-between items-center'>
         <div>{filteredItemsCount} resultados encontrados</div>
         {/* <div className='flex items-center gap-2'>
@@ -29,7 +35,7 @@ const UsersTableFooter = ({ filteredItemsCount }: ProductsTableFooterProps) => {
             : ''}
         </div> */}
       </section>
-    </footer>
+    </motion.footer>
   )
 }
 
