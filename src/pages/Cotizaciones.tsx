@@ -2,6 +2,7 @@ import { Button } from '@heroui/react'
 import { motion } from 'framer-motion'
 import { FileInput, Plus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { isMobile } from 'react-device-detect'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import QuotesFilters from '../components/quotes/QuotesFilters'
@@ -66,9 +67,9 @@ const Cotizaciones = () => {
         />
         <section className='flex items-center gap-2'>
           {(quote.data.items ?? []).length > 0 && (
-            <Button onPress={() => navigate('/cotizaciones/nueva')} color='secondary' variant='ghost'>
+            <Button onPress={() => navigate('/cotizaciones/nueva')} color='secondary' variant='ghost' isIconOnly={isMobile}>
               <FileInput size={20} />
-              Continuar
+              {!isMobile && 'Continuar'}
             </Button>
           )}
 
