@@ -133,6 +133,8 @@ export interface Profile {
   full_name: string
   phone: string
   role: 'admin' | 'staff'
+  email_notifications?: boolean
+  quotes_expire?: number // Días para que las cotizaciones expiren
 }
 
 export const estadosMexico = [
