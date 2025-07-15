@@ -34,7 +34,7 @@ const QuoteSummary = ({ quote, show = 'default' }: QuoteSummaryProps): JSX.Eleme
             {statusConfig?.label}
           </Chip>
         </div>
-        <p className='font-medium text-gray-700 truncate text-lg'>{cliente?.name}</p>
+        <p className='font-medium text-gray-700 truncate text-lg text-left'>{cliente?.name}</p>
         <div className='flex items-center justify-between mt-2'>
           <p className='text-sm text-gray-500'>
             {quote.created_at ? formatDate(quote.created_at, { style: 'short' }) : 'Fecha no disponible'}{' '}
