@@ -83,7 +83,7 @@ const Cotizaciones = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, ease: 'easeInOut', delay: 0.4, type: 'spring', stiffness: 200, damping: 15 }}
-        className='flex-grow overflow-hidden shadow-medium rounded-lg '
+        className='flex-grow overflow-hidden shadow-small rounded-lg '
         ref={tableWrapperRef}
       >
         <QuotesTable wrapperHeight={tableWrapperHeight} filterValue={filterValue} selectedStatus={selectedStatus}></QuotesTable>
