@@ -50,6 +50,12 @@ const Cotizaciones = () => {
     }
   }, [])
 
+  useEffect(() => {
+    if (quote.data.status !== 'open') {
+      dispatch(clearQuote())
+    }
+  }, [quote.data, dispatch])
+
   return (
     <div className='space-y-6 h-full flex flex-col'>
       <header className='flex justify-between items-start sm:items-center gap-4'>

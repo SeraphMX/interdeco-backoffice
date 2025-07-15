@@ -121,7 +121,6 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
   }
 
   const handleCloseQuote = () => {
-    dispatch(clearQuote())
     navigate(-1) // Regresa a la página anterior
   }
 

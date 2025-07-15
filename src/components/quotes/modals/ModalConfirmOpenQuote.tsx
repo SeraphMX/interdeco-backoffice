@@ -37,10 +37,10 @@ const ModalConfirmOpenQuote = ({ isOpen, onOpenChange, onConfirm }: ModalSelectC
                 Cancelar
               </Button>
               <Button color='secondary' variant='ghost' onPress={handleOpenCurrentQuote}>
-                Ver la cotización en curso
+                Continuar cotización actual
               </Button>
               <Button color='primary' onPress={onConfirm}>
-                Abrir esta cotización
+                Abrir
               </Button>
             </ModalFooter>
           </>
