@@ -51,7 +51,7 @@ const Cotizaciones = () => {
 
   return (
     <div className='space-y-6 h-full flex flex-col'>
-      <header className='flex justify-between items-center gap-4'>
+      <header className='flex justify-between items-start sm:items-center gap-4'>
         <QuotesFilters
           filters={{
             search: {

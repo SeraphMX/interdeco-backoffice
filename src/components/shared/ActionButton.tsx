@@ -28,7 +28,7 @@ const ActionButton = ({ icon, label, color, onClick, tooltip = null }: ActionBut
     >
       <Tooltip content={tooltip || label} placement='top' isDisabled={!tooltip}>
         <Button
-          className={`flex flex-col p-2 gap-0 ${alwaysShowLabel ? 'h-16 w-16' : 'h-12 w-16'} items-center justify-center`}
+          className={`flex flex-col p-2 gap-0 ${alwaysShowLabel ? 'h-16 w-16' : 'h-12 w-14'} items-center justify-center`}
           color={color}
           variant='ghost'
           onPress={onClick}
