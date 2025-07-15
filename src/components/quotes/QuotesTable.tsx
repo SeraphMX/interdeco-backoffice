@@ -204,10 +204,14 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
                     >
                       <div className='flex-1 min-w-0 max-w-[200px]'>
                         <div className='flex items-center gap-3 mb-2'>
-                          <span className='font-semibold text-gray-900'>#{getQuoteID(quote)}</span>
+                          <span className='font-semibold text-gray-900 text-lg'>#{getQuoteID(quote)}</span>
                           <QuoteStatusChip quote={quote} onSuccess={onSuccessSetStatus} />
                         </div>
-                        <p className='font-medium text-gray-700 truncate text-lg text-left '>{quote.customer_name}</p>
+                        <p
+                          className={`font-medium  truncate text-lg text-left ${quote.customer_name ? 'text-gray-700' : 'text-gray-400'} `}
+                        >
+                          {quote.customer_name ?? 'Sin cliente'}
+                        </p>
                       </div>
                       <div className='ml-4 flex items-center gap-2'>
                         <div className='flex flex-col items-end'>
