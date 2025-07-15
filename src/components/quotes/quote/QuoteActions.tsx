@@ -221,7 +221,7 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
 
   return (
     (quote.data.items ?? []).length > 0 && (
-      <section className={`flex justify-end gap-3 ${!quote.isPublicAccess && 'order-2 sm:order-1'}`}>
+      <section className={`flex justify-end ${isMobile ? 'gap-2' : 'gap-3'} ${!quote.isPublicAccess && 'order-2 sm:order-1'}`}>
         {/* Guardar cotización (cuando no tiene ID) */}
         {!quote.data.id && <ActionButton icon={<Save />} label='Guardar' color='primary' onClick={handleSaveQuote} />}
 
