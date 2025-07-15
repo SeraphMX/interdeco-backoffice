@@ -1,5 +1,7 @@
 import { Button, Chip, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Input, Tooltip } from '@heroui/react'
 import { Search, X } from 'lucide-react'
+import { useSelector } from 'react-redux'
+import { RootState } from '../../store'
 import { quoteStatus } from '../../types'
 
 type FilterState<T> = {
@@ -16,6 +18,16 @@ interface QuotesFiltersProps {
 
 const QuotesFilters = ({ filters }: QuotesFiltersProps) => {
   //const rxCategories = useSelector((state: RootState) => state.catalog.categorias)
+
+  const rxQuotes = useSelector((state: RootState) => state.quotes.items)
+
+  const usedStatus = new Set(rxQuotes.map((q) => q.status?.toString()))
+  const filteredStatus = quoteStatus.filter((s) => usedStatus.has(s.key.toString()))
+
+  // Si hay cotizaciones sin estado válido
+  if (rxQuotes.some((q) => !q.status)) {
+    filteredStatus.push({ key: 'none', label: 'Sin estado válido', color: 'default' })
+  }
 
   const search = filters?.search
   const status = filters?.status
@@ -69,7 +81,7 @@ const QuotesFilters = ({ filters }: QuotesFiltersProps) => {
           selectedKeys={new Set(status?.value)}
           onSelectionChange={(keys) => status?.setValue(Array.from(keys).map((key) => key.toString()))}
         >
-          {quoteStatus.map((status) => (
+          {filteredStatus.map((status) => (
             <DropdownItem key={status.key}>
               <span className='capitalize'>{status.label}</span>
             </DropdownItem>
