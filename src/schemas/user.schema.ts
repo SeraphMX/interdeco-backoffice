@@ -10,8 +10,26 @@ export const createUserSchema = z.object({
     errorMap: () => ({ message: 'Selecciona un tipo de usuario' })
   }),
   is_active: z.boolean().default(true).optional(),
-  created_at: z.string().optional()
+  created_at: z.string().optional(),
+  email_notifications: z.boolean().optional(),
+  quotes_expire: z.number().optional()
 })
+
+export const profileUserSchema = z.object({
+  full_name: z.string().min(5, { message: 'El nombre es obligatorio' }).max(100),
+  email: z.string().email({ message: 'Email inválido' }),
+  phone: z.string().min(10, { message: 'Número de teléfono inválido' }).optional()
+})
+
+export const profileResetPasswordSchema = z
+  .object({
+    current_password: z.string().min(8, { message: 'Mínimo 8 caracteres' }).max(100),
+    new_password: z.string().min(8, { message: 'Mínimo 8 caracteres' }).max(100),
+    new_password2: z.string().nonempty({ message: 'Debes confirmar tu contraseña' })
+  })
+  .refine((data) => data.new_password === data.new_password2, {
+    message: 'Las contraseñas no coinciden'
+  })
 
 export type User = z.infer<typeof createUserSchema>
 
