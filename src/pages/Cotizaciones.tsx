@@ -1,4 +1,5 @@
 import { Button } from '@heroui/react'
+import { motion } from 'framer-motion'
 import { FileInput, Plus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -16,7 +17,7 @@ const Cotizaciones = () => {
 
   const [filterValue, setFilterValue] = useState('')
   const [selectedStatus, setSelectedStatus] = useState<string[]>([])
-  const [tableWrapperHeight, setwrapperHeight] = useState(0)
+  const [tableWrapperHeight, setwrapperHeight] = useState(60)
 
   const handleNewQuote = () => {
     dispatch(clearQuote())
@@ -78,9 +79,15 @@ const Cotizaciones = () => {
         </section>
       </header>
 
-      <section className='flex-grow overflow-hidden shadow-medium rounded-lg ' ref={tableWrapperRef}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: 'easeInOut', delay: 0.4, type: 'spring', stiffness: 200, damping: 15 }}
+        className='flex-grow overflow-hidden shadow-medium rounded-lg '
+        ref={tableWrapperRef}
+      >
         <QuotesTable wrapperHeight={tableWrapperHeight} filterValue={filterValue} selectedStatus={selectedStatus}></QuotesTable>
-      </section>
+      </motion.div>
     </div>
   )
 }

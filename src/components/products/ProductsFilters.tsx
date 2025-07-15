@@ -67,7 +67,6 @@ const ProductsFilters = ({ filters }: ProductsFiltersProps) => {
           value={search?.value || ''}
           onClear={() => search?.setValue && search.setValue('')}
           onValueChange={search?.setValue}
-          autoFocus
           onFocus={(e) => e.target.select()}
         />
       </div>
