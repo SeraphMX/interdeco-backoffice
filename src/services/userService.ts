@@ -67,7 +67,7 @@ export const userService = {
 
       const email = session.user.email
 
-      // ✅ Paso 1: Verificar contraseña actual reautenticando
+      // Paso 1: Verificar contraseña actual reautenticando
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password: current_password
@@ -77,7 +77,7 @@ export const userService = {
         return false
       }
 
-      // ✅ Paso 2: Cambiar la contraseña
+      // Paso 2: Cambiar la contraseña
       const { error: updateError } = await supabase.auth.updateUser({
         password: new_password
       })
@@ -148,7 +148,7 @@ export const userService = {
    * Verifica el correo electrónico del usuario llamando a una función de Supabase.
    * @param email - El correo electrónico a verificar.
    */
-  async VerifyEmail(email: string) {
+  async verifyEmail(email: string) {
     console.log('Verificando correo electrónico:', email)
     const { data, error } = await supabase.rpc('verify_email', { p_email: email })
     if (error) throw new Error(error.message || 'Error al consultar la base de datos.')

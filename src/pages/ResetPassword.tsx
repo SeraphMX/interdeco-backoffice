@@ -1,35 +1,45 @@
 import { Alert, Button, Card, CardBody, Input } from '@heroui/react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { TriangleAlert } from 'lucide-react'
+import { Eye, EyeOff, TriangleAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { resetPasswordMail } from '../schemas/user.schema'
+import { LoginUserForm, resetPasswordMail } from '../schemas/user.schema'
 import { AppDispatch, RootState } from '../store'
 
 const ResetPassword = () => {
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
   const { authError, isLoading, user } = useSelector((state: RootState) => state.auth)
-  const [selectedUser, setSelectedUser] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   const {
+    register: formPassword,
     handleSubmit,
-    reset,
-    control,
-    formState: { errors }
+    formState: { errors: formPasswordErrors }
   } = useForm({
+    mode: 'onSubmit',
     resolver: zodResolver(resetPasswordMail),
-    mode: 'onSubmit'
+    defaultValues: {
+      email: '',
+      password: '',
+      password2: ''
+    }
   })
 
   const handleResetPassword = handleSubmit(
-    (data) => {
+    (data: LoginUserForm) => {
+      console.log('Restableciendo contraseña para:', data)
+      // Aquí iría la lógica para enviar el formulario de restablecimiento de contraseña
+
+      //await userService.passwordReset()
+
       console.log('Iniciando sesión con:', data)
+      //dispatch(loginUser({ email: data.email, password: data.password }))
     },
     (errors) => {
-      console.error('Error al iniciar sesión:', errors)
+      console.error('Errores de validación:', errors)
     }
   )
 
@@ -56,24 +66,44 @@ const ResetPassword = () => {
               description={authError.message}
             />
           ) : (
-            <div>
-              <p className='text-gray-600 '>
-                Si has olvidado tu contraseña, ingresa tu correo electrónico y te enviaremos un enlace para restablecerla.
-              </p>
-            </div>
+            <p className=' text-gray-600 text-center'>Restablece tu contraseña</p>
           )}
 
           <form onSubmit={handleResetPassword} className='space-y-4'>
-            <Controller
-              name='email'
-              control={control}
-              render={({ field }) => (
-                <Input type='email' label='Correo electrónico' {...field} isInvalid={!!errors.email} errorMessage={errors.email?.message} />
-              )}
+            <Input
+              label='Correo electrónico'
+              {...formPassword('email')}
+              isInvalid={!!formPasswordErrors.email}
+              errorMessage={formPasswordErrors.email?.message}
+            />
+
+            <Input
+              label='Nueva contraseña'
+              type={showPassword ? 'text' : 'password'}
+              {...formPassword('password')}
+              isInvalid={!!formPasswordErrors.password}
+              errorMessage={formPasswordErrors.password?.message}
+              endContent={
+                <button
+                  type='button'
+                  onClick={() => setShowPassword(!showPassword)}
+                  className='absolute inset-y-0 right-0 pr-3 flex items-center'
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className='h-5 w-5 text-gray-400' /> : <Eye className='h-5 w-5 text-gray-400' />}
+                </button>
+              }
+            />
+            <Input
+              label='Confirmar nueva contraseña'
+              type={showPassword ? 'text' : 'password'}
+              {...formPassword('password2')}
+              isInvalid={!!formPasswordErrors.password2}
+              errorMessage={formPasswordErrors.password2?.message}
             />
 
             <Button type='submit' color='primary' className='w-full'>
-              Recuperar contraseña
+              Restablecer contraseña
             </Button>
           </form>
         </CardBody>

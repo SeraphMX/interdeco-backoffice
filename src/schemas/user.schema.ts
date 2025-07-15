@@ -50,9 +50,20 @@ export const loginUserForm = z.object({
 })
 export type LoginUserForm = z.infer<typeof loginUserForm>
 
-export const resetPasswordMail = z.object({
-  email: z.string().min(1, { message: 'El correo electrónico es requerido' }).email({ message: 'El correo electrónico no es válido' })
-})
+export const resetPasswordMail = z
+  .object({
+    email: z
+      .string({ required_error: 'El correo electrónico es requerido' })
+      .min(1, { message: 'El correo electrónico es requerido' })
+      .email({ message: 'El correo electrónico no es válido' }),
+    password: z.string().min(8, { message: 'Mínimo 8 caracteres' }).max(100),
+    password2: z.string().nonempty({ message: 'Debes confirmar tu contraseña' })
+  })
+  .refine((data) => data.password === data.password2, {
+    message: 'Las contraseñas no coinciden',
+    path: ['password2']
+  })
+
 export type VerifyEmail = z.infer<typeof resetPasswordMail>
 
 export const verifyPhone = z.object({
