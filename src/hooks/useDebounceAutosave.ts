@@ -35,7 +35,7 @@ export function useDebouncedAutoSave(quote: Quote, delay = 1000) {
     const result = await quoteService.updateQuote(quoteToSave, user?.id)
 
     ignoreNextEffectRef.current = true
-    dispatch(setQuote({ ...quoteToSave, last_updated: result.quote?.last_updated }))
+    dispatch(setQuote({ ...quoteToSave, last_updated: result.quote?.last_updated, total: result.quote?.total ?? 0 }))
 
     setIsSaving(false)
 
