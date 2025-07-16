@@ -74,19 +74,34 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
   }, [filterValue, rxQuotes, selectedStatus])
 
   const sortedItems = [...filteredItems].sort((a, b) => {
-    const first = a[sortDescriptor.column as keyof typeof a]
-    const second = b[sortDescriptor.column as keyof typeof b]
-    const cmp = (first ?? '').toString() < (second ?? '').toString() ? -1 : (first ?? '').toString() > (second ?? '').toString() ? 1 : 0
+    const column = sortDescriptor.column
+    const direction = sortDescriptor.direction
 
-    return sortDescriptor.direction === 'descending' ? -cmp : cmp
+    let first = a[column as keyof typeof a]
+    let second = b[column as keyof typeof b]
+
+    //Ordenar por total
+    if (column === 'total') {
+      first = typeof first === 'number' ? first : parseFloat(first as string)
+      second = typeof second === 'number' ? second : parseFloat(second as string)
+    }
+
+    let cmp = 0
+    if (typeof first === 'number' && typeof second === 'number') {
+      cmp = first - second
+    } else {
+      cmp = (first ?? '').toString().localeCompare((second ?? '').toString(), 'es', { sensitivity: 'base' })
+    }
+
+    return direction === 'descending' ? -cmp : cmp
   })
 
   const headerColumns = [
     { name: 'ID', uid: 'quote_id', sortable: false },
     { name: 'FECHA', uid: 'created_at', sortable: true, hidden: isMobile ? true : false },
     { name: 'CLIENTE', uid: 'customer_name', sortable: true, hidden: isMobile ? true : false },
-    { name: 'ITEMS', uid: 'items', sortable: true, align: 'center', hidden: isMobile ? true : false },
-    { name: 'TOTAL', uid: 'description', sortable: true, align: 'end', hidden: isMobile ? true : false },
+    { name: 'ITEMS', uid: 'total_items', sortable: true, align: 'center', hidden: isMobile ? true : false },
+    { name: 'TOTAL', uid: 'total', sortable: true, align: 'end', hidden: isMobile ? true : false },
     { name: 'STATUS', uid: 'status', sortable: true, hidden: isMobile ? true : false },
     { name: 'ACCIONES', uid: 'actions', sortable: false, hidden: isMobile ? true : false }
   ]
