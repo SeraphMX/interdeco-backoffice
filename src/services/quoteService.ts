@@ -6,11 +6,12 @@ import { Product, Quote, QuoteItem, QuoteItemDB, QuoteLogItem, QuoteStatus } fro
 export type DiscountType = 'percentage' | 'fixed'
 
 export interface QuoteItemOptions {
-  product: Product
+  product: Product | undefined
   requiredQuantity: number
   discount?: number
   discountType?: DiscountType
   id?: string // por si actualizas un item existente
+  product_id?: number // Para relación con DB
 }
 
 const round = (num: number, decimals = 2) => Number(num.toFixed(decimals))

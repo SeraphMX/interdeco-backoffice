@@ -16,12 +16,6 @@ const ModalProductAdd = ({ isOpen, onOpenChange }: ModalProductAddProps) => {
               <AddProduct
                 onSuccess={(product) => {
                   console.log('Producto agregado:', product)
-
-                  //   console.log(products)
-
-                  //   setProducts((prev) => [...prev, product])
-                  //   setSelectedProduct(product)
-
                   onClose()
                 }}
               />

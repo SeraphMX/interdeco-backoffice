@@ -7,6 +7,7 @@ export interface QuoteState {
   calculatedArea: number
   itemsLoaded: boolean
   isPublicAccess: boolean
+  stackItems: boolean
 
   selectedItem: QuoteItem | null
   data: Quote
@@ -18,6 +19,7 @@ const initialState: QuoteState = {
   selectedItem: null,
   itemsLoaded: false,
   isPublicAccess: false,
+  stackItems: false,
   data: {
     id: null,
     customer_id: null,
@@ -58,8 +60,9 @@ const quoteSlice = createSlice({
     },
     addItem: (state, action: PayloadAction<QuoteItem>) => {
       const existingItemIndex = (state.data.items ?? []).findIndex((item) => item.product?.id === action.payload.product?.id)
-      if (existingItemIndex !== -1) {
-        // If item already exists, update the quantity
+
+      if (state.stackItems && existingItemIndex !== -1) {
+        // Si el item existe y se permite apilar, actualiza la cantidad y subtotal
         if (state.data.items && state.data.items[existingItemIndex]) {
           state.data.items[existingItemIndex].requiredQuantity += action.payload.requiredQuantity
           state.data.items[existingItemIndex].totalQuantity += action.payload.totalQuantity

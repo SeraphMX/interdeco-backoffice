@@ -59,7 +59,6 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
   const handleAddProduct = handleSubmit(
     (data) => {
       console.log('Producto agregado:', data)
-      // Aquí puedes manejar la lógica para agregar el producto seleccionado
       if (selectedProduct) {
         const requestedQuantity = Number(data.quantity)
         const packageSize = selectedProduct.package_unit ?? 0
