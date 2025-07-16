@@ -81,6 +81,9 @@ const Catalogo = () => {
 
   return (
     <div className='flex flex-col gap-4 h-full pb-4'>
+      <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+        <Spinner size='lg' className='absolute' />
+      </div>
       <div className='flex justify-between items-center '>
         <ProductsFilters
           filters={{

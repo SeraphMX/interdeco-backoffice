@@ -1,4 +1,4 @@
-import { Button, useDisclosure } from '@heroui/react'
+import { Button, Spinner, useDisclosure } from '@heroui/react'
 import { motion } from 'framer-motion'
 import { Plus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -47,7 +47,10 @@ const Users = () => {
     }
   }, [])
   return (
-    <div className='space-y-6 h-full flex flex-col pb-4'>
+    <div className='gap-6 h-full flex flex-col pb-4'>
+      <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+        <Spinner size='lg' className='absolute' />
+      </div>
       <header className='flex justify-between items-center gap-4'>
         <UsersFilters
           filters={{

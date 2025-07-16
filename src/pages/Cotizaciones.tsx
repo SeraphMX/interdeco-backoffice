@@ -1,4 +1,4 @@
-import { Button } from '@heroui/react'
+import { Button, Spinner } from '@heroui/react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { FileInput, Plus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -60,7 +60,10 @@ const Cotizaciones = () => {
   }, [quote.pendingClear, dispatch])
 
   return (
-    <div className='space-y-6 h-full flex flex-col'>
+    <div className='gap-6 h-full flex flex-col'>
+      <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
+        <Spinner size='lg' className='absolute' />
+      </div>
       <header className='flex justify-between items-start sm:items-center gap-4'>
         <QuotesFilters
           filters={{
@@ -102,7 +105,7 @@ const Cotizaciones = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, ease: 'easeInOut', delay: 0.4, type: 'spring', stiffness: 200, damping: 15 }}
-        className='flex-grow overflow-hidden shadow-small rounded-lg '
+        className='flex-grow overflow-hidden shadow-small rounded-lg relative '
         ref={tableWrapperRef}
       >
         <QuotesTable wrapperHeight={tableWrapperHeight} filterValue={filterValue} selectedStatus={selectedStatus}></QuotesTable>
