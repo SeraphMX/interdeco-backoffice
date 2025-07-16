@@ -7,12 +7,12 @@ const baseUrl = process.env.VITE_PUBLIC_BASE_URL || 'http://localhost:8888'
 
 interface SendQuoteMailProps {
   user: {
-    full_name: string
+    full_name: string | null
     reset_token: string
   }
 }
 
-const SendQuoteMail = ({ user }: SendQuoteMailProps) => (
+const ResetPasswordMail = ({ user }: SendQuoteMailProps) => (
   <Html>
     <Head />
     <Body style={main}>
@@ -38,7 +38,7 @@ const SendQuoteMail = ({ user }: SendQuoteMailProps) => (
               electrónico.
             </Text>
             <Section style={verificationSection}>
-              <Button style={button} href={baseUrl + `/reset-password/${user.reset_token}`}>
+              <Button style={button} href={baseUrl + `/cuenta/reset-password/${user.reset_token}`}>
                 Restablecer contraseña
               </Button>
             </Section>
@@ -56,9 +56,9 @@ const SendQuoteMail = ({ user }: SendQuoteMailProps) => (
   </Html>
 )
 
-export default SendQuoteMail
+export default ResetPasswordMail
 
-SendQuoteMail.PreviewProps = {
+ResetPasswordMail.PreviewProps = {
   user: {
     full_name: 'Juan Pérez',
     reset_token:

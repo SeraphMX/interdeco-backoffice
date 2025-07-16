@@ -148,7 +148,7 @@ const Login = () => {
                 <span className='text-sm'>Recordarme</span>
               </Checkbox>
               <div className='text-sm'>
-                <Link to='/cuenta/reset-password' className='font-medium text-blue-600 hover:text-blue-500'>
+                <Link to='/cuenta/recover-password' className='font-medium text-blue-600 hover:text-blue-500' viewTransition>
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>

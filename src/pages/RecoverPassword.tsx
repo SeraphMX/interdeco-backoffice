@@ -4,14 +4,13 @@ import { motion } from 'framer-motion'
 import { TriangleAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { resetPasswordMail } from '../schemas/user.schema'
+import { recoverPassowordSchema } from '../schemas/user.schema'
 import { userService } from '../services/userService'
-import { AppDispatch, RootState } from '../store'
+import { RootState } from '../store'
 
 const RecoverPassword = () => {
-  const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
   const { authError, isLoading, user } = useSelector((state: RootState) => state.auth)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -24,7 +23,7 @@ const RecoverPassword = () => {
     setError,
     formState: { errors }
   } = useForm({
-    resolver: zodResolver(resetPasswordMail),
+    resolver: zodResolver(recoverPassowordSchema),
     mode: 'onSubmit'
   })
 
@@ -44,20 +43,23 @@ const RecoverPassword = () => {
         return
       }
 
-      setTimeout(() => {
-        setIsSubmitting(false)
-        setEmailSent(true)
-        reset()
-      }, 1000)
+      await userService.sendEmail(data.email, 'password-reset')
+
+      setIsSubmitting(false)
 
       setTimeout(() => {
+        setEmailSent(true)
         navigate('/login')
-      }, 10000)
+      }, 30000)
     },
     (errors) => {
       console.error('Errores de validación:', errors)
     }
   )
+
+  const handleBack = () => {
+    navigate('/login', { viewTransition: true })
+  }
 
   // Redirigir si ya está autenticado
   useEffect(() => {
@@ -108,15 +110,20 @@ const RecoverPassword = () => {
                   )}
                 />
 
-                <Button
-                  type='submit'
-                  color='primary'
-                  className='w-full'
-                  isLoading={isSubmitting || isLoading}
-                  disabled={isSubmitting || isLoading}
-                >
-                  Recuperar contraseña
-                </Button>
+                <footer className='flex gap-4'>
+                  <Button variant='light' color='primary' className='w-full' onPress={handleBack}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    type='submit'
+                    color='primary'
+                    className='w-full'
+                    isLoading={isSubmitting || isLoading}
+                    disabled={isSubmitting || isLoading}
+                  >
+                    Recuperar contraseña
+                  </Button>
+                </footer>
               </form>
             </section>
           )}
