@@ -1,4 +1,4 @@
-import { Avatar, Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, useDisclosure } from '@heroui/react'
+import { Avatar, Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Tab, Tabs, useDisclosure } from '@heroui/react'
 import { Book, ContactRound, FileText, LogOut, Menu, UsersRound, X } from 'lucide-react'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -62,8 +62,39 @@ const Navbar = () => {
 
           {/* Desktop navigation */}
           <div className='hidden md:flex md:items-center md:space-x-4'>
-            {navItems.map((item) => (
-              <Link
+            <Tabs
+              aria-label='Options'
+              color='primary'
+              className='flex-1 '
+              variant='light'
+              classNames={{
+                cursor: 'bg-teal-500',
+                tab: 'hover:text-red-500 h-full px-4 rounded-none text-md ',
+                tabList: ' h-12 gap-0'
+              }}
+              onSelectionChange={(key) => {
+                const selectedPath = key.toString()
+                if (selectedPath) {
+                  setTimeout(() => {
+                    navigate(selectedPath)
+                  }, 400) // Delay to ensure smooth navigation
+                }
+              }}
+            >
+              {navItems.map((item) => (
+                <Tab
+                  key={item.path}
+                  title={
+                    <div className='flex items-center space-x-2 font-semibold '>
+                      <item.icon size={20} />
+                      <span>{item.label}</span>
+                    </div>
+                  }
+                />
+              ))}
+            </Tabs>
+
+            {/* <Link
                 key={item.path}
                 to={item.path}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150 hover:bg-gray-100 ${isActive(
@@ -72,9 +103,7 @@ const Navbar = () => {
               >
                 <item.icon size={20} />
                 <span>{item.label}</span>
-              </Link>
-            ))}
-
+              </Link> */}
             <Dropdown placement='bottom-end'>
               <DropdownTrigger>
                 <Avatar
