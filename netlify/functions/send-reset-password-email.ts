@@ -49,7 +49,7 @@ const handler: Handler = async (event) => {
     }
 
     const user = {
-      full_name: null, // Aquí podrías obtener el nombre del usuario si es necesario
+      full_name: null,
       reset_token: password_token
     }
 
@@ -57,12 +57,12 @@ const handler: Handler = async (event) => {
 
     console.log('Enviando correo a:', email, ' Con token:', password_token)
 
-    // await transporter.sendMail({
-    //   from: `"InterDeco" <${process.env.MAIL_USER}>`,
-    //   to: email,
-    //   subject: 'Cotización de InterDeco',
-    //   html
-    // })
+    await transporter.sendMail({
+      from: `"InterDeco" <${process.env.MAIL_USER}>`,
+      to: email,
+      subject: 'Restablece tu contraseña',
+      html
+    })
 
     return {
       statusCode: 200,

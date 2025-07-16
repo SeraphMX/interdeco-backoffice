@@ -18,18 +18,19 @@ const RecoverPassword = () => {
 
   const {
     handleSubmit,
-    reset,
     control,
     setError,
     formState: { errors }
   } = useForm({
     resolver: zodResolver(recoverPassowordSchema),
-    mode: 'onSubmit'
+    mode: 'onSubmit',
+    defaultValues: {
+      email: ''
+    }
   })
 
   const handleResetPassword = handleSubmit(
     async (data) => {
-      console.log('Recuperar contraseña de:', data)
       setIsSubmitting(true)
 
       const isRegistered = await userService.isEmailRegistered(data.email)
@@ -46,9 +47,9 @@ const RecoverPassword = () => {
       await userService.sendEmail(data.email, 'password-reset')
 
       setIsSubmitting(false)
+      setEmailSent(true)
 
       setTimeout(() => {
-        setEmailSent(true)
         navigate('/login')
       }, 30000)
     },
@@ -70,65 +71,68 @@ const RecoverPassword = () => {
 
   return (
     <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
-      <Card className='w-full max-w-md'>
-        <CardBody className='space-y-6 p-8'>
-          <img src='/branding/logo-full.svg' className='max-w-36 mx-auto' alt='' />
-
-          {eMailSent ? (
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-              <p className='text-gray-600 '>
-                Hemos enviado un correo electrónico a tu bandeja de entrada, sigue las instrucciones para restablecer tu contraseña
-              </p>
-            </motion.div>
-          ) : authError ? (
-            <Alert
-              classNames={{ alertIcon: 'fill-none', base: 'p-1' }}
-              hideIconWrapper
-              color='danger'
-              icon={<TriangleAlert />}
-              title={authError.type === 'user_banned_live' ? 'Cuenta desactivada' : 'Error al iniciar sesión'}
-              description={authError.message}
-            />
-          ) : (
-            <section className='space-y-4'>
-              <p className='text-gray-600 '>
-                Si has olvidado tu contraseña, ingresa tu correo electrónico y te enviaremos un enlace para restablecerla.
-              </p>
-
-              <form onSubmit={handleResetPassword} className='space-y-4'>
-                <Controller
-                  name='email'
-                  control={control}
-                  render={({ field }) => (
-                    <Input
-                      type='email'
-                      label='Correo electrónico'
-                      {...field}
-                      isInvalid={!!errors.email}
-                      errorMessage={errors.email?.message}
-                    />
-                  )}
-                />
-
-                <footer className='flex gap-4'>
-                  <Button variant='light' color='primary' className='w-full' onPress={handleBack}>
-                    Cancelar
-                  </Button>
-                  <Button
-                    type='submit'
-                    color='primary'
-                    className='w-full'
-                    isLoading={isSubmitting || isLoading}
-                    disabled={isSubmitting || isLoading}
-                  >
-                    Recuperar contraseña
-                  </Button>
-                </footer>
-              </form>
-            </section>
-          )}
-        </CardBody>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, type: 'spring', stiffness: 300, damping: 15 }}
+      >
+        <Card className='w-full max-w-md'>
+          <CardBody className='space-y-6 p-8'>
+            <img src='/branding/logo-full.svg' className='max-w-36 mx-auto' alt='' />
+            {eMailSent ? (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+                <p className='text-gray-600 '>
+                  Hemos enviado un correo electrónico a tu bandeja de entrada, sigue las instrucciones para restablecer tu contraseña
+                </p>
+              </motion.div>
+            ) : authError ? (
+              <Alert
+                classNames={{ alertIcon: 'fill-none', base: 'p-1' }}
+                hideIconWrapper
+                color='danger'
+                icon={<TriangleAlert />}
+                title={authError.type === 'user_banned_live' ? 'Cuenta desactivada' : 'Error al iniciar sesión'}
+                description={authError.message}
+              />
+            ) : (
+              <section className='space-y-4'>
+                <p className='text-gray-600 '>
+                  Si has olvidado tu contraseña, ingresa tu correo electrónico y te enviaremos un enlace para restablecerla.
+                </p>
+                <form onSubmit={handleResetPassword} className='space-y-4'>
+                  <Controller
+                    name='email'
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        type='email'
+                        label='Correo electrónico'
+                        {...field}
+                        isInvalid={!!errors.email}
+                        errorMessage={errors.email?.message}
+                      />
+                    )}
+                  />
+                  <footer className='flex gap-4'>
+                    <Button variant='light' color='primary' className='w-full' onPress={handleBack}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      type='submit'
+                      color='primary'
+                      className='w-full'
+                      isLoading={isSubmitting || isLoading}
+                      disabled={isSubmitting || isLoading}
+                    >
+                      Recuperar contraseña
+                    </Button>
+                  </footer>
+                </form>
+              </section>
+            )}
+          </CardBody>
+        </Card>
+      </motion.div>
     </div>
   )
 }

@@ -22,7 +22,6 @@ export const userService = {
    * @returns La respuesta del servidor al cambiar la contraseña.
    */
   async passwordReset(user: User, password: string) {
-    console.log('Cambiando contraseña para el correo:', user.email)
     try {
       const response = await fetch(`${baseUrl}/.netlify/functions/user-password-change`, {
         method: 'POST',
@@ -54,7 +53,6 @@ export const userService = {
     }
   },
   async passwordResetMail(user: User, password: string) {
-    console.log('Cambiando contraseña para el correo:', user.email)
     try {
       const response = await fetch(`${baseUrl}/.netlify/functions/user-password-change`, {
         method: 'POST',
@@ -72,8 +70,10 @@ export const userService = {
 
       addToast({
         title: 'Contraseña restablecida',
-        description: `Has cambiado tu contraseña exitosamente.`,
-        color: 'primary'
+        description: `Has cambiado tu contraseña exitosamente ya puedes usarla para iniciar sesión.`,
+        color: 'primary',
+        shouldShowTimeoutProgress: true,
+        timeout: 5000
       })
 
       return await response.json()
@@ -82,8 +82,7 @@ export const userService = {
       throw new Error('No se pudo cambiar la contraseña intentalo nuevamente.')
     }
   },
-  async passwordChange(user: User, current_password: string, new_password: string): Promise<boolean> {
-    console.log('Cambiando contraseña para el correo:', user.email)
+  async passwordChange(current_password: string, new_password: string): Promise<boolean> {
     try {
       const {
         data: { session },
@@ -167,12 +166,6 @@ export const userService = {
       throw new Error('Error al enviar el correo electrónico')
     }
 
-    addToast({
-      title: 'Correo enviado',
-      description: `Se ha enviado un correo electrónico a ${email} para restablecer la contraseña.`,
-      color: 'primary'
-    })
-
     return await response.json()
   },
   async verifyResetPasswordToken(token: string): Promise<{ verifiedUser?: User; error?: string }> {
@@ -191,13 +184,10 @@ export const userService = {
         const errorText = await response.text()
 
         if (errorText.includes('expired')) {
-          console.log('El token está expirado')
           return { error: 'El token ha expirado. Por favor, solicita un nuevo restablecimiento de contraseña.' }
         } else if (errorText.includes('invalid')) {
-          console.log('Token inválido:', errorText)
           return { error: 'Token inválido. Por favor, verifica el enlace o solicita un nuevo restablecimiento de contraseña.' }
         } else {
-          console.log('Error al verificar el token:', errorText)
           return { error: 'Error al verificar el token. Por favor, intenta nuevamente más tarde.' }
         }
       }

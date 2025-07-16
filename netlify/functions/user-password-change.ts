@@ -12,6 +12,8 @@ const handler: Handler = async (event) => {
   try {
     const { id, password } = JSON.parse(event.body || '{}')
 
+    console.log('Datos recibidos:', { id, password })
+
     if (!id || !password) {
       return {
         statusCode: 400,

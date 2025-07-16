@@ -45,11 +45,11 @@ const ResetPasswordMail = ({ user }: SendQuoteMailProps) => (
           </Section>
         </Section>
         <Text style={footerText}>
-          Este mensaje fue enviado por <Link href='https://interdeco.mx'>InterDeco</Link>, si usted no es el destinatario previsto, le
-          pedimos eliminarlo y notificar al remitente. Consulta nuestro{' '}
-          <Link href={`https://interdeco.mx/privacidad`}>aviso de privacidad</Link> para conocer cómo protegemos tus datos. Esta
-          comunicación es confidencial y puede contener información comercial o técnica dirigida únicamente al destinatario. InterDeco no
-          asume responsabilidad por decisiones basadas en información incompleta, fuera de contexto o modificada.
+          <strong>El enlace es válido solo por 15 minutos.</strong> Este mensaje fue enviado por{' '}
+          <Link href='https://interdeco.mx'>InterDeco</Link>, si usted no es el destinatario previsto, le pedimos eliminarlo y notificar al
+          remitente. Consulta nuestro <Link href={`https://interdeco.mx/privacidad`}>aviso de privacidad</Link> para conocer cómo protegemos
+          tus datos. Esta comunicación es confidencial y puede contener información comercial o técnica dirigida únicamente al destinatario.
+          InterDeco no asume responsabilidad por decisiones basadas en información incompleta, fuera de contexto o modificada.
         </Text>
       </Container>
     </Body>
