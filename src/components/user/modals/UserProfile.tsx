@@ -18,6 +18,7 @@ const UserProfile = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
   const dispatch = useDispatch()
   const { user } = useSelector((state: RootState) => state.auth)
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const [emailNotifications, setEmailNotifications] = useState(user?.email_notifications || false)
   const [quotesExpire, setQuotesExpire] = useState(user?.quotes_expire || 10)
@@ -52,45 +53,57 @@ const UserProfile = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
     }
   })
 
-  const handleUpdateProfileData = submitFormData(async (data) => {
-    if (!data) return
+  const handleUpdateProfileData = submitFormData(
+    async (data) => {
+      if (!data) return
+      setLoading(true)
 
-    await userService.updateUser({
-      ...user,
-      full_name: data.full_name,
-      phone: data.phone,
-      email: user?.email || '',
-      role: user?.role || 'staff'
-    })
+      await userService.updateUser({
+        ...user,
+        full_name: data.full_name,
+        phone: data.phone,
+        email: user?.email || '',
+        role: user?.role || 'staff'
+      })
 
-    addToast({
-      title: 'Perfil actualizado',
-      description: 'Los datos de tu perfil han sido actualizados correctamente.',
-      color: 'primary'
-    })
-  })
+      addToast({
+        title: 'Perfil actualizado',
+        description: 'Los datos de tu perfil han sido actualizados correctamente.',
+        color: 'primary'
+      })
+
+      setLoading(false)
+    },
+    async (errors) => {
+      console.error('Errores de validación:', errors)
+      setLoading(false)
+    }
+  )
 
   const handleUpdatePassword = submitFormPassword(async (data) => {
     const { current_password, new_password } = data
+    setLoading(true)
 
     if (user) {
-      const newPasswordSet = await userService.passwordChange(user, current_password, new_password)
+      const newPasswordSet = await userService.passwordChange(current_password, new_password)
       if (!newPasswordSet) {
         setFormPasswordError('current_password', {
           type: 'manual',
           message: 'La contraseña actual es incorrecta. '
         })
+        setLoading(false)
 
         return
       }
       console.log('Contraseña actualizada exitosamente')
       setShowPassword(false)
     }
+
+    setLoading(false)
   })
 
   const handleUpdateSettings = async () => {
-    // Aquí puedes manejar la actualización de los ajustes del usuario
-    console.log('Ajustes actualizados')
+    setLoading(true)
     if (user) {
       await userService.updateSettings(user, {
         email_notifications: emailNotifications,
@@ -107,6 +120,7 @@ const UserProfile = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
     } else {
       console.error('User is null. Cannot update settings.')
     }
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -145,6 +159,7 @@ const UserProfile = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
                     <Input
                       label='Teléfono'
                       type='tel'
+                      maxLength={10}
                       {...formData('phone')}
                       isInvalid={!!formDataErrors.phone}
                       errorMessage={formDataErrors.phone?.message}
@@ -154,7 +169,7 @@ const UserProfile = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
                       <Button color='primary' variant='light' onPress={onClose}>
                         Cerrar
                       </Button>
-                      <Button color='primary' type='submit'>
+                      <Button color='primary' type='submit' isLoading={loading} disabled={loading}>
                         Guardar cambios
                       </Button>
                     </footer>
@@ -206,7 +221,7 @@ const UserProfile = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
                       <Button color='primary' variant='light' onPress={onClose}>
                         Cerrar
                       </Button>
-                      <Button color='primary' type='submit'>
+                      <Button color='primary' type='submit' isLoading={loading} disabled={loading}>
                         Guardar cambios
                       </Button>
                     </footer>
@@ -239,7 +254,7 @@ const UserProfile = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
                       <Button color='primary' variant='light' onPress={onClose}>
                         Cerrar
                       </Button>
-                      <Button color='primary' onPress={handleUpdateSettings}>
+                      <Button color='primary' onPress={handleUpdateSettings} isLoading={loading} disabled={loading}>
                         Guardar cambios
                       </Button>
                     </footer>

@@ -83,7 +83,8 @@ const Navbar = () => {
                   className='transition-transform'
                   color='primary'
                   size='sm'
-                  src='https://i.pravatar.cc/150?u=a042581f4e29026704d'
+                  src={`https://api.dicebear.com/9.x/thumbs/svg?seed=${user?.full_name || 'User'}`}
+                  alt='avatar'
                 />
               </DropdownTrigger>
               <DropdownMenu aria-label='Profile Actions' variant='flat'>

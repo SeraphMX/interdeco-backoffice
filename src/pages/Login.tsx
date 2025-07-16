@@ -1,5 +1,6 @@
 import { Alert, Button, Card, CardBody, Checkbox, Input, Tab, Tabs } from '@heroui/react'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { motion } from 'framer-motion'
 import { Eye, EyeOff, TriangleAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
@@ -25,7 +26,11 @@ const Login = () => {
     formState: { errors }
   } = useForm({
     resolver: zodResolver(loginUserForm),
-    mode: 'onSubmit'
+    mode: 'onSubmit',
+    defaultValues: {
+      email: '',
+      password: ''
+    }
   })
 
   const handleUserSelect = (key: string) => {
@@ -51,7 +56,7 @@ const Login = () => {
   useEffect(() => {
     setSelectedUser('admin')
     dispatch(clearQuotes())
-  }, [])
+  }, [dispatch])
 
   useEffect(() => {
     console.log('resetting form for selectedUser:', selectedUser)
@@ -77,88 +82,96 @@ const Login = () => {
 
   return (
     <div className='min-h-screen bg-gray-50 flex items-center justify-center p-4'>
-      <Card className='w-full max-w-md'>
-        <CardBody className='space-y-6 p-8'>
-          <img src='/branding/logo-full.svg' className='max-w-36 mx-auto' alt='' />
-
-          {authError ? (
-            <Alert
-              classNames={{ alertIcon: 'fill-none', base: 'p-1' }}
-              hideIconWrapper
-              color='danger'
-              icon={<TriangleAlert />}
-              title={authError.type === 'user_banned_live' ? 'Cuenta desactivada' : 'Error al iniciar sesión'}
-              description={authError.message}
-            />
-          ) : (
-            <p className=' text-gray-600 text-center'>Inicia sesión para continuar</p>
-          )}
-
-          <Tabs
-            selectedKey={selectedUser}
-            onSelectionChange={(key) => handleUserSelect(key as string)}
-            variant='bordered'
-            fullWidth
-            color='primary'
-          >
-            {/* <Tab key="none" title="Manual" /> */}
-            <Tab key='admin' title='Admin Demo' />
-            <Tab key='staff' title='Staff Demo' />
-          </Tabs>
-
-          <form onSubmit={handleSignIn} className='space-y-4'>
-            <Controller
-              name='email'
-              control={control}
-              render={({ field }) => (
-                <Input type='email' label='Correo electrónico' {...field} isInvalid={!!errors.email} errorMessage={errors.email?.message} />
-              )}
-            />
-
-            <Controller
-              name='password'
-              control={control}
-              render={({ field }) => (
-                <Input
-                  label='Contraseña'
-                  type={showPassword ? 'text' : 'password'}
-                  {...field}
-                  isInvalid={!!errors.password}
-                  errorMessage={errors.password?.message}
-                  endContent={
-                    <button
-                      type='button'
-                      onClick={() => setShowPassword(!showPassword)}
-                      className='absolute inset-y-0 right-0 pr-3 flex items-center'
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff className='h-5 w-5 text-gray-400' /> : <Eye className='h-5 w-5 text-gray-400' />}
-                    </button>
-                  }
-                />
-              )}
-            />
-
-            <div className='flex items-center justify-between'>
-              <Checkbox
-                isSelected={rememberMe}
-                onValueChange={setRememberMe}
-                //isDisabled={isLoading || !userCanLogin}
-              >
-                <span className='text-sm'>Recordarme</span>
-              </Checkbox>
-              <div className='text-sm'>
-                <Link to='/cuenta/recover-password' className='font-medium text-blue-600 hover:text-blue-500' viewTransition>
-                  ¿Olvidaste tu contraseña?
-                </Link>
+      <motion.div
+        className='w-full max-w-md'
+        initial={{ opacity: 0, y: 20, scale: 0.8 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.3, type: 'spring', stiffness: 300, damping: 20 }}
+      >
+        <Card>
+          <CardBody className='space-y-6 p-8'>
+            <img src='/branding/logo-full.svg' className='max-w-36 mx-auto' alt='' />
+            {authError ? (
+              <Alert
+                classNames={{ alertIcon: 'fill-none', base: 'p-1' }}
+                hideIconWrapper
+                color='danger'
+                icon={<TriangleAlert />}
+                title={authError.type === 'user_banned_live' ? 'Cuenta desactivada' : 'Error al iniciar sesión'}
+                description={authError.message}
+              />
+            ) : (
+              <p className=' text-gray-600 text-center'>Inicia sesión para continuar</p>
+            )}
+            <Tabs
+              selectedKey={selectedUser}
+              onSelectionChange={(key) => handleUserSelect(key as string)}
+              variant='bordered'
+              fullWidth
+              color='primary'
+            >
+              {/* <Tab key="none" title="Manual" /> */}
+              <Tab key='admin' title='Admin Demo' />
+              <Tab key='staff' title='Staff Demo' />
+            </Tabs>
+            <form onSubmit={handleSignIn} className='space-y-4'>
+              <Controller
+                name='email'
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    type='email'
+                    label='Correo electrónico'
+                    {...field}
+                    isInvalid={!!errors.email}
+                    errorMessage={errors.email?.message}
+                  />
+                )}
+              />
+              <Controller
+                name='password'
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    label='Contraseña'
+                    type={showPassword ? 'text' : 'password'}
+                    {...field}
+                    isInvalid={!!errors.password}
+                    errorMessage={errors.password?.message}
+                    endContent={
+                      <button
+                        type='button'
+                        onClick={() => setShowPassword(!showPassword)}
+                        className='absolute inset-y-0 right-0 pr-3 flex items-center'
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <EyeOff className='h-5 w-5 text-gray-400' /> : <Eye className='h-5 w-5 text-gray-400' />}
+                      </button>
+                    }
+                  />
+                )}
+              />
+              <div className='flex items-center justify-between'>
+                <Checkbox
+                  isSelected={rememberMe}
+                  onValueChange={setRememberMe}
+                  //isDisabled={isLoading || !userCanLogin}
+                >
+                  <span className='text-sm'>Recordarme</span>
+                </Checkbox>
+                <div className='text-sm'>
+                  <Link to='/cuenta/recover-password' className='font-medium text-blue-600 hover:text-blue-500' viewTransition>
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
               </div>
-            </div>
-            <Button type='submit' color='primary' className='w-full'>
-              Iniciar sesión
-            </Button>
-          </form>
-        </CardBody>
-      </Card>
+              <Button type='submit' color='primary' className='w-full'>
+                Iniciar sesión
+              </Button>
+            </form>
+          </CardBody>
+        </Card>
+      </motion.div>
     </div>
   )
 }
