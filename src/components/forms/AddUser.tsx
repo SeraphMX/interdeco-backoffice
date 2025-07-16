@@ -32,9 +32,9 @@ const AddUser = ({ onSuccess }: AddCustomerProps) => {
     defaultValues: {
       id: selectedUser?.id || selectedUser?.id,
       role: selectedUser?.role || 'staff',
-      full_name: selectedUser?.full_name || 'Prueba',
-      phone: selectedUser?.phone || '1234567890',
-      email: selectedUser?.email || 'staff@interdeco.mx',
+      full_name: selectedUser?.full_name || '',
+      phone: selectedUser?.phone || '',
+      email: selectedUser?.email || '',
       password: password
     }
   })
