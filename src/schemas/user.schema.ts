@@ -56,13 +56,19 @@ export const resetPasswordMail = z
       .string({ required_error: 'El correo electrónico es requerido' })
       .min(1, { message: 'El correo electrónico es requerido' })
       .email({ message: 'El correo electrónico no es válido' }),
-    password: z.string().min(8, { message: 'Mínimo 8 caracteres' }).max(100),
-    password2: z.string().nonempty({ message: 'Debes confirmar tu contraseña' })
+    password: z.string({ required_error: 'La contraseña es requerida' }).min(8, { message: 'Mínimo 8 caracteres' }).max(100),
+    password2: z.string({ required_error: 'Debes confirmar tu contraseña' }).nonempty({ message: 'Debes confirmar tu contraseña' })
   })
   .refine((data) => data.password === data.password2, {
     message: 'Las contraseñas no coinciden',
     path: ['password2']
   })
+export const recoverPassowordSchema = z.object({
+  email: z
+    .string({ required_error: 'El correo electrónico es requerido' })
+    .min(1, { message: 'El correo electrónico es requerido' })
+    .email({ message: 'El correo electrónico no es válido' })
+})
 
 export type VerifyEmail = z.infer<typeof resetPasswordMail>
 

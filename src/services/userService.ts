@@ -1,7 +1,7 @@
 import { addToast } from '@heroui/react'
 import { supabase } from '../lib/supabase'
 import { User } from '../schemas/user.schema'
-import { EmailActions, Profile, SignInParams, SignUpParams } from '../types'
+import { EmailActions, Profile, SignInParams } from '../types'
 
 const baseUrl = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://localhost:8888'
 export const userService = {
@@ -11,12 +11,12 @@ export const userService = {
    * @returns `true` si el correo está registrado, `false` en caso contrario.
    */
   async isEmailRegistered(email: string): Promise<boolean> {
-    const { data, error } = await supabase.rpc('is_email_registered', { p_email: email })
+    const { data, error } = await supabase.rpc('is_email_registered', { check_email: email })
     if (error) throw new Error(error.message || 'Error al consultar la base de datos.')
     return !!data
   },
   /**
-   * Cambia la contraseña del usuario.
+   * Resetea la contraseña del usuario desde el panel de administracion, copia el password al portapapels
    * @param email - El correo electrónico del usuario.
    * @param password - La nueva contraseña del usuario.
    * @returns La respuesta del servidor al cambiar la contraseña.
@@ -51,6 +51,35 @@ export const userService = {
     } catch (error) {
       console.error('[passwordReset]:', error)
       throw new Error('No se pudo cambiar la contraseña. Verifica los datos e intenta nuevamente.')
+    }
+  },
+  async passwordResetMail(user: User, password: string) {
+    console.log('Cambiando contraseña para el correo:', user.email)
+    try {
+      const response = await fetch(`${baseUrl}/.netlify/functions/user-password-change`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: user.id, password })
+      })
+      if (!response.ok) {
+        throw new Error('Error al cambiar la contraseña')
+      }
+
+      //this.sendEmail(email, 'password-changed')
+      console.log('Contraseña cambiada y correo enviado a:', user.email)
+
+      addToast({
+        title: 'Contraseña restablecida',
+        description: `Has cambiado tu contraseña exitosamente.`,
+        color: 'primary'
+      })
+
+      return await response.json()
+    } catch (error) {
+      console.error('[passwordResetMail]:', error)
+      throw new Error('No se pudo cambiar la contraseña intentalo nuevamente.')
     }
   },
   async passwordChange(user: User, current_password: string, new_password: string): Promise<boolean> {
@@ -108,13 +137,11 @@ export const userService = {
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
   async sendEmail(email: string, action: EmailActions, props?: Record<string, any>) {
     console.log('Enviando correo electrónico:', email, 'con acción:', action)
+    const baseUrl = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://localhost:8888'
 
     const endPoints = {
-      'create-account': '/api/mail/send-register-email',
-      'verify-account': '/api/mail/send-welcome-email',
-      'password-reset': '/api/mail/send-password-reset-email',
-      'password-changed': '/api/mail/send-password-changed-email',
-      'purchase-confirmation': '/api/mail/send-purchase-confirmation-email'
+      'password-reset': `send-reset-password-email`,
+      'password-changed': 'send-password-changed-email'
     }
 
     if (!endPoints[action]) {
@@ -128,9 +155,7 @@ export const userService = {
       bodyProps = { email, ...props }
     }
 
-    //console.log('Endpoint para enviar correo:', endPoints[action])
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}${endPoints[action]}`, {
+    const response = await fetch(`${baseUrl}/.netlify/functions/${endPoints[action]}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -142,52 +167,52 @@ export const userService = {
       throw new Error('Error al enviar el correo electrónico')
     }
 
-    return await response.json()
-  },
-  /**
-   * Verifica el correo electrónico del usuario llamando a una función de Supabase.
-   * @param email - El correo electrónico a verificar.
-   */
-  async verifyEmail(email: string) {
-    console.log('Verificando correo electrónico:', email)
-    const { data, error } = await supabase.rpc('verify_email', { p_email: email })
-    if (error) throw new Error(error.message || 'Error al consultar la base de datos.')
-    console.log('Resultado de la verificación:', data)
-  },
-  /**
-   * Registra un nuevo usuario y crea su perfil en la base de datos.
-   * @param email - Correo electrónico del usuario.
-   * @param password - Contraseña del usuario.
-   * @param metadata - Metadatos adicionales del usuario.
-   */
-  async signUp({ email, password, metadata }: SignUpParams) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata
-      }
+    addToast({
+      title: 'Correo enviado',
+      description: `Se ha enviado un correo electrónico a ${email} para restablecer la contraseña.`,
+      color: 'primary'
     })
 
-    if (error) throw error
-
-    // Insertar datos en la tabla 'profiles' si el usuario se creó correctamente
-    if (data.user) {
-      const metadata = data.user.user_metadata
-
-      const { error: insertError } = await supabase.from('profiles').insert({
-        id: data.user.id,
-        full_name: metadata?.full_name,
-        phone: metadata?.phone || ''
-      })
-      if (insertError) throw insertError
-
-      // Enviar correo de bienvenida
-      await this.sendEmail(email, 'verify-account')
-    }
-
-    return data
+    return await response.json()
   },
+  async verifyResetPasswordToken(token: string): Promise<{ verifiedUser?: User; error?: string }> {
+    const baseUrl = import.meta.env.VITE_PUBLIC_BASE_URL || 'http://localhost:8888'
+
+    try {
+      const response = await fetch(`${baseUrl}/.netlify/functions/verify-reset-password-token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ token })
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+
+        if (errorText.includes('expired')) {
+          console.log('El token está expirado')
+          return { error: 'El token ha expirado. Por favor, solicita un nuevo restablecimiento de contraseña.' }
+        } else if (errorText.includes('invalid')) {
+          console.log('Token inválido:', errorText)
+          return { error: 'Token inválido. Por favor, verifica el enlace o solicita un nuevo restablecimiento de contraseña.' }
+        } else {
+          console.log('Error al verificar el token:', errorText)
+          return { error: 'Error al verificar el token. Por favor, intenta nuevamente más tarde.' }
+        }
+      }
+      const data = await response.json()
+      return {
+        verifiedUser: data as User
+      }
+    } catch (error) {
+      console.error('Excepción al verificar el token:', error)
+      return {
+        error: 'Ocurrió un error inesperado al verificar el token. Revisa tu conexión o intenta más tarde.'
+      }
+    }
+  },
+
   async createUser(user: User) {
     try {
       const response = await fetch(`${baseUrl}/.netlify/functions/user-create`, {

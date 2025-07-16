@@ -103,13 +103,12 @@ export interface Customer {
 }
 
 export type EmailTemplate = 'register' | 'welcome' | 'purchaseConfirmation' | 'passwordReset' | 'passwordChangedConfirmation'
-export type EmailActions = 'create-account' | 'verify-account' | 'password-reset' | 'password-changed' | 'purchase-confirmation'
-
+export type EmailActions = 'password-reset' | 'password-changed'
 export type EmailProps = {
   to: string
   subject: string
   template: EmailTemplate
-  props: any
+  props: Record<string, any>
 }
 
 export interface SignUpParams {
