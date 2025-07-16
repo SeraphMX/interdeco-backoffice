@@ -33,7 +33,7 @@ const QuoteStatusChip = ({ quote, onSuccess }: QuoteStatusProps) => {
     setLoading(false)
   }, [quote.status])
 
-  if (!['sent', 'accepted', 'opened'].includes(quote.status) || !user?.role || user.role !== 'admin') {
+  if (!['sent', 'accepted', 'opened'].includes(quote.status) || user?.role !== 'admin') {
     return (
       <Chip className='capitalize' variant='bordered' color={quoteStatus.find((s) => s.key === quote.status)?.color as uiColors}>
         {quoteStatus.find((s) => s.key === quote.status)?.label}

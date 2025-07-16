@@ -1,5 +1,5 @@
 import { Button } from '@heroui/react'
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { FileInput, Plus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { isMobile } from 'react-device-detect'
@@ -51,10 +51,13 @@ const Cotizaciones = () => {
   }, [])
 
   useEffect(() => {
-    if (quote.data.status !== 'open') {
-      dispatch(clearQuote())
+    if (quote.pendingClear) {
+      const timeout = setTimeout(() => {
+        dispatch(clearQuote())
+      }, 200)
+      return () => clearTimeout(timeout)
     }
-  }, [quote.data, dispatch])
+  }, [quote.pendingClear, dispatch])
 
   return (
     <div className='space-y-6 h-full flex flex-col'>
@@ -72,12 +75,21 @@ const Cotizaciones = () => {
           }}
         />
         <section className='flex items-center gap-2'>
-          {(quote.data.items ?? []).length > 0 && (
-            <Button onPress={() => navigate('/cotizaciones/nueva')} color='secondary' variant='ghost' isIconOnly={isMobile}>
-              <FileInput size={20} />
-              {!isMobile && 'Continuar'}
-            </Button>
-          )}
+          <AnimatePresence>
+            {(quote.data.items ?? []).length > 0 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, scale: 0.9, y: 50 }}
+                transition={{ duration: 0.1, type: 'spring', stiffness: 200, damping: 15 }}
+              >
+                <Button onPress={() => navigate('/cotizaciones/nueva')} color='secondary' variant='ghost' isIconOnly={isMobile}>
+                  <FileInput size={20} />
+                  {!isMobile && 'Continuar'}
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <Button onPress={handleNewQuote} color='primary' variant='ghost'>
             <Plus size={20} />

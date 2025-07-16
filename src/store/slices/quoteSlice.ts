@@ -8,6 +8,7 @@ export interface QuoteState {
   itemsLoaded: boolean
   isPublicAccess: boolean
   stackItems: boolean
+  pendingClear: boolean
 
   selectedItem: QuoteItem | null
   data: Quote
@@ -20,6 +21,7 @@ const initialState: QuoteState = {
   itemsLoaded: false,
   isPublicAccess: false,
   stackItems: false,
+  pendingClear: false,
   data: {
     id: null,
     customer_id: null,
@@ -116,6 +118,9 @@ const quoteSlice = createSlice({
       state.data.status = action.payload
     },
     clearQuote: () => initialState,
+    setPendingClearQuote: (state, action) => {
+      state.pendingClear = action.payload
+    },
     setQuote: (state, action: PayloadAction<Quote | undefined>) => {
       if (!action.payload) {
         return
@@ -146,6 +151,7 @@ export const {
   setQuoteTotal,
   setQuoteStatus,
   clearQuote,
+  setPendingClearQuote,
   setQuote,
   setPublicAccess
 } = quoteSlice.actions

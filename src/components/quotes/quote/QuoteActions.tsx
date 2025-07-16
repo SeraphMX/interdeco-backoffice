@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { quoteService } from '../../../services/quoteService'
 import { RootState } from '../../../store'
-import { clearQuote, setQuote, setQuoteStatus } from '../../../store/slices/quoteSlice'
+import { clearQuote, setPendingClearQuote, setQuote, setQuoteStatus } from '../../../store/slices/quoteSlice'
 import { getQuoteID } from '../../../utils/strings'
 import ActionButton from '../../shared/ActionButton'
 import ModalConfirmDeleteQuote from '../modals/ModalConfirmDeleteQuote'
@@ -122,6 +122,7 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
 
   const handleCloseQuote = () => {
     navigate(-1) // Regresa a la página anterior
+    dispatch(setPendingClearQuote(true))
   }
 
   const handleSendQuote = () => {

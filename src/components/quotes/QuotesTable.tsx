@@ -263,7 +263,7 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
                           Eliminar
                         </DropdownItem>
                       ) : null}
-                      {['accepted', 'rejected'].includes(quote.status) ? (
+                      {['paid', 'rejected'].includes(quote.status) ? (
                         <DropdownItem
                           key='archive'
                           className='text-danger'
