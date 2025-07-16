@@ -1,4 +1,5 @@
 import { Button, Card, CardBody, CardHeader, Select, SelectItem, Spinner, Tab, Tabs } from '@heroui/react'
+import { motion } from 'framer-motion'
 import { FileText, Package, TrendingUp, Users } from 'lucide-react'
 import { useState } from 'react'
 import { isMobile } from 'react-device-detect'
@@ -75,6 +76,20 @@ const Dashboard = () => {
   }
 
   const expiringQuotes = getExpiringQuotes()
+
+  const containerVariants = {
+    hidden: {},
+    show: {
+      transition: {
+        staggerChildren: 0.15 // tiempo entre cada hijo
+      }
+    }
+  }
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: -20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4, type: 'spring', stiffness: 200, damping: 15 } }
+  }
   return (
     <section className='space-y-6 flex flex-col h-full '>
       <header className='flex items-center justify-between '>
@@ -91,9 +106,14 @@ const Dashboard = () => {
       </header>
 
       {/* Stats Cards */}
-      <div className='grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6'>
+      <motion.div
+        className='grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6'
+        variants={containerVariants}
+        initial='hidden'
+        animate='show'
+      >
         {stats.map((stat) => (
-          <div key={stat.title} className='bg-white rounded-lg shadow p-3 md:p-4'>
+          <motion.div key={stat.title} variants={itemVariants} className='bg-white rounded-lg shadow p-3 md:p-4'>
             <div className='flex items-center'>
               <div className={`${stat.color} p-3 sm:p-4 rounded-lg`}>
                 <stat.icon className='h-6 w-6 text-white' />
@@ -101,17 +121,23 @@ const Dashboard = () => {
               <div className='ml-3'>
                 <p className='text-sm font-medium text-gray-500'>{stat.title}</p>
                 <p className='text-lg font-semibold text-gray-900'>
-                  <CountUp value={stat.value} type={stat.type ? stat.type : 'number'} />
+                  <CountUp value={stat.value} type={stat.type ?? 'number'} />
                 </p>
               </div>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
 
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:flex-grow lg:min-h-0 pb-6 lg:pb-0'>
+      <motion.div
+        layout
+        className='grid grid-cols-1 lg:grid-cols-2 gap-6 lg:flex-grow lg:min-h-0 pb-6 lg:pb-0'
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: 'easeInOut', delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
+      >
         {/* Sección de Cotizaciones con Tabs */}
-        <Card className='shadow-medium max-h-[590px] sm:max-h-max'>
+        <Card className='shadow-medium max-h-[590px] sm:max-h-max '>
           <CardHeader className='pb-1 flex flex-col'>
             <div className='flex items-center justify-between w-full'>
               <div>
@@ -150,8 +176,8 @@ const Dashboard = () => {
               <Tab key='total' title='Historial'></Tab>
             </Tabs>
           </CardHeader>
-          <CardBody className='space-y-4  overflow-y-auto'>
-            <div className=''>
+          <CardBody className='space-y-4  overflow-y-auto h-full'>
+            <div className={` ${loading && 'h-full flex items-center justify-center'} gap-6`}>
               {selectedQuoteTab === 'ultimas' && (
                 <div className='space-y-4 text-center'>
                   {loading && <Spinner className='my-8' size='lg' color='primary' label='Cargando cotizaciones...' />}
@@ -224,7 +250,7 @@ const Dashboard = () => {
             </div>
           </CardBody>
         </Card>
-      </div>
+      </motion.div>
 
       {/* Resumen adicional */}
       {/* <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>

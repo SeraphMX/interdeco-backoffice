@@ -132,7 +132,7 @@ const UserProfile = ({ isOpen, onOpenChange }: ModalPaymentProps) => {
   }, [isOpen, resetFormPassword])
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange} backdrop='blur'>
       <ModalContent>
         {(onClose) => (
           <>
