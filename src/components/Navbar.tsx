@@ -1,4 +1,4 @@
-import { Avatar, Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger } from '@heroui/react'
+import { Avatar, Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, useDisclosure } from '@heroui/react'
 import { Book, ContactRound, FileText, LogOut, Menu, UsersRound, X } from 'lucide-react'
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
@@ -6,6 +6,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useSessionGuard } from '../hooks/userSessionGuard'
 import { AppDispatch, RootState } from '../store'
 import { logoutUser } from '../store/slices/authSlice'
+import UserProfile from './user/modals/UserProfile'
 
 const Navbar = () => {
   const location = useLocation()
@@ -13,6 +14,7 @@ const Navbar = () => {
   const dispatch = useDispatch<AppDispatch>()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { user } = useSelector((state: RootState) => state.auth)
+  const { isOpen, onOpenChange, onOpen } = useDisclosure()
 
   useSessionGuard()
 
@@ -81,7 +83,8 @@ const Navbar = () => {
                   className='transition-transform'
                   color='primary'
                   size='sm'
-                  src='https://i.pravatar.cc/150?u=a042581f4e29026704d'
+                  src={`https://api.dicebear.com/9.x/thumbs/svg?seed=${user?.full_name || 'User'}`}
+                  alt='avatar'
                 />
               </DropdownTrigger>
               <DropdownMenu aria-label='Profile Actions' variant='flat'>
@@ -89,7 +92,9 @@ const Navbar = () => {
                   <p className='font-semibold'>{user?.full_name}</p>
                   <p className='font-semibold'>{user?.email}</p>
                 </DropdownItem>
-                <DropdownItem key='settings'>Mi perfil</DropdownItem>
+                <DropdownItem key='settings' onPress={onOpen}>
+                  Mi perfil
+                </DropdownItem>
                 <DropdownItem key='logout' color='danger' onPress={handleLogout}>
                   Cerrar sesión
                 </DropdownItem>
@@ -129,6 +134,7 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+      <UserProfile isOpen={isOpen} onOpenChange={onOpenChange} />
     </nav>
   )
 }
