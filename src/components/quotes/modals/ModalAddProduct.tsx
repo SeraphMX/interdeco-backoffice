@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { z } from 'zod'
+import { quoteService } from '../../../services/quoteService'
 import { RootState } from '../../../store'
 import { clearSelectedProduct } from '../../../store/slices/productsSlice'
 import { addItem, clearCalculatedArea } from '../../../store/slices/quoteSlice'
@@ -71,14 +72,13 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
         )
         const subtotal = pricePerPackage * packagesRequired
         dispatch(
-          addItem({
-            product: selectedProduct,
-            requiredQuantity: requestedQuantity, // Lo que pidió el usuario (en m²)
-            totalQuantity, // Lo que realmente se va a entregar
-            packagesRequired, // (opcional) para mostrar cuántos paquetes se requieren
-            subtotal // Calcula el subtotal basado en el precio por paquete
-            //(item.product?.price * (1 + item.product.utility / 100) * item.product.package_unit)
-          })
+          addItem(
+            quoteService.buildQuoteItem({
+              product: selectedProduct,
+              requiredQuantity: requestedQuantity // Lo que pidió el usuario (en m²)
+              //(item.product?.price * (1 + item.product.utility / 100) * item.product.package_unit)
+            })
+          )
         )
 
         dispatch(clearSelectedProduct())

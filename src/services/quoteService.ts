@@ -1,11 +1,13 @@
 import { addToast } from '@heroui/react'
 import { clone } from 'lodash'
+import { v4 as uuidv4 } from 'uuid'
 import { supabase } from '../lib/supabase'
 import { Product, Quote, QuoteItem, QuoteItemDB, QuoteLogItem, QuoteStatus } from '../types'
 
 export type DiscountType = 'percentage' | 'fixed'
 
 export interface QuoteItemOptions {
+  uid?: string // Identificador único para el item en el estado
   product: Product | undefined
   requiredQuantity: number
   discount?: number
@@ -17,24 +19,33 @@ export interface QuoteItemOptions {
 const round = (num: number, decimals = 2) => Number(num.toFixed(decimals))
 
 export const quoteService = {
-  buildQuoteItem({ product, requiredQuantity, discount = 0, discountType = 'percentage' }: QuoteItemOptions): QuoteItem {
-    const packageUnit = product.package_unit ?? 1
+  buildQuoteItem({
+    uid,
+    product,
+    requiredQuantity,
+    discount = 0,
+    discountType = 'percentage'
+  }: Partial<QuoteItemOptions> & { product: Product; requiredQuantity: number }): QuoteItem {
+    const rawPrice = product?.price ?? 0
+    const utilityFactor = 1 + (product?.utility ?? 0) / 100
+    const packageUnit = product?.package_unit ?? 1
+
+    const unitPrice = round(rawPrice * utilityFactor) // redondeamos el precio por unidad con utilidad
+    const pricePerPackage = round(unitPrice * packageUnit)
 
     const packagesRequired = packageUnit > 1 ? Math.ceil(requiredQuantity / packageUnit) : requiredQuantity
-
     const totalQuantity = packageUnit > 1 ? packagesRequired * packageUnit : requiredQuantity
 
-    const unitPrice = (product.price ?? 0) * (1 + (product.utility ?? 0) / 100) * packageUnit
-    const originalSubtotal = round(unitPrice * packagesRequired)
+    const originalSubtotal = round(pricePerPackage * packagesRequired)
 
     let subtotal = originalSubtotal
 
-    //TODO:Revisar descuentos globales
     if (discount > 0) {
       subtotal = discountType === 'percentage' ? round(originalSubtotal * (1 - discount / 100)) : round(originalSubtotal - discount)
     }
 
     return {
+      uid: uid ?? uuidv4(),
       product,
       requiredQuantity,
       packagesRequired,
