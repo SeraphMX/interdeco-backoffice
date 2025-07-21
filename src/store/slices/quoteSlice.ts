@@ -77,7 +77,7 @@ const quoteSlice = createSlice({
       }
     },
     updateItem: (state, action: PayloadAction<QuoteItem>) => {
-      const index = (state.data.items ?? []).findIndex((i) => i.product?.id === action.payload.product?.id)
+      const index = (state.data.items ?? []).findIndex((item) => item.uid === action.payload.uid)
       if (index !== -1) {
         const updated = quoteService.buildQuoteItem({
           product: action.payload.product, // Provide a default Product object
@@ -94,7 +94,7 @@ const quoteSlice = createSlice({
     },
 
     removeItem: (state, action: PayloadAction<QuoteItem>) => {
-      const itemIndex = (state.data.items ?? []).findIndex((item) => item.product?.id === action.payload.product?.id)
+      const itemIndex = (state.data.items ?? []).findIndex((item) => item.uid === action.payload.uid)
       if (itemIndex !== -1) {
         ;(state.data.items ?? []).splice(itemIndex, 1)
       }

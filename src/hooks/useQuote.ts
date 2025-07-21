@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { v4 as uuidv4 } from 'uuid'
 import { quoteService } from '../services/quoteService'
 import { RootState } from '../store'
 import { setItems, setItemsLoaded, setSelectedCustomer } from '../store/slices/quoteSlice'
@@ -28,6 +29,7 @@ export const useQuote = () => {
       const response = await quoteService.getQuoteItems(quoteId)
       if (response.success && response.items && isMounted) {
         const items = response.items.map((item) => ({
+          uid: uuidv4(), // Aseguramos que cada item tenga un uid único
           product: products.find((p) => p.id === item.product_id) || undefined,
           requiredQuantity: item.required_quantity || 0,
           totalQuantity: item.total_quantity || 0,

@@ -35,7 +35,8 @@ const QuoteItems = ({ scrollRef }: QuoteItemsProps) => {
   }
 
   const handleUpdateQuantity = (item: QuoteItem, newQuantity: number) => {
-    const findItem = (quote.data.items ?? []).find((i) => i.product?.id === item.product?.id)
+    console.log('Actualizando cantidad del item:', item, 'Nueva cantidad:', newQuantity)
+    const findItem = (quote.data.items ?? []).find((i) => i.uid === item.uid)
     if (findItem && findItem.product) {
       const updatedItem: QuoteItem = quoteService.buildQuoteItem({
         ...findItem,
@@ -127,20 +128,18 @@ const QuoteItems = ({ scrollRef }: QuoteItemsProps) => {
               </section>
             ) : (
               <motion.div className='space-y-5' variants={containerVariants} initial='hidden' animate='show' layout>
-                <AnimatePresence>
-                  {(quote.data.items ?? []).slice(0, visibleCount).map((item, index, arr) => (
-                    <QuoteItemSingle
-                      key={item.product?.id || index}
-                      item={item}
-                      onUpdateQuantity={handleUpdateQuantity}
-                      onRemoveItem={handleConfirmRemoveItem}
-                      onSetDiscount={handleSetDiscount}
-                      itemVariants={itemVariants}
-                      isLastItem={index === arr.length - 1} // <-- aquí
-                      scrollRef={scrollRef} // <-- aquí
-                    />
-                  ))}
-                </AnimatePresence>
+                {(quote.data.items ?? []).slice(0, visibleCount).map((item, index, arr) => (
+                  <QuoteItemSingle
+                    key={item.uid}
+                    item={item}
+                    onUpdateQuantity={handleUpdateQuantity}
+                    onRemoveItem={handleConfirmRemoveItem}
+                    onSetDiscount={handleSetDiscount}
+                    itemVariants={itemVariants}
+                    isLastItem={index === arr.length - 1}
+                    scrollRef={scrollRef}
+                  />
+                ))}
               </motion.div>
             )}
             <ModalAddDiscount isOpen={isOpenAddDiscount} onOpenChange={onOpenChangeAddDiscount} />
