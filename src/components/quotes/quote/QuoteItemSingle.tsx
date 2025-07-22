@@ -1,10 +1,12 @@
 import { Button, Chip, NumberInput } from '@heroui/react'
 import { motion, Variant } from 'framer-motion'
+import { lowerCase } from 'lodash'
 import { Minus, Tag } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../../store'
 import { QuoteItem } from '../../../types'
 import { formatCurrency } from '../../../utils/currency'
+import { capitalizeFirst } from '../../../utils/strings'
 
 interface QuoteItemProps {
   item: QuoteItem
@@ -22,9 +24,9 @@ interface QuoteItemProps {
 const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, itemVariants, isLastItem, scrollRef }: QuoteItemProps) => {
   const { user } = useSelector((state: RootState) => state.auth)
   const rxQuote = useSelector((state: RootState) => state.quote)
-  const rxCategories = useSelector((state: RootState) => state.catalog.categories)
+  const { categories, measureUnits } = useSelector((state: RootState) => state.catalog)
 
-  const category = rxCategories.find((c) => c.id === item.product?.category) || {
+  const category = categories.find((c) => c.id === item.product?.category) || {
     description: 'Sin categoría',
     color: 'bg-gray-300'
   }
@@ -34,9 +36,19 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
     ((item.product?.price ?? 0) * (1 + (item.product?.utility ?? 0) / 100) * (item.product?.package_unit ?? 1)).toFixed(2)
   )
 
+  //const isMinimumQuantity = item.product?.category_description?.toLowerCase().includes('persiana')
+
+  const itemPlural = lowerCase(measureUnits.find((unit) => unit.key === item.product?.measurement_unit)?.plural || 'unidades')
+  const itemSingular = lowerCase(measureUnits.find((unit) => unit.key === item.product?.measurement_unit)?.name || 'unidad')
+  const requiredGender = ['pieza', 'bolsa', 'caja'].includes(
+    measureUnits.find((mu) => mu.key === item.product?.measurement_unit)?.name ?? ''
+  )
+    ? 'requeridas'
+    : 'requeridos'
+
   return (
     <motion.article
-      key={item.product?.id}
+      key={item.uid}
       className='bg-white shadow-sm border rounded-lg overflow-hidden'
       variants={itemVariants}
       transition={{
@@ -45,7 +57,6 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
         damping: 20,
         velocity: 0.1
       }}
-      layout
       onAnimationStart={() => {
         if (isLastItem && scrollRef?.current) {
           scrollRef.current.scrollTo({
@@ -54,6 +65,7 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
           })
         }
       }}
+      layout
     >
       <header className='flex  flex-col sm:items-center sm:flex-row justify-between gap-4 p-4 bg-gray-50'>
         <section>
@@ -90,8 +102,8 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
                     input.select()
                   }}
                   classNames={{ input: 'text-right' }}
-                  minValue={1}
-                  min={1}
+                  minValue={0.1}
+                  min={0.1}
                   onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                     if (e.key === 'Enter') {
                       e.currentTarget.blur() // 👈 aquí haces que pierda el foco
@@ -116,9 +128,14 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
             <dl className='space-y-3'>
               {/* Lista de definiciones */}
               <div className='flex justify-between'>
-                <dt>{item.product?.measurement_unit} Requeridos</dt>
+                <dt>
+                  {capitalizeFirst(itemPlural)} {requiredGender}
+                </dt>
                 <dd className='text-gray-600'>{item.requiredQuantity} </dd>
               </div>
+
+              {/* {isMinimumQuantity && 'Minimo 1'} */}
+
               {isExceeding && (
                 <div className='flex justify-between'>
                   <dt>{item.product?.measurement_unit} Cotizados</dt>
@@ -148,7 +165,7 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
 
               {pricePerPackage ? (
                 <div className='flex justify-between'>
-                  <dt>Precio por paquete</dt>
+                  <dt>Precio por {lowerCase(itemSingular)}</dt>
                   <dd className='text-gray-600'>{formatCurrency(pricePerPackage)}</dd>
                 </div>
               ) : null}

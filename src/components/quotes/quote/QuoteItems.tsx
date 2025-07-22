@@ -35,7 +35,6 @@ const QuoteItems = ({ scrollRef }: QuoteItemsProps) => {
   }
 
   const handleUpdateQuantity = (item: QuoteItem, newQuantity: number) => {
-    console.log('Actualizando cantidad del item:', item, 'Nueva cantidad:', newQuantity)
     const findItem = (quote.data.items ?? []).find((i) => i.uid === item.uid)
     if (findItem && findItem.product) {
       const updatedItem: QuoteItem = quoteService.buildQuoteItem({
@@ -116,6 +115,7 @@ const QuoteItems = ({ scrollRef }: QuoteItemsProps) => {
                     })
                   }
                 }}
+                layout
               >
                 <Spinner size='lg' label='Cargando productos...' />
                 <p className='text-center text-gray-500'>Por favor, espera mientras se cargan los productos</p>
@@ -127,7 +127,7 @@ const QuoteItems = ({ scrollRef }: QuoteItemsProps) => {
                 <p className='text-center text-gray-500'>Agrega productos para comenzar a cotizar</p>
               </section>
             ) : (
-              <motion.div className='space-y-5' variants={containerVariants} initial='hidden' animate='show' layout>
+              <motion.div className='space-y-5' variants={containerVariants} initial='hidden' animate='show'>
                 {(quote.data.items ?? []).slice(0, visibleCount).map((item, index, arr) => (
                   <QuoteItemSingle
                     key={item.uid}

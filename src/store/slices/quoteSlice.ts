@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { quoteService } from '../../services/quoteService'
 import { Customer, Quote, QuoteItem, QuoteStatus } from '../../types'
 
 export interface QuoteState {
@@ -77,19 +76,19 @@ const quoteSlice = createSlice({
       }
     },
     updateItem: (state, action: PayloadAction<QuoteItem>) => {
-      const index = (state.data.items ?? []).findIndex((item) => item.uid === action.payload.uid)
-      if (index !== -1) {
-        const updated = quoteService.buildQuoteItem({
-          product: action.payload.product, // Provide a default Product object
-          requiredQuantity: action.payload.requiredQuantity,
-          discount: action.payload.discount,
-          discountType: action.payload.discountType,
-          product_id: action.payload.product_id
-        })
+      const index = state.data.items?.findIndex((item) => item.uid === action.payload.uid) ?? -1
+      if (index !== -1 && state.data.items) {
+        const item = state.data.items[index]
+        const updated = action.payload
 
-        if (state.data.items) {
-          state.data.items[index] = updated
-        }
+        // Solo actualiza las propiedades internas que cambian (cantidad, subtotal, etc)
+        item.requiredQuantity = updated.requiredQuantity
+        item.totalQuantity = updated.totalQuantity
+        item.packagesRequired = updated.packagesRequired
+        item.originalSubtotal = updated.originalSubtotal
+        item.subtotal = updated.subtotal
+        item.discount = updated.discount
+        item.discountType = updated.discountType
       }
     },
 
