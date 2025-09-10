@@ -302,7 +302,15 @@ const ProductEdit = () => {
                 )}
 
                 {isEditing ? (
-                  <Input size='sm' label='Unidad de empaque' type='number' {...register('package_unit')} isClearable />
+                  <Input
+                    size='sm'
+                    label='Unidad de empaque'
+                    type='number'
+                    {...register('package_unit')}
+                    isClearable
+                    isInvalid={!!errors.package_unit}
+                    errorMessage={errors.package_unit?.message}
+                  />
                 ) : (
                   <div>
                     <p className='text-sm text-gray-500'>Unidad de Empaque</p>
@@ -311,7 +319,13 @@ const ProductEdit = () => {
                 )}
 
                 {isEditing ? (
-                  <Select className='max-w-xs' label='Unidad de medida' size='sm' {...register('measurement_unit')}>
+                  <Select
+                    className='max-w-xs'
+                    label='Unidad de medida'
+                    size='sm'
+                    {...register('measurement_unit')}
+                    disallowEmptySelection={true}
+                  >
                     {rxMeasureUnits.map((measure) => (
                       <SelectItem key={measure.key}>{capitalizeFirst(measure.name)}</SelectItem>
                     ))}

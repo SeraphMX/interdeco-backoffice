@@ -9,7 +9,9 @@ export const productSchema = z.object({
     return val
   }, z.string().optional()),
   provider: z.coerce.number().nonnegative(),
-  package_unit: z.preprocess((val) => (val === '' ? undefined : val), z.coerce.number().nonnegative().default(1)).optional(),
+  package_unit: z
+    .preprocess((val) => (val === '' ? undefined : val), z.coerce.number().min(1, 'La unidad de empaque debe ser al menos 1').default(1))
+    .optional(),
   measurement_unit: z.string().min(1, 'La unidad de medida es requerida'),
   price: z.coerce.number().nonnegative().positive(),
   utility: z.coerce.number().nonnegative().positive(),
