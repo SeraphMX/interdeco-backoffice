@@ -56,7 +56,11 @@ export const quoteService = {
       discountType
     }
   },
-  async saveQuote(quote: Quote, userId?: string): Promise<{ success: boolean; quote?: Quote; error?: string; url?: string }> {
+  async saveQuote(
+    quote: Quote,
+    userId?: string,
+    expiresIn?: number
+  ): Promise<{ success: boolean; quote?: Quote; error?: string; url?: string }> {
     try {
       // 1. Insertar la cotización principal
       const { data: quoteResult, error: insertQuoteError } = await supabase
@@ -100,7 +104,8 @@ export const quoteService = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          quote: quoteResult
+          quote: quoteResult,
+          expiresIn: `${expiresIn || 7}d`
         })
       })
 

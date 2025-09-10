@@ -19,7 +19,12 @@ const handler: Handler = async (event) => {
     const decoded = jwt.verify(token, JWT_SECRET) as {
       quote_id: number
       customer_id: number
+      exp?: number
     }
+
+    const expiresAt = decoded.exp ? new Date(decoded.exp * 1000) : null
+
+    console.log('Token expiración:', expiresAt)
 
     const { data, error } = await supabase.from('quotes').select('*').eq('id', decoded.quote_id).eq('access_token', token).single()
 

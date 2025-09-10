@@ -50,11 +50,11 @@ export interface Product {
   is_active?: boolean
 }
 
-const handler: Handler = async (event) => {
-  const body = JSON.parse(event.body || '{}')
+const handler: Handler = async (quoteData) => {
+  const body = JSON.parse(quoteData.body || '{}')
   const quote = body.quote as Quote
 
-  console.log('Received data:', { quote })
+  console.log('Received data:', { body })
 
   if (!quote || !quote.id) {
     return {
@@ -63,7 +63,7 @@ const handler: Handler = async (event) => {
     }
   }
 
-  const token = jwt.sign({ quote_id: quote.id }, JWT_SECRET, { expiresIn: '5d' })
+  const token = jwt.sign({ quote_id: quote.id }, JWT_SECRET, { expiresIn: body.expiresIn || '7d' })
 
   // Guardar el token en la cotización
   await supabase.from('quotes').update({ access_token: token }).eq('id', quote.id)

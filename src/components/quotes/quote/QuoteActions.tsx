@@ -49,7 +49,7 @@ const QuoteActions = ({ type = 'footer' }: QuoteActionsProps) => {
 
   const handleSaveQuote = async () => {
     if (!quote.data.id) {
-      const savedQuote = await quoteService.saveQuote(quote.data, user?.id)
+      const savedQuote = await quoteService.saveQuote(quote.data, user?.id, user?.quotes_expire)
 
       if (savedQuote.success && savedQuote.quote) {
         dispatch(
