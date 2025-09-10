@@ -337,12 +337,7 @@ export const quoteService = {
       return { success: false, error: (e as Error).message }
     }
   },
-  async sendQuoteEmail(
-    email: string,
-    quote: Quote,
-    userId?: string,
-    expiresIn?: number
-  ): Promise<{ success: boolean; error?: string; access_token?: string }> {
+  async sendQuoteEmail(email: string, quote: Quote, userId?: string): Promise<{ success: boolean; error?: string }> {
     try {
       if (!quote || !email) {
         throw new Error('El ID de la cotización y el correo electrónico son requeridos para enviar la cotización.')
@@ -360,22 +355,6 @@ export const quoteService = {
         throw new Error('Error al enviar el correo electrónico de la cotización.')
       }
 
-      // Llamar a la función Netlify que genera el token
-      const responseToken = await fetch(`${baseUrl}/.netlify/functions/generate-quote-token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          quote: quote,
-          expiresIn: `${expiresIn || 7}d`
-        })
-      })
-
-      if (!responseToken.ok) {
-        throw new Error('Error al generar token en función Netlify')
-      }
-
-      const { access_token } = await response.json()
-
       await this.setQuoteStatus(quote.id ?? null, 'sent_mail', userId)
 
       addToast({
@@ -384,7 +363,7 @@ export const quoteService = {
         color: 'primary'
       })
 
-      return { success: true, access_token }
+      return { success: true }
     } catch (e) {
       addToast({
         title: 'Error al enviar correo',
