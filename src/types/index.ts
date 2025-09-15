@@ -66,7 +66,7 @@ export interface Quote {
   user_id?: string
 }
 
-export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'open' | 'archived' | 'restored' | 'opened'
+export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' | 'open' | 'archived' | 'restored' | 'opened' | 'paid'
 
 export interface Product {
   sku: string

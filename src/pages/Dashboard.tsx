@@ -14,6 +14,7 @@ import QuoteSummary from '../components/dashboard/QuoteSummary'
 import CountUp from '../components/shared/CountUp'
 import { useProductsMetrics } from '../hooks/useProductsMetrics'
 import { RootState } from '../store'
+import { Quote } from '../types'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -22,7 +23,6 @@ const Dashboard = () => {
   const productos = useSelector((state: RootState) => state.productos.items)
 
   const [selectedChart, setSelectedChart] = useState('mas-utilizados')
-  const [chartTitle, setChartTitle] = useState('Materiales Más Utilizados')
   const [quoteProductsSubtitle, setquoteProductsSubtitle] = useState('Los productos mas utilizados en las cotizaciones')
   const [selectedQuoteTab, setSelectedQuoteTab] = useState('ultimas')
   const [quoteTabSubtitle, setQuoteTabSubtitle] = useState('Las cotizaciones más recientes')
@@ -58,12 +58,54 @@ const Dashboard = () => {
     .slice(0, 10)
 
   // Simulación de cotizaciones próximas a expirar
+  // Próximas a expirar (rellenando con expiradas si faltan)
   const getExpiringQuotes = () => {
-    // Tomar algunas cotizaciones y simular que están próximas a expirar
-    return lastQuotes.slice(0, 10).map((quote) => ({
-      ...quote,
-      daysToExpire: Math.floor(Math.random() * 3) + 1 // 1-3 días
-    }))
+    const MS_PER_DAY = 86_400_000
+    const startOfDay = (d: Date) => {
+      const x = new Date(d)
+      x.setHours(0, 0, 0, 0)
+      return x
+    }
+
+    const nowStart = startOfDay(new Date())
+
+    // Solo con fecha y no archivadas
+    const withDate = quotes.filter((q) => ['open', 'opened', 'sent'].includes(q.status) && !!q.expiration_date)
+
+    // Helper para setear daysToExpire (0 si ya venció o es hoy; >0 si es futuro)
+    const decorateDaysRemaining = (q: Quote): Quote => {
+      const exp = startOfDay(new Date(q.expiration_date!))
+      const diffDays = Math.round((exp.getTime() - nowStart.getTime()) / MS_PER_DAY)
+      return { ...q, daysToExpire: diffDays > 0 ? diffDays : 0 }
+    }
+
+    // Próximas (incluye "hoy"); orden asc por expiración
+    const upcoming = withDate
+      .filter((q) => {
+        const exp = startOfDay(new Date(q.expiration_date!))
+        return exp.getTime() >= nowStart.getTime() && q.status !== 'expired'
+      })
+      .sort((a, b) => new Date(a.expiration_date!).getTime() - new Date(b.expiration_date!).getTime())
+      .map(decorateDaysRemaining)
+
+    // Expiradas para completar (las más recientes primero)
+    const expiredFillers = withDate
+      .filter((q) => {
+        const exp = startOfDay(new Date(q.expiration_date!))
+        return exp.getTime() < nowStart.getTime() || q.status === 'expired'
+      })
+      .sort((a, b) => new Date(b.expiration_date!).getTime() - new Date(a.expiration_date!).getTime())
+      .map(decorateDaysRemaining)
+
+    // Hasta 10: primero próximas, luego expiradas (sin duplicar)
+    const result: Quote[] = [...upcoming.slice(0, 10)]
+    if (result.length < 10) {
+      for (const q of expiredFillers) {
+        if (!result.some((t) => t.id === q.id)) result.push(q)
+        if (result.length === 10) break
+      }
+    }
+    return result
   }
 
   const handleQuoteTabTitleChange = (subtitle: string) => {

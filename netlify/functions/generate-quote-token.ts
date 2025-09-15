@@ -65,8 +65,15 @@ const handler: Handler = async (quoteData) => {
 
   const token = jwt.sign({ quote_id: quote.id }, JWT_SECRET, { expiresIn: body.expiresIn || '7d' })
 
+  const decoded = jwt.decode(token) as { exp?: number } | null
+  if (!decoded?.exp) {
+    return { statusCode: 500, body: 'No se pudo calcular la expiración del token' }
+  }
+
+  const expiresAtIso = new Date(decoded.exp * 1000).toISOString()
+
   // Guardar el token en la cotización
-  await supabase.from('quotes').update({ access_token: token }).eq('id', quote.id)
+  await supabase.from('quotes').update({ access_token: token, expiration_date: expiresAtIso }).eq('id', quote.id)
 
   return {
     statusCode: 200,
