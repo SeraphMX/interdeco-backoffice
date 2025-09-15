@@ -1,5 +1,6 @@
 import {
   Button,
+  Chip,
   Dropdown,
   DropdownItem,
   DropdownMenu,
@@ -25,6 +26,7 @@ import { clearQuote, setQuote } from '../../store/slices/quoteSlice'
 import { Quote } from '../../types'
 import { formatCurrency } from '../../utils/currency'
 import { formatDate } from '../../utils/date'
+import { getExpireChipColor, getExpireInfo, getExpireLabel } from '../../utils/quotes'
 import { getQuoteID } from '../../utils/strings'
 import QuoteStatusChip from '../shared/QuoteStatusChip'
 import ModalConfirmDeleteQuote from './modals/ModalConfirmDeleteQuote'
@@ -103,6 +105,7 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
     { name: 'ITEMS', uid: 'total_items', sortable: true, align: 'center', hidden: isMobile ? true : false },
     { name: 'TOTAL', uid: 'total', sortable: true, align: 'end', hidden: isMobile ? true : false },
     { name: 'STATUS', uid: 'status', sortable: true, hidden: isMobile ? true : false },
+    { name: 'EXPIRACIÓN', uid: 'expiration_date', sortable: true, hidden: isMobile ? true : false },
     { name: 'ACCIONES', uid: 'actions', sortable: false, hidden: isMobile ? true : false }
   ]
 
@@ -249,6 +252,20 @@ const QuotesTable = ({ wrapperHeight, filterValue = '', selectedStatus = [] }: Q
                 <TableCell hidden={isMobile}>{formatCurrency(quote.total)}</TableCell>
                 <TableCell hidden={isMobile}>
                   <QuoteStatusChip quote={quote} onSuccess={onSuccessSetStatus} />
+                </TableCell>
+                <TableCell hidden={isMobile}>
+                  {quote.expiration_date ? (
+                    (() => {
+                      const info = getExpireInfo(quote.expiration_date)
+                      return (
+                        <Chip size='sm' variant='flat' color={getExpireChipColor(info)}>
+                          {getExpireLabel(info)}
+                        </Chip>
+                      )
+                    })()
+                  ) : (
+                    <span className='text-gray-400'>—</span>
+                  )}
                 </TableCell>
                 <TableCell hidden={isMobile}>
                   <Dropdown placement='left'>

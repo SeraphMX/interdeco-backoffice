@@ -5,6 +5,7 @@ import { RootState } from '../../store'
 import { Quote, quoteStatus, uiColors } from '../../types'
 import { formatCurrency } from '../../utils/currency'
 import { formatDate } from '../../utils/date'
+import { getExpireChipColor, getExpireInfo, getExpireLabel } from '../../utils/quotes'
 import { getQuoteID } from '../../utils/strings'
 
 interface QuoteSummaryProps {
@@ -22,6 +23,7 @@ const QuoteSummary = ({ quote, show = 'default' }: QuoteSummaryProps): JSX.Eleme
       window.open(`/cotizacion/${quote.access_token}`, '_blank')
     }
   }
+
   return (
     <article
       key={quote.id}
@@ -38,17 +40,21 @@ const QuoteSummary = ({ quote, show = 'default' }: QuoteSummaryProps): JSX.Eleme
         <div className='flex items-center justify-between mt-2'>
           <p className='text-sm text-gray-500'>
             {quote.created_at ? formatDate(quote.created_at, { style: 'short' }) : 'Fecha no disponible'}{' '}
-            {show === 'expiring' && (
-              <Chip size='sm' variant='flat' color='danger'>
-                {quote.daysToExpire !== undefined ? (
-                  <>
-                    Expira en {quote.daysToExpire} día{quote.daysToExpire > 1 ? 's' : ''}
-                  </>
-                ) : (
-                  'Días para expirar no disponibles'
-                )}
-              </Chip>
-            )}
+            {show === 'expiring' &&
+              (quote.expiration_date ? (
+                (() => {
+                  const info = getExpireInfo(quote.expiration_date)
+                  return (
+                    <Chip size='sm' variant='flat' color={getExpireChipColor(info)}>
+                      {getExpireLabel(info)}
+                    </Chip>
+                  )
+                })()
+              ) : (
+                <Chip size='sm' variant='flat' color='default'>
+                  Sin fecha de expiración
+                </Chip>
+              ))}
           </p>
         </div>
       </div>
