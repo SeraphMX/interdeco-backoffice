@@ -1,7 +1,7 @@
-import { Button, Chip, NumberInput } from '@heroui/react'
+import { Button, Chip, NumberInput, Tooltip } from '@heroui/react'
 import { motion, Variant } from 'framer-motion'
 import { lowerCase } from 'lodash'
-import { Minus, Tag } from 'lucide-react'
+import { FilePen, FilePlus2, FileX2, Minus, Tag } from 'lucide-react'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../../store'
 import { QuoteItem } from '../../../types'
@@ -13,6 +13,8 @@ interface QuoteItemProps {
   onUpdateQuantity: (item: QuoteItem, quantity: number) => void
   onRemoveItem: (item: QuoteItem) => void
   onSetDiscount: (item: QuoteItem) => void
+  onAddObservation: (item: QuoteItem) => void
+  onRemoveObservation: (item: QuoteItem) => void
   itemVariants?: {
     hidden: Variant
     show: Variant
@@ -21,7 +23,17 @@ interface QuoteItemProps {
   scrollRef?: React.RefObject<HTMLDivElement>
 }
 
-const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, itemVariants, isLastItem, scrollRef }: QuoteItemProps) => {
+const QuoteItemSingle = ({
+  item,
+  onUpdateQuantity,
+  onRemoveItem,
+  onSetDiscount,
+  onAddObservation,
+  onRemoveObservation,
+  itemVariants,
+  isLastItem,
+  scrollRef
+}: QuoteItemProps) => {
   const { user } = useSelector((state: RootState) => state.auth)
   const rxQuote = useSelector((state: RootState) => state.quote)
   const { categories, measureUnits } = useSelector((state: RootState) => state.catalog)
@@ -79,6 +91,7 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
           )}
           <p className='text-gray-600'>{item.product?.description || item.description}</p>
           {!item.product && !rxQuote.isPublicAccess && <p className='text-gray-600 italic text-sm'>Producto eliminado o no disponible</p>}
+          <p className='text-gray-600 italic text-sm'>{item.observations}</p>
         </section>
 
         {!rxQuote.isPublicAccess && (
@@ -86,9 +99,37 @@ const QuoteItemSingle = ({ item, onUpdateQuantity, onRemoveItem, onSetDiscount, 
             {rxQuote.data.status === 'open' && (
               <>
                 {user?.role === 'admin' && (
-                  <Button isIconOnly color='success' variant='light' aria-label='Agregar descuento' onPress={() => onSetDiscount(item)}>
-                    <Tag size={18} />
-                  </Button>
+                  <>
+                    {item.observations && (
+                      <Tooltip content='Quitar observación' placement='top'>
+                        <Button
+                          isIconOnly
+                          color='danger'
+                          variant='light'
+                          aria-label='Quitar observación'
+                          onPress={() => onRemoveObservation(item)}
+                        >
+                          <FileX2 size={18} />
+                        </Button>
+                      </Tooltip>
+                    )}
+                    <Tooltip content={item.observations ? 'Editar observación' : 'Agregar observación'} placement='top'>
+                      <Button
+                        isIconOnly
+                        color='primary'
+                        variant='light'
+                        aria-label='Agregar observación'
+                        onPress={() => onAddObservation(item)}
+                      >
+                        {item.observations ? <FilePen size={18} /> : <FilePlus2 size={18} />}
+                      </Button>
+                    </Tooltip>
+                    <Tooltip content='Agregar descuento ' placement='top'>
+                      <Button isIconOnly color='success' variant='light' aria-label='Agregar descuento' onPress={() => onSetDiscount(item)}>
+                        <Tag size={18} />
+                      </Button>
+                    </Tooltip>
+                  </>
                 )}
 
                 <NumberInput

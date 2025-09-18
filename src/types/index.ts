@@ -24,6 +24,7 @@ export interface QuoteItem {
   discountType?: 'percentage' | 'fixed'
   discount?: number
   description?: string // Descripción opcional para el item
+  observations?: string | null // Observaciones o comentarios adicionales
 }
 export interface QuoteItemDB {
   id: number
@@ -37,6 +38,7 @@ export interface QuoteItemDB {
   original_subtotal?: number
   discount_type?: 'percentage' | 'fixed'
   discount?: number
+  observations?: string | null
 }
 
 export interface QuoteLogItem {

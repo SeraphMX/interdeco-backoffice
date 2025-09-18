@@ -39,7 +39,8 @@ export const useQuote = () => {
           discount: item.discount || 0,
           discountType: item.discount_type || 'percentage',
           description: item.description || '',
-          id: item.id
+          id: item.id,
+          observations: item.observations || null
         }))
 
         dispatch(setItems(items))

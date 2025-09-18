@@ -8,6 +8,7 @@ import { RootState } from '../../../store'
 import { removeItem, setSelectedItem, updateItem } from '../../../store/slices/quoteSlice'
 import { QuoteItem } from '../../../types'
 import ModalAddDiscount from '../modals/ModalAddDiscount'
+import ModalAddObservation from '../modals/ModalAddObservation'
 import ModalConfirmRemoveItem from '../modals/ModalConfirmRemoveItem'
 import QuoteItemSingle from './QuoteItemSingle'
 
@@ -20,6 +21,7 @@ const QuoteItems = ({ scrollRef }: QuoteItemsProps) => {
   const quote = useSelector((state: RootState) => state.quote)
   const { isOpen: isOpenAddDiscount, onOpen: onOpenAddDiscount, onOpenChange: onOpenChangeAddDiscount } = useDisclosure()
   const { isOpen: isOpenConfirmRemoveItem, onOpen: onOpenConfirmRemoveItem, onOpenChange: onOpenChangeConfirmRemoveItem } = useDisclosure()
+  const { isOpen: isOpenAddObservation, onOpen: onOpenAddObservation, onOpenChange: onOpenChangeAddObservation } = useDisclosure()
 
   // Contador para controlar cuántos items mostrar
   const [visibleCount, setVisibleCount] = useState(0)
@@ -27,6 +29,20 @@ const QuoteItems = ({ scrollRef }: QuoteItemsProps) => {
   const handleSetDiscount = (item: QuoteItem) => {
     dispatch(setSelectedItem(item))
     onOpenAddDiscount()
+  }
+
+  const handleAddObservation = (item: QuoteItem) => {
+    dispatch(setSelectedItem(item))
+    onOpenAddObservation()
+  }
+
+  const handleRemoveObservation = (item: QuoteItem) => {
+    dispatch(
+      updateItem({
+        ...item,
+        observations: null
+      } as QuoteItem)
+    )
   }
 
   const handleConfirmRemoveItem = (item: QuoteItem) => {
@@ -135,6 +151,8 @@ const QuoteItems = ({ scrollRef }: QuoteItemsProps) => {
                     onUpdateQuantity={handleUpdateQuantity}
                     onRemoveItem={handleConfirmRemoveItem}
                     onSetDiscount={handleSetDiscount}
+                    onAddObservation={handleAddObservation}
+                    onRemoveObservation={handleRemoveObservation}
                     itemVariants={itemVariants}
                     isLastItem={index === arr.length - 1}
                     scrollRef={scrollRef}
@@ -143,6 +161,7 @@ const QuoteItems = ({ scrollRef }: QuoteItemsProps) => {
               </motion.div>
             )}
             <ModalAddDiscount isOpen={isOpenAddDiscount} onOpenChange={onOpenChangeAddDiscount} />
+            <ModalAddObservation isOpen={isOpenAddObservation} onOpenChange={onOpenChangeAddObservation} />
             <ModalConfirmRemoveItem
               isOpen={isOpenConfirmRemoveItem}
               onOpenChange={onOpenChangeConfirmRemoveItem}

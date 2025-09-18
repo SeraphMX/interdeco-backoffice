@@ -91,7 +91,8 @@ export const quoteService = {
         subtotal: item.subtotal,
         discount_type: item.discountType ?? 'percentage',
         original_subtotal: item.originalSubtotal ?? item.subtotal,
-        discount: item.discount ?? 0
+        discount: item.discount ?? 0,
+        observations: item.observations || null
       }))
 
       const { error: insertItemsError } = await supabase.from('quote_items').insert(quoteItems)
@@ -147,7 +148,8 @@ export const quoteService = {
           originalSubtotal: item.original_subtotal,
           subtotal: item.subtotal,
           discountType: item.discount_type as 'percentage' | 'fixed',
-          discount: item.discount
+          discount: item.discount,
+          observations: item.observations || undefined
         })) || []
 
       // Crear la cotización clonada
@@ -215,7 +217,8 @@ export const quoteService = {
         subtotal: item.subtotal,
         discount_type: item.discountType,
         original_subtotal: item.originalSubtotal,
-        discount: item.discount
+        discount: item.discount,
+        observations: item.observations || null
       }))
 
       const { error: insertItemsError } = await supabase.from('quote_items').insert(newItems)
