@@ -89,6 +89,7 @@ const quoteSlice = createSlice({
         item.subtotal = updated.subtotal
         item.discount = updated.discount
         item.discountType = updated.discountType
+        item.observations = updated.observations
       }
     },
 
