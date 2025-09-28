@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { useDispatch, useSelector } from 'react-redux'
 import { z } from 'zod'
 import { RootState } from '../../../store'
-import { setCalculatedArea } from '../../../store/slices/quoteSlice'
+import { setCalculatedArea, setItemMeasurements } from '../../../store/slices/quoteSlice'
 
 interface ModalAddProductProps {
   isOpen: boolean
@@ -62,10 +62,10 @@ const ModalAreaCalculator = ({ isOpen, onOpenChange }: ModalAddProductProps) => 
         selectedProduct?.category_description?.toLowerCase().includes('cortinas') ||
         selectedProduct?.category_description?.toLowerCase().includes('persianas')
       ) {
-        setTotalCalculated(parseFloat((length * width).toFixed(2)))
-      } else {
         //Si el producto es de las categorias que se redondean, se calcula el area
         setTotalCalculated(Math.ceil(length * width))
+      } else {
+        setTotalCalculated(parseFloat((length * width).toFixed(2)))
       }
     } else {
       setTotalCalculated(0)
@@ -79,6 +79,7 @@ const ModalAreaCalculator = ({ isOpen, onOpenChange }: ModalAddProductProps) => 
 
   const handleSetCalculatedArea = () => {
     dispatch(setCalculatedArea(totalCalculated))
+    dispatch(setItemMeasurements({ length: length ?? null, width: width ?? null }))
     onOpenChange(false)
   }
 
@@ -87,7 +88,7 @@ const ModalAreaCalculator = ({ isOpen, onOpenChange }: ModalAddProductProps) => 
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className='flex flex-col gap-1'>Agregar producto</ModalHeader>
+            <ModalHeader className='flex flex-col gap-1'>Calcular área</ModalHeader>
             <ModalBody className='grid grid-cols-2 gap-4'>
               <Input
                 {...register('width', { valueAsNumber: true })}

@@ -4,6 +4,8 @@ import { Customer, Quote, QuoteItem, QuoteStatus } from '../../types'
 export interface QuoteState {
   selectedCustomer: Customer | null
   calculatedArea: number
+  itemLength: number | null
+  itemWidth: number | null
   itemsLoaded: boolean
   isPublicAccess: boolean
   stackItems: boolean
@@ -16,6 +18,8 @@ export interface QuoteState {
 const initialState: QuoteState = {
   selectedCustomer: null,
   calculatedArea: 0,
+  itemLength: null,
+  itemWidth: null,
   selectedItem: null,
   itemsLoaded: false,
   isPublicAccess: false,
@@ -53,6 +57,14 @@ const quoteSlice = createSlice({
     clearCalculatedArea: (state) => {
       state.calculatedArea = 0
     },
+    setItemMeasurements: (state, action: PayloadAction<{ length: number | null; width: number | null }>) => {
+      state.itemLength = action.payload.length
+      state.itemWidth = action.payload.width
+    },
+    clearItemsMeasurements: (state) => {
+      state.itemLength = null
+      state.itemWidth = null
+    },
     setSelectedItem: (state, action: PayloadAction<QuoteItem | null>) => {
       state.selectedItem = action.payload
     },
@@ -83,6 +95,8 @@ const quoteSlice = createSlice({
 
         // Solo actualiza las propiedades internas que cambian (cantidad, subtotal, etc)
         item.requiredQuantity = updated.requiredQuantity
+        item.length = updated.length
+        item.width = updated.width
         item.totalQuantity = updated.totalQuantity
         item.packagesRequired = updated.packagesRequired
         item.originalSubtotal = updated.originalSubtotal
@@ -145,6 +159,8 @@ export const {
   setItemsLoaded,
   setCalculatedArea,
   clearCalculatedArea,
+  setItemMeasurements,
+  clearItemsMeasurements,
   setSelectedItem,
   clearSelectedItem,
   setQuoteId,

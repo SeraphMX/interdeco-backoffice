@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { quoteService } from '../../../services/quoteService'
 import { RootState } from '../../../store'
 import { clearSelectedProduct } from '../../../store/slices/productsSlice'
-import { addItem, clearCalculatedArea } from '../../../store/slices/quoteSlice'
+import { addItem, clearCalculatedArea, clearItemsMeasurements } from '../../../store/slices/quoteSlice'
 import ProductsFilters from '../../products/ProductsFilters'
 import ProductsTable from '../../products/ProductsTable'
 import ModalAreaCalculator from './ModalAreaCalculator'
@@ -21,6 +21,10 @@ interface ModalAddProductProps {
 const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
   const selectedProduct = useSelector((state: RootState) => state.productos.selectedProduct)
   const calculatedArea = useSelector((state: RootState) => state.quote.calculatedArea)
+
+  const itemLength = useSelector((state: RootState) => state.quote.itemLength)
+  const itemWidth = useSelector((state: RootState) => state.quote.itemWidth)
+
   const measureUnits = useSelector((state: RootState) => state.catalog.measureUnits)
 
   const [filterValue, setFilterValue] = useState('')
@@ -62,20 +66,14 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
       console.log('Producto agregado:', data)
       if (selectedProduct) {
         const requestedQuantity = Number(data.quantity)
-        const packageSize = selectedProduct.package_unit ?? 0
-        const packagesRequired = packageSize > 1 ? Math.ceil(requestedQuantity / packageSize) : requestedQuantity
-        const roundToTwo = (num: number) => Math.round(num * 100) / 100
-        const totalQuantity = roundToTwo(packageSize > 1 ? packagesRequired * packageSize : requestedQuantity)
 
-        const pricePerPackage = Number(
-          ((selectedProduct?.price ?? 0) * (1 + (selectedProduct.utility ?? 0) / 100) * (selectedProduct.package_unit ?? 1)).toFixed(2)
-        )
-        const subtotal = pricePerPackage * packagesRequired
         dispatch(
           addItem(
             quoteService.buildQuoteItem({
               product: selectedProduct,
-              requiredQuantity: requestedQuantity // Lo que pidió el usuario (en m²)
+              requiredQuantity: requestedQuantity, // Lo que pidió el usuario (en m²)
+              itemWidth: itemWidth ?? null, // Largo del producto (si aplica)
+              itemLength: itemLength ?? null // Ancho del producto (si aplica)
               //(item.product?.price * (1 + item.product.utility / 100) * item.product.package_unit)
             })
           )
@@ -83,6 +81,7 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
 
         dispatch(clearSelectedProduct())
         dispatch(clearCalculatedArea())
+        dispatch(clearItemsMeasurements())
       } else {
         console.error('No product selected')
       }
@@ -188,6 +187,7 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
                           field.ref(el)
                           quantityInputRef.current = el
                         }}
+                        isDisabled={selectedProduct.measurement_unit === 'M2' && (itemLength != null || itemWidth != null)}
                       />
                     )}
                   />

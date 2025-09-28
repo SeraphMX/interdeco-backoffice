@@ -32,6 +32,8 @@ export const useQuote = () => {
           uid: uuidv4(), // Aseguramos que cada item tenga un uid único
           product: products.find((p) => p.id === item.product_id) || undefined,
           requiredQuantity: item.required_quantity || 0,
+          length: item.length ?? undefined,
+          width: item.width ?? undefined,
           totalQuantity: item.total_quantity || 0,
           packagesRequired: item.packages_required || 0,
           subtotal: item.subtotal || 0,
