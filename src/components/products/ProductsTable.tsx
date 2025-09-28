@@ -14,6 +14,7 @@ interface ProductsTableProps {
   filterValue?: string
   selectedCategories?: string[]
   selectedProviders?: string[]
+  selectedProductId?: number | null
   variant?: 'default' | 'minimal'
 }
 
@@ -22,6 +23,7 @@ const ProductsTable = ({
   filterValue = '',
   selectedCategories = [],
   selectedProviders = [],
+  selectedProductId = null,
   variant = 'default'
 }: ProductsTableProps) => {
   const rxProducts = useSelector(selectProductsWithCategoryName)
@@ -115,6 +117,7 @@ const ProductsTable = ({
         onSortChange={setSortDescriptor}
         selectionMode={isEditing ? 'none' : 'single'}
         selectionBehavior='replace'
+        defaultSelectedKeys={selectedProductId != null ? new Set([String(selectedProductId)]) : new Set()}
         disallowEmptySelection
         bottomContent={
           <ProductsTableFooter
