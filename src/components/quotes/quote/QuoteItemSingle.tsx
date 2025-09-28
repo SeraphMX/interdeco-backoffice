@@ -170,7 +170,7 @@ const QuoteItemSingle = ({
               {/* Lista de definiciones */}
               <div className='flex justify-between'>
                 <dt>
-                  {capitalizeFirst(itemPlural)} {requiredGender}
+                  {capitalizeFirst(itemPlural)} {requiredGender} {item.length && item.width ? `(${item.width}m x ${item.length}m)` : null}
                 </dt>
                 <dd className='text-gray-600'>{item.requiredQuantity} </dd>
               </div>

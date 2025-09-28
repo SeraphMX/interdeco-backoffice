@@ -25,6 +25,8 @@ export interface QuoteItem {
   discount?: number
   description?: string // Descripción opcional para el item
   observations?: string | null // Observaciones o comentarios adicionales
+  length?: number | null // Largo del producto (si aplica)
+  width?: number | null // Ancho del producto (si aplica)
 }
 export interface QuoteItemDB {
   id: number
@@ -32,6 +34,8 @@ export interface QuoteItemDB {
   product_id: number
   description: string
   required_quantity: number
+  length?: number | null
+  width?: number | null
   packages_required?: number
   total_quantity: number
   subtotal: number

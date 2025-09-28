@@ -10,6 +10,8 @@ export interface QuoteItemOptions {
   uid?: string // Identificador único para el item en el estado
   product: Product | undefined
   requiredQuantity: number
+  itemLength?: number | null // Largo del producto (si aplica)
+  itemWidth?: number | null // Ancho del producto (si aplica)
   discount?: number
   discountType?: DiscountType
   id?: string // por si actualizas un item existente
@@ -23,6 +25,8 @@ export const quoteService = {
     uid,
     product,
     requiredQuantity,
+    itemLength,
+    itemWidth,
     discount = 0,
     discountType = 'percentage'
   }: Partial<QuoteItemOptions> & { product: Product; requiredQuantity: number }): QuoteItem {
@@ -32,6 +36,9 @@ export const quoteService = {
 
     const unitPrice = round(rawPrice * utilityFactor) // redondeamos el precio por unidad con utilidad
     const pricePerPackage = round(unitPrice * packageUnit)
+
+    const length = itemLength ?? null
+    const width = itemWidth ?? null
 
     const packagesRequired = packageUnit > 1 ? Math.ceil(requiredQuantity / packageUnit) : requiredQuantity
     const totalQuantity = packageUnit > 1 ? packagesRequired * packageUnit : requiredQuantity
@@ -48,6 +55,8 @@ export const quoteService = {
       uid: uid ?? uuidv4(),
       product,
       requiredQuantity,
+      length,
+      width,
       packagesRequired,
       totalQuantity,
       originalSubtotal,
@@ -86,6 +95,8 @@ export const quoteService = {
         description: item.product ? `${item.product.sku ?? ''} ${item.product.description ?? ''}`.trim() : '',
         unit_price: item.product?.price ?? 0,
         required_quantity: item.requiredQuantity,
+        length: item.length ?? null,
+        width: item.width ?? null,
         total_quantity: item.totalQuantity,
         packages_required: item.packagesRequired ?? 1,
         subtotal: item.subtotal,
@@ -212,6 +223,8 @@ export const quoteService = {
         description: `${item.product?.sku ?? ''} ${item.product?.description ?? ''}`.trim(),
         unit_price: item.product?.price ?? 0,
         required_quantity: item.requiredQuantity,
+        length: item.length ?? null,
+        width: item.width ?? null,
         total_quantity: item.totalQuantity,
         packages_required: item.packagesRequired,
         subtotal: item.subtotal,
