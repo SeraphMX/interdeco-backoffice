@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { z } from 'zod'
 import { quoteService } from '../../../services/quoteService'
 import { RootState } from '../../../store'
-import { clearSelectedProduct } from '../../../store/slices/productsSlice'
 import { addItem, clearCalculatedArea, clearItemsMeasurements } from '../../../store/slices/quoteSlice'
 import ProductsFilters from '../../products/ProductsFilters'
 import ProductsTable from '../../products/ProductsTable'
@@ -79,7 +78,7 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
           )
         )
 
-        dispatch(clearSelectedProduct())
+        // dispatch(clearSelectedProduct()) // Limpia el producto seleccionado
         dispatch(clearCalculatedArea())
         dispatch(clearItemsMeasurements())
       } else {
@@ -96,8 +95,8 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
 
   useEffect(() => {
     if (isOpen) {
-      dispatch(clearSelectedProduct())
-      reset() // Resetea el formulario al abrir el modal
+      //dispatch(clearSelectedProduct()) // Limpia el producto seleccionado al abrir el modal
+      reset({ quantity: '' }) // Resetea el formulario al abrir el modal
     }
   }, [dispatch, isOpen, reset])
 
@@ -155,6 +154,7 @@ const ModalAddProduct = ({ isOpen, onOpenChange }: ModalAddProductProps) => {
                 filterValue={filterValue}
                 selectedCategories={selectedCategories}
                 selectedProviders={selectedProviders}
+                selectedProductId={selectedProduct?.id ?? null}
                 variant='minimal'
               />
             </ModalBody>
